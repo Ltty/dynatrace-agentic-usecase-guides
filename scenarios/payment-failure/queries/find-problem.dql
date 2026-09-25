@@ -1,0 +1,18 @@
+// Resolver query: find the most recent payment-failure problem instance.
+// Returns both ACTIVE and very-recent CLOSED instances (pattern fires on a schedule).
+// The engine uses the result to derive PAYMENT_FAILURE_PROBLEM, TIMEFRAME_FROM, TIMEFRAME_TO.
+
+fetch dt.davis.problems, from: now()-24h, to: now()
+| filter root_cause_entity_id == "SERVICE-531CE26849E95EC1"
+| filter event.name == "Failure rate increase"
+| sort timestamp desc
+| limit 1
+| fields
+    problem_id    = event.id,
+    display_id    = display_id,
+    status        = event.status,
+    started       = event.start,
+    ended         = event.end,
+    affected_users = dt.davis.affected_users_count,
+    root_cause    = root_cause_entity_name,
+    description   = event.description

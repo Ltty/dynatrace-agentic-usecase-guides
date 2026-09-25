@@ -1,0 +1,30 @@
+{
+  "ok": true,
+  "envelope_version": 1,
+  "result": {
+    "kind": "records",
+    "encoding": "yaml",
+    "records": "- affected_users: \"310\"\n  description: |-\n    # Failure rate increase\n\n    The problem **affects 7 entities** overall.\n\n    A root-cause was detected:\n\n    **Application Observability service, astroshop-payment**\n\n    Error: Failure rate increase\n\n    - The error rate increased to 54.72 %.\n    Endpoint Charge has a failure rate increase.\n\n    - ... and 1 more.\n\n    Following entities were affected by the problem:\n\n    **Application Observability service, astroshop-checkout**\n\n    Error: Failure rate increase\n\n    - The error rate increased to 54.72 %.\n    Service astroshop-checkout has a\u00e2\u20ac\u00a6(+806 chars)\n  display_id: P-26093148\n  ended: \"2026-09-25T09:40:00.000000000Z\"\n  problem_id: -5624695897554131120_1790327160000V2\n  root_cause: astroshop-payment\n  started: \"2026-09-25T09:11:00.000000000Z\"\n  status: CLOSED\n"
+  },
+  "context": {
+    "total": 1,
+    "verb": "query",
+    "resource": "dt.davis.problems",
+    "suggestions": [
+      "# result is yaml (agent default -o auto); -o json returns native JSON",
+      "# metadata trimmed by default; -M=all for the full block",
+      "# description clipped to 500 chars; full values: --max-field-chars 0 with '| fields description'"
+    ],
+    "format": "yaml",
+    "decided": "inline",
+    "truncated": true,
+    "max_field_chars": 500,
+    "truncated_fields": [
+      "description"
+    ]
+  },
+  "metadata": {
+    "executionTimeMilliseconds": 1543,
+    "scannedBytes": 27400806
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "dynatrace-agentic-guides",
+  "version": "0.1.0",
+  "description": "Interactive Dynatrace troubleshooting demos via guided CLI sessions on the Dynatrace Playground.",
+  "skills": [
+    "skills/demo-engine/SKILL.md",
+    "skills/dynatrace-playground/SKILL.md"
+  ],
+  "commands": [
+    "commands/demo.md",
+    "commands/demo-doctor.md"
+  ],
+  "hooks": [
+    ".claude/hooks/guard-dtctl.py"
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "_comment": "Deny-by-default permission model for the Dynatrace Agentic Guides plugin. Only vetted read-only dtctl verbs are allowed. The guard-dtctl.py PreToolUse hook provides a second enforcement layer.",
+  "permissions": {
+    "allow": [
+      "Bash(dtctl doctor*)",
+      "Bash(dtctl query *)",
+      "Bash(dtctl get *)",
+      "Bash(dtctl describe *)",
+      "Bash(dtctl describe-context *)",
+      "Bash(dtctl inventory*)",
+      "Bash(dtctl exec copilot*)",
+      "Bash(dtctl config current-context*)",
+      "Bash(dtctl config describe-context*)",
+      "Bash(dtctl config get-contexts*)",
+      "Bash(dtctl version*)",
+      "Bash(dtctl commands*)",
+      "Bash(python tools/preflight.py*)",
+      "Bash(python tools/validate_scenarios.py*)",
+      "Bash(cat scenarios/*)",
+      "Bash(cat .demo-state.json)"
+    ],
+    "deny": [
+      "Bash(dtctl apply*)",
+      "Bash(dtctl create*)",
+      "Bash(dtctl edit*)",
+      "Bash(dtctl delete*)",
+      "Bash(dtctl restore*)",
+      "Bash(dtctl exec workflow*)",
+      "Bash(dtctl exec analyzer*)",
+      "Bash(curl *)",
+      "WebFetch(*)",
+      "WebSearch(*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .claude/hooks/guard-dtctl.py"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "name": "Dynatrace Agentic Guides",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-22.04",
+  "features": {
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.12"
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "20"
+    }
+  },
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "anthropic.claude-code"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  },
+  "forwardPorts": [3232],
+  "portAttributes": {
+    "3232": {
+      "label": "dtctl OAuth callback",
+      "onAutoForward": "silent"
+    }
+  },
+  "remoteEnv": {
+    "DTCTL_CONTEXT": "playground",
+    "DTCTL_TOKEN_STORAGE": "file"
+  }
+}

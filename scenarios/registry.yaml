@@ -1,0 +1,15 @@
+# Scenario registry — the only file the engine reads to discover available demos.
+# Add a new entry here + a matching scenarios/<id>/ folder to register a new demo.
+# 'state: draft' hides a scenario from /demo list until it's ready.
+
+scenarios:
+  - id: payment-failure
+    path: scenarios/payment-failure
+    title: "Resolve production incidents faster: Payment failure"
+    description: >
+      A payment service failure is crashing checkout for hundreds of users.
+      Trace the root cause from the Davis problem alert through failing spans
+      to the exact bad commit — and see which user sessions were affected.
+    duration_minutes: [8, 15]
+    state: published
+    tags: [incident-response, payments, astroshop, tracing, logs]

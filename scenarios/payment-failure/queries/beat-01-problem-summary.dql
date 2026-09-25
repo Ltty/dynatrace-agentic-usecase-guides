@@ -1,0 +1,18 @@
+// Beat 1 — blast radius summary.
+// Shows the problem, which services are hit, user count, and when it started.
+// Compact output: 8 columns, engine formats into a 4-line summary for the user.
+
+fetch dt.davis.problems, from: now()-24h, to: now()
+| filter root_cause_entity_id == "SERVICE-531CE26849E95EC1"
+| filter event.name == "Failure rate increase"
+| sort timestamp desc
+| limit 1
+| fields
+    display_id,
+    status        = event.status,
+    started       = event.start,
+    affected_users = dt.davis.affected_users_count,
+    root_cause    = root_cause_entity_name,
+    also_affected = affected_entity_names,
+    impact_level  = dt.davis.impact_level,
+    description   = event.description
