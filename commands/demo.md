@@ -8,9 +8,14 @@ Before doing anything else, read these files in order:
 
 These are your standing instructions for the entire session. Hold them.
 
-Also ensure `dtctl` is on PATH:
-- Windows: `export PATH="$PATH:/c/Users/$USERNAME/AppData/Local/dtctl"`  
-- Linux/Mac: `export PATH="$PATH:$HOME/.local/bin"`
+Also ensure `dtctl` is on PATH — new sessions often miss it. Run before any dtctl call:
+```bash
+# Windows (Bash tool):
+export PATH="$PATH:/c/Users/$USERNAME/AppData/Local/dtctl"
+# Linux/Mac:
+export PATH="$PATH:$HOME/.local/bin"
+```
+The preflight script auto-searches common install locations, but this is faster.
 
 ---
 

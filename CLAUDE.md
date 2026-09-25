@@ -9,6 +9,12 @@ production incident — guided, but explorative.
 ## Quick start (for contributors)
 
 ```bash
+# 0. Add dtctl to PATH (new sessions don't always inherit it)
+#    Windows (in Bash tool):
+export PATH="$PATH:/c/Users/$USERNAME/AppData/Local/dtctl"
+#    Linux/Mac:
+export PATH="$PATH:$HOME/.local/bin"
+
 # 1. Authenticate against the Playground (browser, one-time per machine)
 dtctl auth login --context playground --environment https://playground.apps.dynatrace.com
 
@@ -16,7 +22,7 @@ dtctl auth login --context playground --environment https://playground.apps.dyna
 /demo-doctor
 
 # 3. Start a demo
-/demo start payment-failure
+/demo
 ```
 
 ## Architecture in one paragraph

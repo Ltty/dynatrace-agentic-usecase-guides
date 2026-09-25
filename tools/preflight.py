@@ -23,7 +23,45 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).parent.parent
-DTCTL = "dtctl"
+
+# ---------------------------------------------------------------------------
+# Auto-locate dtctl (handles new sessions where PATH wasn't updated yet)
+# ---------------------------------------------------------------------------
+
+def _find_dtctl() -> str:
+    """Return the dtctl executable path, searching common install locations."""
+    import shutil
+
+    # Already on PATH?
+    found = shutil.which("dtctl")
+    if found:
+        return found
+
+    # Common install locations to check
+    candidates = []
+    if sys.platform == "win32":
+        local_app = os.environ.get("LOCALAPPDATA", "")
+        if local_app:
+            candidates.append(os.path.join(local_app, "dtctl", "dtctl.exe"))
+        candidates.append(os.path.expanduser(r"~\AppData\Local\dtctl\dtctl.exe"))
+    else:
+        candidates += [
+            os.path.expanduser("~/.local/bin/dtctl"),
+            "/usr/local/bin/dtctl",
+            "/opt/homebrew/bin/dtctl",
+        ]
+
+    for c in candidates:
+        if os.path.isfile(c):
+            # Add its directory to PATH for any subprocesses this session spawns
+            bin_dir = os.path.dirname(c)
+            os.environ["PATH"] = bin_dir + os.pathsep + os.environ.get("PATH", "")
+            return c
+
+    return "dtctl"  # fallback; will produce a clear error in run_dtctl
+
+
+DTCTL = _find_dtctl()
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -70,7 +108,12 @@ def check_connectivity() -> bool:
     # 1. dtctl installed
     rc, out = run_dtctl("version")
     version = out.strip().split("\n")[0] if rc == 0 else ""
-    all_ok &= check("dtctl installed", rc == 0, version or "not found — run the devcontainer setup")
+    location = f"at {DTCTL}" if rc == 0 and DTCTL != "dtctl" else ""
+    detail = (f"{version} {location}".strip()) if rc == 0 else (
+        f"not found — Windows: $env:PATH += ';$env:LOCALAPPDATA\\dtctl'  "
+        f"| Linux/Mac: export PATH=$HOME/.local/bin:$PATH"
+    )
+    all_ok &= check("dtctl installed", rc == 0, detail)
 
     if rc != 0:
         print("\nInstall dtctl: https://github.com/dynatrace-oss/dtctl")
