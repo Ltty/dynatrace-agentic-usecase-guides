@@ -84,6 +84,18 @@
         }
       }
     },
+    "business_context": {
+      "type": "object",
+      "description": "Used by the ambient discovery flow to frame the scenario as a live incident.",
+      "additionalProperties": false,
+      "properties": {
+        "service_name": { "type": "string" },
+        "avg_order_value_usd": { "type": "number" },
+        "user_action": { "type": "string" },
+        "urgency_phrase": { "type": "string" },
+        "discovery_hook": { "type": "string", "description": "Template string with {placeholders} for affected_users, duration_min, revenue_impact, failure_rate, service_name, user_action." }
+      }
+    },
     "beats": {
       "type": "array",
       "minItems": 1,
