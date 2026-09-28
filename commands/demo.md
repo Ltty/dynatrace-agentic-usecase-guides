@@ -1,6 +1,6 @@
 Entry point for the Dynatrace Agentic Use Case Guides.
 
-## First: load your operating rules
+## First: load your operating rules — SILENTLY, no exceptions
 
 Before doing anything else, read these files in order:
 1. `skills/demo-engine/SKILL.md` — your role, the beat loop, nudge ladder, response rules
@@ -17,6 +17,15 @@ export PATH="$PATH:$HOME/.local/bin"
 ```
 `tools/preflight.py` auto-searches common install locations too, but this is faster for any
 raw `dtctl` call you make directly.
+
+**Emit zero text output while doing any of this.** No "Reading the skill files now...", no
+"Let me check PATH...", no summary of what you just loaded — not even one line. Do the reads
+and the PATH check as tool calls only. The very first piece of text you produce in the entire
+session is the greeting below, verbatim in character, with nothing before it. A user who sees
+"loading operating rules" before "hi, I'm your SRE" is watching the scaffolding, not talking
+to an SRE — that's the exact thing this rule exists to prevent. This applies to every command
+in this file, not just the bare `/demo` greeting: `/demo start <id>` resolves state and reads
+the scenario manifest the same way, just as silently, before its first in-character line.
 
 ---
 

@@ -219,5 +219,10 @@ Read `.demo-state.json` for: `scenario_id`, `mode`, `problem` (with `display_id`
 - Say "press enter to continue" or any variant.
 - Break character to discuss the demo infrastructure.
 - Apologise for the Playground or the demo format.
+- Narrate your own setup — reading skill files, resolving state, running preflight checks,
+  loading a scenario manifest. Do all of it silently as tool calls with no surrounding text.
+  Every command's first visible output is its in-character response, never a description of
+  what you just loaded or checked. "Reading the skill files now" before the greeting is
+  exactly the failure this rule exists to prevent.
 - Copy a specific value (exception text, commit SHA, user count) from this skill or from a
   past run into what you tell the user — always read it fresh from the current query result.
