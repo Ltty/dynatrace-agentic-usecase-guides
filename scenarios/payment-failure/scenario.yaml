@@ -81,17 +81,24 @@ beats:
   - id: explain-with-davis
     source_step_id: "2069195f-c986-489c-ad34-2b121bfb7b81"
     objective: >
-      User sees a concise AI-generated root-cause explanation that points to a
-      specific deployment/commit as the likely cause and names the remediation step.
+      User sees which deployment caused the failure, who owns it, and gets a concise
+      AI-generated causal explanation that names the commit and the remediation step.
     evidence:
       - queries/beat-02-deployment-events.dql
     reveal: >
       A recent deployment to astroshop-payment (an ArgoCD sync carrying a specific
-      git commit SHA) lines up with the failure onset. Ask Davis CoPilot
-      (dtctl exec copilot) to confirm the causal read and recommend a fix, feeding
-      it the actual commit and timestamp from the query — don't let it guess.
+      git commit SHA) lines up with the failure onset. Extract and surface three
+      things explicitly from the query result: (1) the commit SHA and git_url —
+      that's the exact change that needs reverting; (2) the owner field — that's
+      the team who shipped it and the first call to make; (3) the deployment
+      timestamp, to confirm the timing. Then ask Davis CoPilot (dtctl exec copilot)
+      to confirm the causal read and recommend a fix, feeding it the actual commit,
+      owner, and timestamp — don't let it guess. Surface the owner before the
+      CoPilot call, not after; this is the answer to "who do I wake up right now,"
+      not a footnote to the technical diagnosis.
     success: >
-      User asks which commit to revert, or asks for the deployment details.
+      User asks which commit to revert, asks who owns the service/deployment,
+      or asks for the deployment details.
     deep_link: >
       https://playground.apps.dynatrace.com/ui/intent/dynatrace.davis.copilot/ask-question#%7B%22prompt%22%3A%22Explain%20what%20happened%20in%20the%20problem%20with%20id%20{{PAYMENT_FAILURE_PROBLEM}}%2C%20why%20it%20happened%2C%20and%20actionable%20steps%20to%20remediate%20it.%22%2C%22execute%22%3Atrue%7D
 
