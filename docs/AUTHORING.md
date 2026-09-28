@@ -14,9 +14,6 @@ scenarios/my-new-demo/
 │   ├── find-problem.dql   # resolver: finds the live problem instance
 │   ├── beat-01-*.dql      # one DQL per beat evidence entry
 │   └── ...
-├── fixtures/
-│   ├── problem.json               # frozen resolver output for offline/fixture mode
-│   └── beat-NN-*.json             # frozen per-beat evidence (see step 9)
 └── source/
     ├── usecase.json           # original guide JSON (provenance)
     └── video-transcript.vtt   # video narration transcript, if you have one (provenance)
@@ -54,8 +51,8 @@ Required output fields (name them exactly):
 - `affected_users` — `dt.davis.affected_users_count`
 - `root_cause` — `root_cause_entity_name`
 
-Always filter `from: now()-24h, to: now()` — patterns fire on a schedule and this window
-reliably catches the most recent occurrence.
+Always filter `from: now()-48h, to: now()` — patterns fire on a schedule (typically twice
+daily) and this window reliably catches the most recent occurrence with comfortable margin.
 
 **Filter `dt.davis.is_duplicate == false`, not on `event.name`.** Recurring problem patterns
 fire as a cluster of near-duplicate Davis problems (same root cause, overlapping windows,
@@ -147,23 +144,7 @@ A chained query's fixture (`fixtures/beat-04-trace-waterfall.json`, captured the
 any other beat fixture) is fully self-contained — in fixture mode the engine calls `run-query`
 on it directly with no `--var` needed at all, since the fixture already holds resolved data.
 
-### 4. Capture beat fixtures
-
-```bash
-python tools/capture_fixtures.py my-new-demo
-```
-
-This resolves the scenario against a currently-live (or recently-closed) problem and writes
-`fixtures/problem.json` plus one `fixtures/<beat-query-stem>.json` per evidence query — all
-captured from a real run, never hand-written. It refuses to run if nothing is live in the
-last 24h (there'd be nothing fresh to capture); re-run it when the pattern next fires.
-
-Beat fixtures let the demo run fully offline in `fixture` mode — `tools/preflight.py run-query`
-automatically prefers a matching fixture over a live call whenever `.demo-state.json`'s
-`mode` is `fixture`, and falls back to attempting a live call only if no fixture exists yet
-for that specific query.
-
-### 5. Write the beats
+### 4. Write the beats
 
 Each beat in `scenario.yaml` maps to one step in the source guide JSON.
 Fields:
@@ -267,20 +248,7 @@ is the gate that catches a wrong field name or a bad `round()` call before a liv
 does — do not skip it and do not consider a scenario done until it passes clean. This is
 the standing regression check; wire it into CI for every scenario change.
 
-### 10. Run in both modes
-
-```bash
-python tools/preflight.py resolve my-new-demo --write
-```
-
-Confirm the `mode` field is one of `live_active`, `live_recent`, or `fixture` — and that a
-`fixture`-mode run still produces the identical narrative using the fixtures captured in
-step 4 (strip `dtctl` from PATH and re-run the beat queries via `run-query` to prove nothing
-silently depends on a live call — see `docs/SECURITY.md`-adjacent testing notes, or just
-temporarily rename the fixture directory to confirm the opposite: that live mode doesn't
-silently depend on the fixtures either).
-
-### 11. Change state to `published` and commit
+### 10. Change state to `published` and commit
 
 Update `scenarios/registry.yaml` → `state: published`.
 
@@ -288,9 +256,6 @@ Update `scenarios/registry.yaml` → `state: published`.
 
 - Scenario ID: `[topic]-[variant]`, e.g. `k8s-oom-kill`, `db-slow-query`
 - DQL files: `beat-NN-[signal].dql`, e.g. `beat-03-service-failure-rate.dql`
-- Fixture files: `problem.json` (resolver) + `<query-file-stem>.json` per beat query,
-  e.g. `beat-04-failing-spans.dql` → `fixtures/beat-04-failing-spans.json`
-  (this exact naming is what `run-query`'s fixture fallback and `capture_fixtures.py` rely on)
 
 ## Conversation design lessons (from the first scenario's test runs)
 
@@ -322,7 +287,9 @@ The engine reads your scenario manifest and runs your queries. It will:
 - Always offer the deep link from your beat at the end of the beat
 - Follow the user wherever they diverge (side quest, front-run, compound question), then
   explicitly re-anchor by naming what's still unknown and proposing the next step back on the path
-- Fall back to your fixtures automatically whenever the resolved `mode` is `fixture`
+- Print a DQL snippet and liveness proof stamp (queryId, scannedBytes, ms) to stderr for
+  every beat query, and include both in its chat narration so the user can see the query ran
+  live against the Playground
 
 What it will not do:
 - Guarantee `dtctl exec copilot` output is deterministic (use it for narrative colour fed by

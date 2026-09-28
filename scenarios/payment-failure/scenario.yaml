@@ -44,7 +44,6 @@ scope:
 resolve:
   problem:
     query: queries/find-problem.dql
-    fallback: fixtures/problem.json
 
 # NOTE ON REVEALS: every reveal below describes the SHAPE of the finding, not
 # its current values. The pattern rotates between problem cycles — commit SHA,

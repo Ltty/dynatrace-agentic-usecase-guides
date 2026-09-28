@@ -5,11 +5,11 @@ preflight.py — connectivity gate, live resolver, and query-substitution helper
 Modes:
   python tools/preflight.py                                   # connectivity + auth check
   python tools/preflight.py resolve <scenario-id> [--write]    # resolve live problem, derive timeframe
-  python tools/preflight.py run-query <scenario-id> <dql-path> # substitute placeholders + execute
+  python tools/preflight.py run-query <scenario-id> <dql-path> [--var KEY=VALUE ...] [--render waterfall]
 
 Exit codes:
   0 = all checks passed / live problem found
-  1 = check failed / no live problem (fixture fallback used)
+  1 = check failed / no live problem found (Playground is quiet)
   2 = usage error
 
 resolve output: JSON to stdout — the .demo-state.json shape.
@@ -106,6 +106,56 @@ def substitute_placeholders(text: str, placeholders: dict) -> str:
     return PLACEHOLDER_RE.sub(_sub, text)
 
 
+def _extract_dql_snippet(dql: str, max_lines: int = 4) -> list:
+    """Extract the most meaningful lines from a DQL query for display."""
+    lines = [l.rstrip() for l in dql.splitlines() if l.strip()]
+    important = []
+    rest = []
+    for l in lines:
+        s = l.strip()
+        if s.startswith("fetch ") or s.startswith("| filter ") or s.startswith("| summarize "):
+            important.append(l)
+        elif not s.startswith("//"):
+            rest.append(l)
+
+    snippet = (important + rest)[:max_lines]
+    leftover = len(important + rest) - max_lines
+    if leftover > 0:
+        snippet.append(f"    … ({leftover} more lines)")
+    return snippet
+
+
+def _print_proof_stamp(dql: str, envelope: dict):
+    """Print DQL snippet + liveness proof to stderr after a successful query."""
+    snippet = _extract_dql_snippet(dql)
+    meta = envelope.get("metadata", {})
+    ctx = envelope.get("context", {})
+
+    qid = meta.get("queryId", "")
+    qid_short = qid[:8] if qid else "—"
+
+    scanned_bytes = meta.get("scannedBytes", 0)
+    elapsed_ms = meta.get("executionTimeMilliseconds", "?")
+    total = ctx.get("total", "?")
+
+    if isinstance(scanned_bytes, int) and scanned_bytes > 0:
+        scanned_str = f"{scanned_bytes / 1_000_000:.0f}MB"
+    else:
+        scanned_str = "?"
+
+    proof = f"→ live · queryId {qid_short} · {total} records · {scanned_str} scanned · {elapsed_ms}ms"
+
+    max_len = max((len(l) for l in snippet), default=0)
+    w = min(72, max(60, max_len + 4, len(proof) + 4))
+    bar = "─" * w
+
+    print(bar, file=sys.stderr)
+    for l in snippet:
+        print(l, file=sys.stderr)
+    print(proof, file=sys.stderr)
+    print(bar, file=sys.stderr)
+
+
 # ---------------------------------------------------------------------------
 # Connectivity check
 # ---------------------------------------------------------------------------
@@ -177,9 +227,9 @@ def _load_manifest(scenario_id: str):
 def resolve_scenario(scenario_id: str, write_state: bool = False, quiet: bool = False):
     """Resolve a scenario's live problem state.
 
-    Returns (exit_code, state_dict_or_None). exit_code 0 = live, 1 = fixture/failure,
-    2 = usage error. When quiet=True, suppresses the stdout JSON dump (for programmatic
-    callers like validate_scenarios.py --live) but still returns the state dict.
+    Returns (exit_code, state_dict_or_None). exit_code 0 = live problem found,
+    1 = no live problem (Playground quiet), 2 = usage error.
+    When quiet=True, suppresses the stdout JSON dump but still returns the state dict.
     """
     scenario_dir, manifest = _load_manifest(scenario_id)
     if manifest is None:
@@ -189,9 +239,7 @@ def resolve_scenario(scenario_id: str, write_state: bool = False, quiet: bool = 
         return 2, None
 
     query_rel = manifest["resolve"]["problem"]["query"]
-    fallback_rel = manifest["resolve"]["problem"]["fallback"]
     query_path = scenario_dir / query_rel
-    fallback_path = scenario_dir / fallback_rel
 
     if not query_path.exists():
         msg = {"error": f"resolver query not found: {query_path}"}
@@ -206,36 +254,22 @@ def resolve_scenario(scenario_id: str, write_state: bool = False, quiet: bool = 
         records = envelope.get("result", {}).get("records", [])
         if records:
             rec = records[0]
-            return _emit_state(scenario_id, rec, live=True, write_state=write_state, quiet=quiet)
-
-    if fallback_path.exists():
-        try:
-            with open(fallback_path) as f:
-                fixture = json.load(f)
-            fixture_records = fixture.get("result", {}).get("records", [])
-            raw_records = fixture_records
-            if isinstance(raw_records, str):
-                import yaml as _yaml
-                raw_records = _yaml.safe_load(raw_records) or []
-            if raw_records:
-                rec = raw_records[0] if isinstance(raw_records, list) else raw_records
-                return _emit_state(scenario_id, rec, live=False, write_state=write_state, quiet=quiet)
-        except Exception as e:
-            msg = {"error": f"fixture load failed: {e}"}
-            if not quiet:
-                print(json.dumps(msg))
-            return 1, None
+            return _emit_state(scenario_id, rec, write_state=write_state, quiet=quiet)
 
     msg = {
-        "error": "no live problem found and fixture load failed",
-        "hint": f"Capture a fixture with: python tools/capture_fixtures.py {scenario_id}"
+        "status": "no_live_problem",
+        "message": (
+            f"Playground is quiet — no live problem matching scenario '{scenario_id}' "
+            f"in the last 48 hours. This pattern typically fires twice daily; "
+            f"try again shortly or check /demo-doctor."
+        ),
     }
     if not quiet:
-        print(json.dumps(msg))
+        print(json.dumps(msg, indent=2))
     return 1, None
 
 
-def _emit_state(scenario_id: str, rec: dict, live: bool, write_state: bool = False, quiet: bool = False):
+def _emit_state(scenario_id: str, rec: dict, write_state: bool = False, quiet: bool = False):
     problem_id = rec.get("problem_id", rec.get("event.id", ""))
     display_id = rec.get("display_id", "")
     started = rec.get("started", rec.get("event.start", ""))
@@ -267,14 +301,7 @@ def _emit_state(scenario_id: str, rec: dict, live: bool, write_state: bool = Fal
         tf_from_ms, tf_to_ms = "now()-2h", "now()"
         dql_from, dql_to = "now()-2h", "now()"
 
-    # Three-state mode: live_active (still firing), live_recent (closed but
-    # queryable — the common case), fixture (nothing live in the last 24h).
-    if not live:
-        mode = "fixture"
-    elif status == "ACTIVE" or not ended:
-        mode = "live_active"
-    else:
-        mode = "live_recent"
+    mode = "live_active" if (status == "ACTIVE" or not ended) else "live_recent"
 
     state = {
         "scenario_id": scenario_id,
@@ -309,10 +336,7 @@ def _emit_state(scenario_id: str, rec: dict, live: bool, write_state: bool = Fal
         if not quiet:
             print(f"# state written to {STATE_PATH}", file=sys.stderr)
 
-    if mode == "fixture" and not quiet:
-        print("# NOTE: running in fixture mode — no live problem in last 24h", file=sys.stderr)
-
-    return (0 if live else 1), state
+    return 0, state
 
 
 # ---------------------------------------------------------------------------
@@ -321,7 +345,8 @@ def _emit_state(scenario_id: str, rec: dict, live: bool, write_state: bool = Fal
 
 def run_query_with_state(dql_path: Path, state: dict, extra_vars: dict = None):
     """Substitute placeholders from state (plus any extra_vars, e.g. a chained-in
-    TRACE_ID discovered from a prior query) and execute.
+    TRACE_ID discovered from a prior query) and execute. Prints a DQL snippet +
+    liveness proof stamp to stderr after each successful call.
     Returns (ok, envelope_or_None, error_str).
     """
     dql_text = dql_path.read_text(encoding="utf-8")
@@ -333,7 +358,9 @@ def run_query_with_state(dql_path: Path, state: dict, extra_vars: dict = None):
     except KeyError as e:
         return False, None, str(e)
 
-    rc, out, err = run_dtctl("query", substituted, "-o", "json", "--max-field-chars", "0")
+    rc, out, err = run_dtctl(
+        "query", substituted, "-o", "json", "--max-field-chars", "0", "-M=all"
+    )
     if rc != 0:
         return False, None, f"dtctl query failed (exit {rc}): {err}"
 
@@ -342,29 +369,13 @@ def run_query_with_state(dql_path: Path, state: dict, extra_vars: dict = None):
         error_detail = envelope.get("error", {}) if envelope else {"message": "unparseable output"}
         return False, envelope, f"query returned ok=false: {error_detail}"
 
+    _print_proof_stamp(substituted, envelope)
+
     return True, envelope, ""
 
 
-def run_query_with_fixture_fallback(dql_path: Path, state: dict, extra_vars: dict = None):
-    """Like run_query_with_state, but if state['mode'] == 'fixture' and a matching
-    fixture file exists (fixtures/<dql-stem>.json — see tools/capture_fixtures.py),
-    returns the captured fixture instead of calling dtctl live. Falls through to a
-    live attempt (with extra_vars, if any) if no matching fixture exists yet.
-    """
-    if state.get("mode") == "fixture":
-        scenario_id = state.get("scenario_id", "")
-        fixture_path = REPO_ROOT / "scenarios" / scenario_id / "fixtures" / (dql_path.stem + ".json")
-        if fixture_path.exists():
-            try:
-                with open(fixture_path) as f:
-                    envelope = json.load(f)
-                return True, envelope, ""
-            except Exception as e:
-                return False, None, f"fixture load failed ({fixture_path.name}): {e}"
-    return run_query_with_state(dql_path, state, extra_vars)
-
-
-def run_query(scenario_id: str, dql_rel_path: str, extra_vars: dict = None) -> int:
+def run_query(scenario_id: str, dql_rel_path: str, extra_vars: dict = None,
+              render: str = None) -> int:
     scenario_dir = REPO_ROOT / "scenarios" / scenario_id
     dql_path = scenario_dir / dql_rel_path
     if not dql_path.exists():
@@ -378,10 +389,24 @@ def run_query(scenario_id: str, dql_rel_path: str, extra_vars: dict = None) -> i
     with open(STATE_PATH) as f:
         state = json.load(f)
 
-    ok, envelope, error_str = run_query_with_fixture_fallback(dql_path, state, extra_vars)
+    ok, envelope, error_str = run_query_with_state(dql_path, state, extra_vars)
     if not ok:
         print(json.dumps({"error": error_str}))
         return 1
+
+    if render == "waterfall":
+        renderer = REPO_ROOT / "tools" / "render_waterfall.py"
+        if renderer.exists():
+            proc = subprocess.run(
+                [sys.executable, str(renderer)],
+                input=json.dumps(envelope),
+                capture_output=True, text=True
+            )
+            if proc.returncode == 0:
+                print(proc.stdout)
+                return 0
+            # Renderer failed — fall through to raw JSON
+            print(f"# waterfall render failed: {proc.stderr.strip()}", file=sys.stderr)
 
     print(json.dumps(envelope))
     return 0
@@ -421,15 +446,22 @@ def main():
         sys.exit(exit_code)
 
     if args[0] == "run-query" and len(args) >= 3:
+        render = None
+        remaining = args[3:]
+        if "--render" in remaining:
+            idx = remaining.index("--render")
+            if idx + 1 < len(remaining):
+                render = remaining[idx + 1]
+                remaining = remaining[:idx] + remaining[idx + 2:]
         try:
-            extra_vars = _parse_var_flags(args[3:])
+            extra_vars = _parse_var_flags(remaining)
         except ValueError as e:
             print(json.dumps({"error": str(e)}))
             sys.exit(2)
-        sys.exit(run_query(args[1], args[2], extra_vars=extra_vars or None))
+        sys.exit(run_query(args[1], args[2], extra_vars=extra_vars or None, render=render))
 
     print(f"Usage: {sys.argv[0]} [check|resolve <scenario-id> [--write]|"
-          f"run-query <scenario-id> <dql-path> [--var KEY=VALUE ...]]",
+          f"run-query <scenario-id> <dql-path> [--var KEY=VALUE ...] [--render waterfall]]",
           file=sys.stderr)
     sys.exit(2)
 

@@ -69,16 +69,12 @@
       "properties": {
         "problem": {
           "type": "object",
-          "required": ["query", "fallback"],
+          "required": ["query"],
           "additionalProperties": false,
           "properties": {
             "query": {
               "type": "string",
               "description": "Path to the DQL file that finds the live problem. Relative to scenario dir."
-            },
-            "fallback": {
-              "type": "string",
-              "description": "Path to the fixture JSON to use when the live problem is not found."
             }
           }
         }

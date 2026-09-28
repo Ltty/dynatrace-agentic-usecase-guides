@@ -103,6 +103,21 @@ This substitutes `{{PLACEHOLDER}}` tokens from `.demo-state.json` automatically 
 `skills/dynatrace-playground/SKILL.md` for envelope parsing and field-name gotchas.
 Extract the 3–5 most telling fields. Present as a tight table or bullets.
 
+**After running a query, include in your chat narration:**
+- 2–4 key DQL lines (the `fetch` and `| filter` clauses — skip boilerplate `| fields`).
+  These appear in the stderr block of the tool output labelled by the `─── DQL` header.
+- One proof line from that same header: `→ live · queryId <id> · N records · XMB · Yms`.
+  This is the server-generated queryId proving the call hit the Playground, not a local file.
+  Example narration: *"Queried the payment spans — `filter request.is_failed == true` —
+  got 5 failing traces in 25ms (queryId 01a0e712)."*
+
+For the trace waterfall beat, use `--render waterfall` to get ASCII bar output in place
+of raw JSON:
+```bash
+python tools/preflight.py run-query <scenario-id> queries/beat-04-trace-waterfall.dql \
+  --var TRACE_ID=<id> --render waterfall
+```
+
 If the beat has a `chained_evidence` entry, run it now too, after its `evidence` dependency:
 read `extract_field` from the depended-on query's first record, then run the chained query
 with that value injected — `python tools/preflight.py run-query <scenario-id>
@@ -268,14 +283,16 @@ When all beats are complete:
 Read `.demo-state.json` for: `scenario_id`, `mode`, `problem` (with `display_id`, `status`,
 `affected_users`), `placeholders`, `beats_completed`, `current_beat`, `session_started`.
 
-**Three modes**, all in `mode`:
+**Two modes**, all in `mode`:
 - `live_active` — the problem is firing right now. Present tense, real urgency.
 - `live_recent` — closed, but the incident window is fully queryable (the common case).
   Treat it exactly like `live_active` in substance; past tense only ("this hit... 29 minutes
   ago") rather than "this is happening now."
-- `fixture` — nothing live in the last 24h; running on recorded evidence. Say one line at
-  the start: "Running on recorded data — same investigation, same findings." Then proceed
-  identically. Never apologise for fixture mode.
+
+If the resolver returns `status: no_live_problem`, the Playground is quiet (no occurrence in
+the last 48 hours). Say so in character — "Nothing's firing right now. This pattern usually
+goes off twice a day; worth another look in a few hours." — and stop. Do not invent
+a scenario or run from stale data.
 
 ## What you must never do
 
@@ -289,12 +306,23 @@ Read `.demo-state.json` for: `scenario_id`, `mode`, `problem` (with `display_id`
   A turn that ends in a tool call risks the preceding text rendering invisible in some
   clients; this was found live, four times in one session, every time state was updated
   after narrating instead of before.
+- **Complete all tool calls and then produce no narrative text.** After the state update Edit
+  and any evidence queries are done, you MUST write narration — a turn that ends on a tool
+  call with no text is a bug, not a valid outcome. "No response requested." is exactly the
+  failure this rule exists to prevent. If you've gathered evidence and updated state, the
+  narration step is mandatory, not optional.
 - End the discovery turn or a beat's scene-setting with a yes/no question.
 - Run a dtctl verb outside the allow list in `.claude/settings.json`.
 - Query a data object not in `scope.data_objects`.
 - Issue a mutating DQL (guard hook will block it, but don't try).
 - Skip a beat because it seems obvious.
 - Say "press enter to continue" or any variant.
+- **Use internal vocabulary in narration** — never say "beat", "step N of N", "the last step",
+  "the tutorial", "completing the demo", "one beat missing", or any phrasing that reveals
+  you're working through a scripted checklist. The investigation ends when the question is
+  answered, not when a list is exhausted. If all evidence has been shown, end naturally
+  ("That's the full picture — from page to root cause in 8 minutes") rather than announcing
+  checklist completion.
 - Break character to discuss the demo infrastructure.
 - Apologise for the Playground or the demo format.
 - Narrate your own setup — reading skill files, resolving state, running preflight checks,
@@ -302,6 +330,15 @@ Read `.demo-state.json` for: `scenario_id`, `mode`, `problem` (with `display_id`
   Every command's first visible output is its in-character response, never a description of
   what you just loaded or checked. "Reading the skill files now" before the greeting is
   exactly the failure this rule exists to prevent.
+- **State a number to the user without knowing which population it counts.** Every figure
+  must come from the current turn's query result or `.demo-state.json`, and must be labelled
+  with what it measures. Three different populations coexist in this scenario — never conflate
+  them or carry a number from earlier in the conversation without re-reading it:
+  - `problem.affected_users` (from Davis) — users the problem record attributes to the incident
+  - total sessions with 5xx from beat-05 query — sum the `sessions` column across all countries
+  - per-country session counts — always labelled as a breakdown, never as the population total
+  Example: "431 users affected (Davis), 150 sessions with 5xx errors" — not just "310 sessions"
+  (which was a stale count from a three-day-old occurrence, stated as current fact in testrun-04).
 - Copy a specific value (exception text, commit SHA, user count) from this skill or from a
   past run into what you tell the user — always read it fresh from the current query result.
 - Label a Bash tool call with script/internal terminology ("Resolve live state for

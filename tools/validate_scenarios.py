@@ -139,7 +139,6 @@ def validate_scenario_dir(scenario_dir: Path, schema: dict, live: bool = False) 
     resolve = manifest.get("resolve", {})
     problem = resolve.get("problem", {})
     _check_path(scenario_dir, problem.get("query", ""), "resolve.problem.query")
-    _check_path(scenario_dir, problem.get("fallback", ""), "resolve.problem.fallback")
 
     # --- Beats ---
     for beat in manifest.get("beats", []):
@@ -178,10 +177,7 @@ def validate_scenario_dir(scenario_dir: Path, schema: dict, live: bool = False) 
         for dql_file in queries_dir.glob("*.dql"):
             _lint_dql(dql_file, extra_known=chained_var_names)
 
-    # --- Fixtures exist ---
-    fixtures_dir = scenario_dir / "fixtures"
-    if not fixtures_dir.exists() or not any(fixtures_dir.glob("*.json")):
-        warn("No fixtures found. Scenario will not work offline (fixture-mode fallback).")
+    # Fixture files are no longer used — all queries run live against the Playground.
 
     _report()
     static_ok = len(errors) == 0

@@ -14,11 +14,44 @@ python tools/preflight.py run-query <scenario-id> <relative-dql-path>
 ```
 
 This reads `.demo-state.json`, substitutes every `{{TOKEN}}` in the file against
-`placeholders`, executes via dtctl, and prints the envelope. Example:
+`placeholders`, executes via dtctl, prints a liveness proof stamp to stderr, and emits the
+envelope to stdout. Example:
 
 ```bash
 python tools/preflight.py run-query payment-failure queries/beat-04-failing-spans.dql
 ```
+
+For the trace waterfall beat, append `--render waterfall` to get ASCII bar output:
+
+```bash
+python tools/preflight.py run-query payment-failure queries/beat-04-trace-waterfall.dql \
+  --var TRACE_ID=<id> --render waterfall
+```
+
+## Liveness proof stamp
+
+After each successful `run-query` call, `preflight.py` prints a stamp to stderr:
+
+```
+────────────────────────────────────────────────────────────────────────
+fetch spans, from: "2026-09-27T20:51:00Z", to: "2026-09-27T22:10:00Z"
+| filter trace.id == toUid("8af0d233...")
+| filter request.is_failed == true
+→ live · queryId 01a0e712 · 16 records · 167MB scanned · 33ms
+────────────────────────────────────────────────────────────────────────
+```
+
+**Include this in your chat narration** — a 2-4 line DQL snippet (the `fetch` and `| filter`
+clauses) followed by the `→ live` line. This proves the call hit the Playground in real time,
+not a local file. The `queryId` is server-generated and changes on every call. Example narration:
+*"Queried the failing payment spans — `filter request.is_failed == true` — 5 traces in 25ms
+(queryId 01a0e712, 167MB scanned)."*
+
+The proof stamp fields come from `envelope.metadata` (with `-M=all` passed by `run_query_with_state`):
+- `queryId` — server-generated UUID; first 8 chars are enough to distinguish runs
+- `executionTimeMilliseconds` — wall-clock query time at the server
+- `scannedBytes` — data volume scanned, proves a real index walk happened
+- `context.total` — record count returned
 
 For ad-hoc queries with no placeholders (exploring beyond the scripted beats), call dtctl directly:
 
@@ -58,14 +91,20 @@ string in results. `filter trace.id == "<hex>"` and `matchesValue(trace.id, "<he
 silently match nothing — no error, `matchesValue` only warns if you pass `--metadata` to see
 it. Cast the literal first: `filter trace.id == toUid("<hex>")`.
 
-**A full trace waterfall is large (30+ spans on a typical Astroshop request) — filter to
-`span.kind == "server"`** to collapse it to one row per service hop (frontend receives,
-checkout receives, payment receives — dropping the internal client-side calls each hop
-makes to its own dependencies). That's usually still a dozen-plus rows; the evidence query
-returns all of them, but *presenting* the beat means condensing the run of successful
-downstream calls into one summary line and showing only the 3-4 rows that actually matter
-(entry point, the calling service, the one that failed) — see the beat's own `staging` field
-for exactly what to collapse.
+**For the trace waterfall, use `--render waterfall`** to get proportional ASCII bars
+instead of raw JSON. The `beat-04-trace-waterfall.dql` query fetches all spans (no
+`span.kind` filter) so the renderer has the full parent chain for nesting. The renderer
+collapses consecutive successful leaf siblings into one summary line and marks failing
+spans with ✗. Run the chained query with render like this:
+
+```bash
+python tools/preflight.py run-query payment-failure queries/beat-04-trace-waterfall.dql \
+  --var TRACE_ID=<trace_id_from_failing_spans> --render waterfall
+```
+
+The renderer handles the 6 spans in the Astroshop trace whose `parent_id` points at a span
+outside the result set (mixed OneAgent/OTel instrumentation) via a time-containment fallback:
+it finds the smallest containing span by `[start, end]` interval rather than exact parent match.
 
 ## Response envelope shape
 
@@ -79,7 +118,7 @@ for exactly what to collapse.
     "records": [ ... ]     // per-row delta; absent key means use constant
   },
   "context": { "total": 5, "suggestions": [ ... ], "truncated": true },
-  "metadata": { "executionTimeMilliseconds": 46, "scannedBytes": 10064354 }
+  "metadata": { "executionTimeMilliseconds": 46, "scannedBytes": 10064354, "queryId": "01a0e712-..." }
 }
 ```
 

@@ -9,7 +9,7 @@
 // problems" (it correlates payment, checkout, and the synthetic browser check), while
 // "Failure rate increase" only matches the child records this filter is meant to collapse.
 
-fetch dt.davis.problems, from: now()-24h, to: now()
+fetch dt.davis.problems, from: now()-48h, to: now()
 | filter root_cause_entity_id == "SERVICE-531CE26849E95EC1"
 | filter dt.davis.is_duplicate == false
 | sort timestamp desc

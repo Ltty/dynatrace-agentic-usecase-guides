@@ -1,11 +1,13 @@
 // Beat 5 — user sessions impacted by 5xx errors during checkout, broken down
 // by country, with session replay availability.
 //
+// No limit — returns all countries. The engine sums the `sessions` column to
+// derive the true total; never present the top-N sum as the full population.
+//
 // Field notes (all verified live):
 // - error.http_5xx_count > 0 (not matchesPhrase(useraction.errors, ...) —
 //   that field doesn't exist on this data object)
 // - characteristics.has_replay (not session.hasSessionReplay)
-// - start_time (not startTime) if a time bucket is ever added back
 // - geo.country.iso_code for the geo breakdown
 // - user.sessions is NOT tagged with a service entity ID — do not filter on
 //   dt.entity.service here; scoping to the incident timeframe is sufficient
@@ -18,4 +20,3 @@ fetch user.sessions, from: "{{DQL_TIMEFRAME_FROM}}", to: "{{DQL_TIMEFRAME_TO}}"
     with_replay = countIf(characteristics.has_replay == true),
     by: { country = geo.country.iso_code }
 | sort sessions desc
-| limit 10
