@@ -147,7 +147,7 @@ def _print_proof_stamp(dql: str, envelope: dict):
 
     max_len = max((len(l) for l in snippet), default=0)
     w = min(72, max(60, max_len + 4, len(proof) + 4))
-    bar = "─" * w
+    bar = "-" * w
 
     print(bar, file=sys.stderr)
     for l in snippet:

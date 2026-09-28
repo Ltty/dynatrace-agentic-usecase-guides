@@ -33,12 +33,12 @@ python tools/preflight.py run-query payment-failure queries/beat-04-trace-waterf
 After each successful `run-query` call, `preflight.py` prints a stamp to stderr:
 
 ```
-────────────────────────────────────────────────────────────────────────
+------------------------------------------------------------------------
 fetch spans, from: "2026-09-27T20:51:00Z", to: "2026-09-27T22:10:00Z"
 | filter trace.id == toUid("8af0d233...")
 | filter request.is_failed == true
 → live · queryId 01a0e712 · 16 records · 167MB scanned · 33ms
-────────────────────────────────────────────────────────────────────────
+------------------------------------------------------------------------
 ```
 
 **Include this in your chat narration** — a 2-4 line DQL snippet (the `fetch` and `| filter`

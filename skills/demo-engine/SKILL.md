@@ -132,16 +132,16 @@ though the raw command line and its output are inherent to Claude Code's tool-ca
 transparency and out of scope to hide. Get the label right and the whole exchange reads
 like an investigation instead of a script execution log.
 
-**4. Update state** — now, immediately, before writing a word of narration:
-Edit `.demo-state.json` — append the beat id to `beats_completed`, increment `current_beat`.
+**4. Track beat completion in conversation context — no file write.**
+Note which beats are done and what the current one is from the conversation itself; do not
+edit `.demo-state.json` mid-session. The file is written once at session start by
+`resolve --write` (needed by `run-query` for placeholder substitution) and never touched again.
+There is no Edit call here — the entire beat's tool calls are the evidence queries above.
 
 **Every tool call for this beat happens before you say anything about it — never after.**
-A turn that ends in a tool call (this `Edit`, or any trailing Bash/Read) risks the preceding
-narrative text rendering as invisible in some Claude Code clients' compact views — a user
-reported "no visible output" four times in one session, every time, right after this exact
-`Edit` landed at the end of a turn. The fix is strict ordering, not hoping the client renders
-it fine: gather evidence, update state, and only then write the narration below. The very
-last thing in your turn must be plain text.
+A turn that ends in a trailing Bash/Read after the narrative text risks the preceding text
+rendering as invisible in some Claude Code clients' compact views — gather evidence first,
+then write narration. The very last thing in your turn must be plain text.
 
 **5. Narrate your own read, then invite the next step.**
 Show the evidence, then give your interpretation as confident, reasoned SRE analysis — you
@@ -230,9 +230,8 @@ Run the query, show the data, interpret it fully, not a token gesture, then re-a
 Go there. Run the evidence for the beat they named and narrate it exactly like any other beat.
 Fold in whatever a skipped beat would have established if it's needed for the jump to make
 sense (e.g., they need to know a deployment happened before an exception is interesting) —
-weave it into the narration rather than making them backtrack. Mark the folded-in beat(s) as
-completed in `.demo-state.json` — same as rule 4 in the beat loop, do this before narrating,
-not after.
+weave it into the narration rather than making them backtrack. Treat the folded-in beat(s)
+as completed in your conversation tracking — same ordering as rule 4, evidence then narration.
 
 **Compound requests** ("what does this mean? frontend or backend? what's the root cause?"):
 Answer every clause in one pass, in the order asked — this is one question with several parts,
@@ -250,7 +249,7 @@ part of the demo".
 Target 8–15 minutes total (from `scenario.yaml → duration_minutes`). Concretely:
 - ≤2 evidence queries per beat unless the user explicitly asks for more.
 - ≤10 lines per evidence turn (fields shown, interpretation, deep link, question).
-- Check elapsed time (`session_started` in `.demo-state.json`) after each beat. If you're
+- Check elapsed time (compare `session_started` from `.demo-state.json` against now) after each beat. If you're
   past the 15-minute mark and beats remain, start compressing: fold remaining beats' evidence
   together rather than running the full loop on each, and head toward the close.
 
@@ -280,8 +279,9 @@ When all beats are complete:
 
 ## Session state
 
-Read `.demo-state.json` for: `scenario_id`, `mode`, `problem` (with `display_id`, `status`,
-`affected_users`), `placeholders`, `beats_completed`, `current_beat`, `session_started`.
+Read `.demo-state.json` once at session start for: `scenario_id`, `mode`, `problem` (with
+`display_id`, `status`, `affected_users`), `placeholders`, `session_started`. Track
+`beats_completed` and `current_beat` in conversation context — no mid-session file writes.
 
 **Two modes**, all in `mode`:
 - `live_active` — the problem is firing right now. Present tense, real urgency.
@@ -301,16 +301,13 @@ a scenario or run from stale data.
   one run past a single unanswered turn before you fill it in yourself.
 - Leave a side quest, front-run, or compound question dangling without re-anchoring — always
   name what's still unknown and propose the concrete next step back on the path.
-- End a turn with a tool call (an `Edit` to `.demo-state.json`, a trailing Bash/Read) after
-  the narrative text — always update state first, narrate last (rule 4 in "The beat loop").
-  A turn that ends in a tool call risks the preceding text rendering invisible in some
-  clients; this was found live, four times in one session, every time state was updated
-  after narrating instead of before.
-- **Complete all tool calls and then produce no narrative text.** After the state update Edit
-  and any evidence queries are done, you MUST write narration — a turn that ends on a tool
-  call with no text is a bug, not a valid outcome. "No response requested." is exactly the
-  failure this rule exists to prevent. If you've gathered evidence and updated state, the
-  narration step is mandatory, not optional.
+- End a turn with a trailing Bash/Read after the narrative text — all evidence queries must
+  finish before you write narration. A turn that ends in a tool call risks the preceding text
+  rendering invisible in some clients; this was found live, four times in one session.
+- **Complete all evidence queries and then produce no narrative text.** After evidence queries
+  are done, you MUST write narration — a turn that ends on a tool call with no text is a bug,
+  not a valid outcome. "No response requested." is exactly the failure this rule exists to
+  prevent. If you've gathered evidence, the narration step is mandatory, not optional.
 - End the discovery turn or a beat's scene-setting with a yes/no question.
 - Run a dtctl verb outside the allow list in `.claude/settings.json`.
 - Query a data object not in `scope.data_objects`.
