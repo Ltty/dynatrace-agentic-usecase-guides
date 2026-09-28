@@ -133,9 +133,14 @@ Fields:
 - `source_step_id` — UUID from the source guide's step (provenance)
 - `objective` — what the user should understand (not what they should *do*)
 - `evidence` — list of `queries/*.dql` paths that produce the evidence
-- `reveal` — the insight the beat delivers (engine's target; not shown verbatim to user)
-- `success` — what user output signals comprehension
-- `nudges` — always: `[open, narrowing, concrete, do-it-for-them]`
+- `reveal` — the insight the beat delivers, narrated by the engine as its own read of the
+  evidence — never withheld until the user guesses it (see skills/demo-engine/SKILL.md →
+  "The beat loop"). It's the engine's target content, not verbatim dialogue to paste.
+- `success` — an *engagement signal* worth watching for, not a gate the user must clear to
+  advance. The engine narrates the reveal regardless of what the user says.
+- `nudges` (optional) — omit it. The default (narrate directly, no invite) is correct for
+  almost every beat; only add `[invite]` if this specific beat genuinely benefits from an
+  optional one-turn guess-invite before narrating anyway. See scenario.schema.json.
 - `deep_link` — the Dynatrace app URL from the source guide's `action.url`, with `{{PLACEHOLDER}}` variables
 - `peak_moment` (optional, bool) — mark your scenario's climax and emotional-payoff beats.
   See "Staging peak moments" below.
@@ -272,11 +277,13 @@ your queries. Full detail in `skills/demo-engine/SKILL.md`; summarized here as a
 The engine reads your scenario manifest and runs your queries. It will:
 - Never add scenario knowledge it didn't read from your files
 - Never modify the Playground (readonly context + hook, enforced at three independent layers)
-- Ask what the user makes of the evidence before stating your `reveal` (except `peak_moment` beats)
+- Narrate your `reveal` as its own confident read of the evidence, in the same turn — never
+  withheld until the user guesses it, and never stated as a flat dead end either; always
+  attached to a forward-looking option
 - Always offer the deep link from your beat at the end of the beat
-- Follow the nudge ladder if the user stalls, escalating one rung at a time
+- Follow the user wherever they diverge (side quest, front-run, compound question), then
+  explicitly re-anchor by naming what's still unknown and proposing the next step back on the path
 - Fall back to your fixtures automatically whenever the resolved `mode` is `fixture`
-- Handle compound questions and users who jump ahead without breaking the beat sequence
 
 What it will not do:
 - Guarantee `dtctl exec copilot` output is deterministic (use it for narrative colour fed by

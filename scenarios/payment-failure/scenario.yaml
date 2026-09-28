@@ -70,7 +70,6 @@ beats:
     success: >
       User names 'payment' or 'Charge' as the failing service/endpoint,
       OR asks to drill into the payment service.
-    nudges: [open, narrowing, concrete, do-it-for-them]
     deep_link: >
       https://playground.apps.dynatrace.com/ui/apps/dynatrace.davis.problems/problem/{{PAYMENT_FAILURE_PROBLEM}}?from={{TIMEFRAME_FROM}}&to={{TIMEFRAME_TO}}&segments=%5B%7B"id"%3A"Apy24Rcu0cO"%7D%5D
 
@@ -88,7 +87,6 @@ beats:
       it the actual commit and timestamp from the query — don't let it guess.
     success: >
       User asks which commit to revert, or asks for the deployment details.
-    nudges: [open, narrowing, concrete, do-it-for-them]
     deep_link: >
       https://playground.apps.dynatrace.com/ui/intent/dynatrace.davis.copilot/ask-question#%7B%22prompt%22%3A%22Explain%20what%20happened%20in%20the%20problem%20with%20id%20{{PAYMENT_FAILURE_PROBLEM}}%2C%20why%20it%20happened%2C%20and%20actionable%20steps%20to%20remediate%20it.%22%2C%22execute%22%3Atrue%7D
 
@@ -109,7 +107,6 @@ beats:
     success: >
       User connects the deployment timestamp to the failure rate spike,
       or asks to see the traces/logs for the failing requests.
-    nudges: [open, narrowing, concrete, do-it-for-them]
     deep_link: >
       https://playground.apps.dynatrace.com/ui/apps/dynatrace.services/explorer/services?detailsId=SERVICE-531CE26849E95EC1&perspective=performance&problemId={{PAYMENT_FAILURE_PROBLEM}}&tf={{TIMEFRAME_FROM}}%3B{{TIMEFRAME_TO}}
 
@@ -139,7 +136,6 @@ beats:
       on its own line, verbatim, before any other commentary. Then explain what kind
       of bug it is. Then give the file and line as the concrete next action. See
       skills/demo-engine/SKILL.md for the general pacing rule this beat exists to test.
-    nudges: [open, narrowing, concrete, do-it-for-them]
     deep_link: >
       https://playground.apps.dynatrace.com/ui/apps/dynatrace.distributedtracing/explorer?filter=request.is_failed+%3D+Failure+AND+dt.smartscape.service+%3D+SERVICE-531CE26849E95EC1+AND+endpoint.name+%3D+Charge&tf={{TIMEFRAME_FROM}}%3B{{TIMEFRAME_TO}}
 
@@ -164,6 +160,5 @@ beats:
       concrete what "session replay" means: an SRE can open a recording and watch
       exactly what that customer saw and clicked, not infer it from logs. That's
       the gap between "310 error events" and "310 people who had a bad day."
-    nudges: [open, narrowing, concrete, do-it-for-them]
     deep_link: >
       https://playground.apps.dynatrace.com/ui/apps/dynatrace.error.inspector/error-explorer?tf={{TIMEFRAME_FROM}}%3B{{TIMEFRAME_TO}}&problemId={{PAYMENT_FAILURE_PROBLEM}}&perspective=impact&sort=affected_users%3Adescending

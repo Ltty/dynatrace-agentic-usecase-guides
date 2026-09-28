@@ -101,7 +101,7 @@
       "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["id", "objective", "evidence", "reveal", "nudges"],
+        "required": ["id", "objective", "evidence", "reveal"],
         "additionalProperties": false,
         "properties": {
           "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
@@ -126,9 +126,9 @@
             "type": "array",
             "items": {
               "type": "string",
-              "enum": ["open", "narrowing", "concrete", "do-it-for-them"]
+              "enum": ["invite", "narrate"]
             },
-            "description": "Ordered nudge ladder; engine escalates only on silence or explicit 'I don't know'."
+            "description": "Optional. The engine always narrates its own read of the evidence rather than withholding it (see skills/demo-engine/SKILL.md). 'invite' means it's worth an optional one-turn guess-invite first, on top of narrating regardless — it is never a gate the user must pass to advance. Omit entirely to just narrate directly, which is the default and normal case."
           },
           "deep_link": {
             "type": "string",

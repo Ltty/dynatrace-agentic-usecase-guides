@@ -65,9 +65,10 @@ Never dump raw JSON. Always:
 3. Follow immediately with the "so what" — one or two sentences of interpretation.
 4. Offer the deep link for the equivalent Dynatrace app view.
 
-But see `skills/demo-engine/SKILL.md` for *when* to state the interpretation — evidence and
-interpretation are not always the same turn. Ask what the user makes of it before handing over
-the reveal, except on the climax beat where the finding IS the payoff and lands immediately.
+See `skills/demo-engine/SKILL.md` → "The beat loop" for the full pattern: state your own read
+as confident SRE narration in the same turn as the evidence, then attach it to a forward-looking
+option rather than a bare question. Don't withhold the interpretation waiting for the user to
+guess it first — that reads as a quiz, not an investigation.
 
 ## Key entity IDs for the payment-failure scenario
 
@@ -158,6 +159,15 @@ The message is a **positional argument**, not stdin (`echo ... | dtctl exec copi
 "message is required"). Pass the facts you already gathered via `--context` — CoPilot gives a
 much sharper answer grounded in your own query results than it does re-deriving them itself.
 `--instruction "2-3 sentences max"` keeps the response terse enough for the beat loop's length budget.
+
+**`--max-field-chars 0` is a `dtctl query` flag — it does not exist on `dtctl exec copilot`**
+and errors with `unknown flag`. Don't carry it over out of habit just because every `query`
+call in this skill uses it.
+
+CoPilot is only as good as what you feed it. Called with just problem-level metadata (id,
+timestamps, service names) it tends to hedge — "cannot determine the specific cause from this
+alone." Call it *after* you have the actual exception text or trace data from a query, and pass
+that in via `--context`; that's what turns a vague answer into a sharp, specific one.
 
 ## Placeholder resolution
 
