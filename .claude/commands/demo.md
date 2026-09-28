@@ -1,14 +1,20 @@
 Entry point for the Dynatrace Agentic Use Case Guides.
 
-## First: load your operating rules — SILENTLY, no exceptions
+## Your operating rules are already loaded — no action needed
 
-Before doing anything else, read these files in order:
-1. `skills/demo-engine/SKILL.md` — your role, the beat loop, nudge ladder, response rules
-2. `skills/dynatrace-playground/SKILL.md` — how to query dtctl, parse the envelope, present evidence
+`CLAUDE.md` `@import`s `skills/demo-engine/SKILL.md` and `skills/dynatrace-playground/SKILL.md`
+directly, so both are already in context at session start as their own instruction blocks —
+confirmed empirically: a fresh session shows them as separate "Contents of ... SKILL.md
+(project instructions, checked into the codebase)" blocks with **no visible Read call**. Do
+not add an explicit "read these files" step here — that was the exact thing this replaced,
+and re-adding it would reintroduce the Read-call rows the `@import` was built to eliminate.
 
-These are your standing instructions for the entire session. Hold them.
+If a session somehow doesn't show that context (e.g. a client that doesn't resolve CLAUDE.md
+`@import`), fall back to reading `skills/demo-engine/SKILL.md` and
+`skills/dynatrace-playground/SKILL.md` directly before proceeding — but treat that as a
+fallback for a broken assumption, not the normal path.
 
-**Do NOT export PATH yet.** The bare `/demo` greeting makes no `dtctl` call of any kind — don't
+**Do NOT export PATH.** The bare `/demo` greeting makes no `dtctl` call of any kind — don't
 run a PATH fix pre-emptively just because a later step might need it. `python tools/preflight.py
 ...` (used by the survey, `/demo start`, and every beat query) auto-locates dtctl on its own and
 never needs PATH set. Only fix PATH immediately before a **raw** `dtctl` call you're about to make
@@ -16,18 +22,19 @@ directly (Davis CoPilot, or an ad-hoc query outside the scripted beats) — see 
 below. Every unnecessary tool call is a visible row in the user's transcript before you've said
 a single word; don't spend that budget on setup the current step doesn't need.
 
-**Emit zero text output while reading the skill files.** No "Reading the skill files now...",
-no summary of what you just loaded — not even one line. The very first piece of text you produce
-in the entire session is the greeting below, verbatim in character, with nothing before it. A
-user who sees "loading operating rules" before "hi, I'm your SRE" is watching the scaffolding,
-not talking to an SRE — that's the exact thing this rule exists to prevent. This applies to
-every command in this file: `/demo start <id>` resolves state and reads the scenario manifest
-the same way, just as silently, before its first in-character line.
+**Emit zero text output during any setup step.** No "Loading rules...", no summary of what's
+in context — not even one line. The very first piece of text you produce in the entire session
+is the greeting below, verbatim in character, with nothing before it. A user who sees "loading
+operating rules" before "hi, I'm your SRE" is watching the scaffolding, not talking to an SRE —
+that's the exact thing this rule exists to prevent. This applies to every command in this file:
+`/demo start <id>` resolves state and reads the scenario manifest the same way, just as
+silently, before its first in-character line.
 
-Note: even done silently, tool calls (Read/Bash) still render as visible rows in most Claude
-Code clients — that's the harness's own display, not something a skill or command file can
-suppress. The lever here is keeping the *count* of unavoidable calls as low as each step
-actually needs, and never adding narration text around them — not eliminating the rows outright.
+Note: any tool call that IS genuinely needed (the fallback reads above, `/demo start`'s state
+resolution) still renders as a visible row in most Claude Code clients — that's the harness's
+own display, not something a skill or command file can suppress. The lever here is keeping the
+*count* of unavoidable calls as low as each step actually needs, and never adding narration
+text around them — not eliminating the rows outright.
 
 ### Raw dtctl calls — fix PATH first, but only then
 

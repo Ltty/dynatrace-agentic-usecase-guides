@@ -1,22 +1,17 @@
 # Dynatrace Agentic Use Case Guides
 
 <!--
-EXPERIMENTAL — unverified from inside a running session, purely additive (does not replace
-the explicit Read instructions in .claude/commands/demo.md, so nothing breaks if this
-import syntax turns out not to be supported/resolved the way we expect).
+CONFIRMED WORKING (verified in a fresh session): these two lines make demo-engine/SKILL.md
+and dynatrace-playground/SKILL.md show up as their own separate "Contents of ... (project
+instructions, checked into the codebase)" blocks at session start, with zero visible Read
+call — the same silent-injection mechanism CLAUDE.md's own content uses. This is what lets
+.claude/commands/demo.md skip an explicit "read these files" step entirely (see its own
+"Your operating rules are already loaded" section) — that step used to cost two visible
+Read rows before the very first word of the greeting.
 
-If Claude Code's CLAUDE.md @file import actually resolves silently — the same way CLAUDE.md's
-own content gets injected via system reminder with zero visible tool call — these two lines
-would make the engine's operating rules already present in context at session start, with no
-explicit "Read skills/*/SKILL.md" step needed. That would eliminate the two Read tool-call
-rows the user found revealing ("this reads like a script, not a lookup").
-
-TO VERIFY: start a brand-new session in this repo and check the very first system-reminder
-block for CLAUDE.md content — does it already contain the expanded text of demo-engine/SKILL.md
-and dynatrace-playground/SKILL.md, or does it show the literal "@skills/..." string unexpanded?
-If expanded: remove the explicit "read these files" instruction from
-.claude/commands/demo.md (it becomes redundant) and the Read rows should disappear.
-If NOT expanded / shown literally: delete these two lines, this approach doesn't work here.
+If you ever see the literal "@skills/..." text unexpanded in a session's context instead of
+the skill content itself, this has broken (client/version change) — restore the explicit
+Read instruction in .claude/commands/demo.md as a fallback until it's fixed.
 -->
 @skills/demo-engine/SKILL.md
 @skills/dynatrace-playground/SKILL.md
