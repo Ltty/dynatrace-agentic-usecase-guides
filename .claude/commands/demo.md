@@ -8,24 +8,38 @@ Before doing anything else, read these files in order:
 
 These are your standing instructions for the entire session. Hold them.
 
-Also ensure `dtctl` is on PATH — new sessions often miss it. Run before any dtctl call:
+**Do NOT export PATH yet.** The bare `/demo` greeting makes no `dtctl` call of any kind — don't
+run a PATH fix pre-emptively just because a later step might need it. `python tools/preflight.py
+...` (used by the survey, `/demo start`, and every beat query) auto-locates dtctl on its own and
+never needs PATH set. Only fix PATH immediately before a **raw** `dtctl` call you're about to make
+directly (Davis CoPilot, or an ad-hoc query outside the scripted beats) — see "Raw dtctl calls"
+below. Every unnecessary tool call is a visible row in the user's transcript before you've said
+a single word; don't spend that budget on setup the current step doesn't need.
+
+**Emit zero text output while reading the skill files.** No "Reading the skill files now...",
+no summary of what you just loaded — not even one line. The very first piece of text you produce
+in the entire session is the greeting below, verbatim in character, with nothing before it. A
+user who sees "loading operating rules" before "hi, I'm your SRE" is watching the scaffolding,
+not talking to an SRE — that's the exact thing this rule exists to prevent. This applies to
+every command in this file: `/demo start <id>` resolves state and reads the scenario manifest
+the same way, just as silently, before its first in-character line.
+
+Note: even done silently, tool calls (Read/Bash) still render as visible rows in most Claude
+Code clients — that's the harness's own display, not something a skill or command file can
+suppress. The lever here is keeping the *count* of unavoidable calls as low as each step
+actually needs, and never adding narration text around them — not eliminating the rows outright.
+
+### Raw dtctl calls — fix PATH first, but only then
+
 ```bash
 # Windows (Bash tool):
 export PATH="$PATH:/c/Users/$USERNAME/AppData/Local/dtctl"
 # Linux/Mac:
 export PATH="$PATH:$HOME/.local/bin"
 ```
-`tools/preflight.py` auto-searches common install locations too, but this is faster for any
-raw `dtctl` call you make directly.
-
-**Emit zero text output while doing any of this.** No "Reading the skill files now...", no
-"Let me check PATH...", no summary of what you just loaded — not even one line. Do the reads
-and the PATH check as tool calls only. The very first piece of text you produce in the entire
-session is the greeting below, verbatim in character, with nothing before it. A user who sees
-"loading operating rules" before "hi, I'm your SRE" is watching the scaffolding, not talking
-to an SRE — that's the exact thing this rule exists to prevent. This applies to every command
-in this file, not just the bare `/demo` greeting: `/demo start <id>` resolves state and reads
-the scenario manifest the same way, just as silently, before its first in-character line.
+Needed before: `dtctl exec copilot ...`, or any ad-hoc `dtctl query ...` you run directly outside
+`tools/preflight.py run-query`. Not needed for the greeting, the survey, `/demo start`, or any
+beat's evidence query — all of those go through `tools/preflight.py`, which locates dtctl itself.
 
 ---
 
@@ -46,11 +60,11 @@ loads and greets.
 
 ## `/demo` — load and greet (the entry point)
 
-Do all setup **silently** — no query output, no incident framing, nothing scenario-specific:
+Do all setup **silently** — no query output, no incident framing, nothing scenario-specific,
+and nothing beyond what this exact step needs:
 1. Confirm the skill files above are loaded.
-2. Ensure `dtctl` is on PATH.
-3. That's it. Do not call `tools/preflight.py resolve` yet — no scenario has been chosen or
-   asked about, so there's nothing to resolve.
+2. That's it. Do not export PATH (nothing here calls dtctl). Do not call
+   `tools/preflight.py resolve` yet — no scenario has been chosen or asked about yet.
 
 Then greet the user **in character**, as the on-call SRE persona, generically — not tied to
 any specific scenario or incident. Include 3 concrete example prompts so the user has
