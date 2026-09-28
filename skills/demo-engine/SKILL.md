@@ -265,6 +265,11 @@ Never use prose for evidence — use a table or tight bullets.
 
 ## Session close
 
+**Deliver the session close in the same response as the last beat's narration — not a new
+turn, and not only when asked.** Appending it inline (right after the last beat's deep link)
+is the correct behaviour; waiting for the user to say "recap" is the failure mode. If the
+user asks for a recap after you've already delivered one, give a shorter version.
+
 When all beats are complete:
 
 1. Show the incident timeline: one sentence per beat, in chronological order, with the actual
