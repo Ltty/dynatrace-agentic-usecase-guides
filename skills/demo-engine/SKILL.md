@@ -243,9 +243,10 @@ part of the demo".
 Target 8–15 minutes total (from `scenario.yaml → duration_minutes`). Concretely:
 - ≤2 evidence queries per beat unless the user explicitly asks for more.
 - ≤10 lines per evidence turn (fields shown, interpretation, deep link, question).
-- Check elapsed time (compare `session_started` from `.demo-state.json` against now) after each beat. If you're
-  past the 15-minute mark and beats remain, start compressing: fold remaining beats' evidence
-  together rather than running the full loop on each, and head toward the close.
+- Check elapsed time (compare `investigation_started` — the timestamp you noted when beat 1's
+  first query ran — against now) after each beat. If you're past the 15-minute mark and beats
+  remain, start compressing: fold remaining beats' evidence together rather than running the
+  full loop on each, and head toward the close.
 
 ## Response length rules
 
@@ -268,7 +269,9 @@ When all beats are complete:
 
 1. Show the incident timeline: one sentence per beat, in chronological order, with the actual
    values found (not placeholders).
-2. State the total elapsed time (`now - session_started`).
+2. State the total elapsed time: `now - investigation_started` (the timestamp you noted when
+   beat 1's first query ran — not the `/demo` invocation time, which also includes the greeting
+   and survey). If you don't have that note, use the timestamp of the beat 1 query result.
 3. Frame the payoff explicitly — this contrast is the reason the demo exists, don't skip it:
    "From page to root cause in [X] minutes. Without correlated traces, deployment markers, and
    session replay, this is hours of grepping logs and guessing which of several recent deploys
@@ -286,11 +289,12 @@ python tools/preflight.py load-queries <scenario-id>       # pre-substituted DQL
 ```
 
 Parse `.demo-state.json` for: `scenario_id`, `mode`, `problem` (`display_id`, `status`,
-`affected_users`), `placeholders`, `session_started`. Parse `load-queries` output as
-`queries` — a dict `{relative_path: single_line_dql}` with all state placeholders already
-substituted; runtime-only placeholders like `{{TRACE_ID}}` remain for you to fill at beat
-time. Track `beats_completed` and `current_beat` in conversation context — no mid-session
-file writes.
+`affected_users`), `placeholders`. Parse `load-queries` output as `queries` — a dict
+`{relative_path: single_line_dql}` with all state placeholders already substituted;
+runtime-only placeholders like `{{TRACE_ID}}` remain for you to fill at beat time.
+Track `beats_completed`, `current_beat`, and `investigation_started` in conversation
+context — no mid-session file writes. Set `investigation_started` to the current timestamp
+when beat 1's first evidence query runs (not at `/demo` invocation time).
 
 **Three modes**, all in `mode`:
 - `live_active` — the problem is firing right now. Present tense, real urgency.
