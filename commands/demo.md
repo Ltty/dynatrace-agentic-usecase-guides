@@ -14,8 +14,8 @@ If a session somehow doesn't show that context (e.g. a client that doesn't resol
 `skills/dynatrace-playground/SKILL.md` directly before proceeding — but treat that as a
 fallback for a broken assumption, not the normal path.
 
-**PATH is exported once during `/demo` silent setup** — see the setup steps below. Beat queries
-now run `dtctl query "..."` directly, so PATH must be in place before any beat evidence call.
+**Beat queries use `queries['_dtctl_path']`** — the full resolved path to dtctl from the
+`load-queries` output. No PATH export needed; every direct dtctl call uses the absolute path.
 `python tools/preflight.py ...` commands (resolve, load-queries, check) auto-locate dtctl
 themselves and never need PATH set.
 
@@ -32,22 +32,6 @@ resolution) still renders as a visible row in most Claude Code clients — that'
 own display, not something a skill or command file can suppress. The lever here is keeping the
 *count* of unavoidable calls as low as each step actually needs, and never adding narration
 text around them — not eliminating the rows outright.
-
-### Raw dtctl calls — PATH must be set first
-
-Beat evidence queries now run `dtctl query "<dql>"` directly. Set PATH once during `/demo`
-silent setup so every subsequent dtctl call works without a separate fix step:
-
-```bash
-# Linux/Mac (Codespace / devcontainer):
-export PATH="$PATH:$HOME/.local/bin"
-# Windows (Bash tool only if running locally):
-export PATH="$PATH:/c/Users/$USERNAME/AppData/Local/dtctl"
-```
-
-Also needed before: `dtctl exec copilot ...`, or any ad-hoc `dtctl query ...`.
-`python tools/preflight.py ...` commands (resolve, load-queries, check) auto-locate dtctl
-themselves — they never need PATH set.
 
 ---
 
@@ -72,15 +56,11 @@ Do all setup **silently** before the greeting — every tool call in this block 
 no surrounding text. This is the right place to front-load all the data the conversation
 will need, so beats can flow without additional file reads or resolve calls mid-session:
 
-1. Export PATH so dtctl is reachable for direct calls throughout the session:
-   ```bash
-   export PATH="$PATH:$HOME/.local/bin"
-   ```
-2. Read `scenarios/registry.yaml` — collect all `state: published` scenario IDs.
-3. For each published scenario, run in parallel:
+1. Read `scenarios/registry.yaml` — collect all `state: published` scenario IDs.
+2. For each published scenario, run in parallel:
    - `python tools/preflight.py resolve <id>` — live state for the survey
    - Read `scenarios/<id>/scenario.yaml` — manifest (persona, beats, business_context, scope)
-4. Store all resolved states and manifests in conversation context. The survey and `/demo start`
+3. Store all resolved states and manifests in conversation context. The survey and `/demo start`
    draw from this cached data — no additional tool calls needed.
 
 Then greet the user **in character**, as the on-call SRE persona, generically — not tied to
@@ -135,12 +115,18 @@ Run the survey:
 4. Compute estimated revenue impact: `affected_users × business_context.avg_order_value_usd`.
    Compute `duration_min` from `problem.started` to now (or to `problem.ended` if closed).
 
-5. **One scenario found:** present it using `business_context.discovery_hook` as a starting
-   point, rewritten to sound like a human SRE reporting a finding to a peer — not a filled-in
-   template. Use the real numbers. Don't invent a failure-rate percentage — the resolver
-   doesn't provide one reliably; describe it qualitatively ("erroring hard", "failure rate
-   spiked"). End on 2–3 concrete entry angles (e.g. the deployment, the failing traces, the
-   affected customers), never yes/no.
+5. **One scenario found (`live_active` or `live_recent`):** present it using
+   `business_context.discovery_hook` as a starting point, rewritten to sound like a human SRE
+   reporting a finding to a peer — not a filled-in template. Use the real numbers. For
+   `live_recent`, use past tense ("40 minutes ago the payment service hit...") but present the
+   same data and the same investigation offer. Don't invent a failure-rate percentage — the
+   resolver doesn't provide one reliably; describe it qualitatively ("erroring hard", "failure
+   rate spiked"). End on 2–3 concrete entry angles (e.g. the deployment, the failing traces,
+   the affected customers), never yes/no.
+
+   **`no_live_problem`:** the 48-hour window is empty. Stay in character: "Environment looks
+   clean — nothing I'd page on right now." No implementation details, no slash commands,
+   no mention of schedules or patterns.
 
 6. **Multiple scenarios found:** present each in one line — name, one-line severity, rough
    scale (users/revenue) — then ask which one to dig into. This is the triage moment; don't
@@ -148,7 +134,7 @@ Run the survey:
 
 7. **Nothing published / registry empty:** say so plainly, don't fabricate a finding.
 
-### Example — one scenario, live_active or live_recent
+### Example — one scenario, live_active
 
 ```
 Something's wrong in production.
@@ -160,15 +146,26 @@ Want to start with the deployment that likely caused it, the failing traces them
 or the customers who hit it?
 ```
 
-### Example — one scenario, no live problem right now
+### Example — one scenario, live_recent (closed, but data is fully queryable — the common case)
+
+Present it as a real investigation — same structure as live_active, past tense only:
 
 ```
-The environment is quiet at the moment, but there's a recent incident worth walking through.
+It's quiet right now, but [N] minutes ago the payment service hit a failure that took
+out [N] users — roughly $[N] in abandoned carts over [N] minutes. The full trace,
+deployment markers, and session replays are all still here.
 
-The last payment failure hit [N] users and ran for [N] minutes. The data's all here —
-traces, logs, the deployment that caused it, affected user sessions.
+Want to start with what changed before it started, the actual failing traces,
+or the customers who got hit?
+```
 
-Start with the deployment timeline, the failing traces, or the affected customers?
+### Example — no_live_problem (nothing in 48h — the Playground is genuinely quiet)
+
+Stay in character. No implementation details, no slash commands, no mention of schedules:
+
+```
+Environment looks clean — nothing I'd page on right now. Check back in a bit if
+you want to catch it live.
 ```
 
 ### Example — multiple scenarios (future state, illustrative)

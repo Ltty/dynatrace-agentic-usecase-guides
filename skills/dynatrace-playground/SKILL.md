@@ -7,23 +7,24 @@ in agent mode, interpret the response envelope, and present evidence clearly.
 
 At session start `python tools/preflight.py load-queries <scenario-id>` pre-substitutes every
 `{{PLACEHOLDER}}` token and collapses each query to a single line. The engine holds the result
-as a `queries` dict in conversation context. Per beat, run the stored DQL directly:
+as a `queries` dict in conversation context. The dict includes `_dtctl_path` — the full
+resolved path to the dtctl binary — so beats never depend on PATH being set. Per beat:
 
 ```bash
-dtctl query "<queries['queries/beat-04-failing-spans.dql']>" --agent -o json --plain --max-field-chars 0 -M=all
+"<queries['_dtctl_path']>" query "<queries['queries/beat-04-failing-spans.dql']>" --agent -o json --plain --max-field-chars 0 -M=all
 ```
 
 For chained queries (e.g. trace waterfall), substitute the runtime placeholder yourself first:
 
 ```bash
 # dql = queries['queries/beat-04-trace-waterfall.dql'].replace('{{TRACE_ID}}', trace_id)
-dtctl query "<dql-with-trace-id>" --agent -o json --plain --max-field-chars 0 | python tools/render_waterfall.py
+"<queries['_dtctl_path']>" query "<dql-with-trace-id>" --agent -o json --plain --max-field-chars 0 | python tools/render_waterfall.py
 ```
 
 For ad-hoc exploration beyond the scripted beats:
 
 ```bash
-dtctl query "fetch dt.davis.problems | limit 5" --agent -o json --plain --max-field-chars 0
+"<queries['_dtctl_path']>" query "fetch dt.davis.problems | limit 5" --agent -o json --plain --max-field-chars 0
 ```
 
 ## Liveness proof stamp
@@ -57,12 +58,12 @@ yourself before running:
 
 ```bash
 # 1. Run the dependency beat query from the pre-loaded queries dict
-dtctl query "<queries['queries/beat-04-failing-spans.dql']>" --agent -o json --plain --max-field-chars 0 -M=all
+"<queries['_dtctl_path']>" query "<queries['queries/beat-04-failing-spans.dql']>" --agent -o json --plain --max-field-chars 0 -M=all
 #    -> read `trace_id` from the first record of the result
 
 # 2. Substitute {{TRACE_ID}} in the chained query and run:
 #    dql = queries['queries/beat-04-trace-waterfall.dql'].replace('{{TRACE_ID}}', trace_id)
-dtctl query "<dql-with-trace-id>" --agent -o json --plain --max-field-chars 0 | python tools/render_waterfall.py
+"<queries['_dtctl_path']>" query "<dql-with-trace-id>" --agent -o json --plain --max-field-chars 0 | python tools/render_waterfall.py
 ```
 
 **Filtering by `trace.id` requires a cast — this is the one gotcha in the whole chain.**

@@ -476,6 +476,8 @@ def load_queries(scenario_id: str) -> int:
     queries_dir = scenario_dir / "queries"
     result = {}
 
+    result["_dtctl_path"] = DTCTL
+
     for dql_path in sorted(queries_dir.glob("*.dql")):
         rel = "queries/" + dql_path.name
         try:
