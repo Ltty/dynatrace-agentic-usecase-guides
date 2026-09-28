@@ -474,14 +474,9 @@ def _replay_callback(url: str):
 
 
 def codespace_login():
-    """Run dtctl auth login with an optional paste-back relay.
+    """Wizard-style dtctl auth login with paste-back relay for Codespace environments."""
+    import threading
 
-    Works in all environments. In a Codespace the browser callback to
-    127.0.0.1:3232 cannot reach the container; the user pastes the failed
-    redirect URL here and we replay it via urllib into the still-running
-    dtctl process. On a local machine the browser callback succeeds on its
-    own and the user just presses Enter.
-    """
     cmd = [
         DTCTL,
         "--no-agent",  # suppress JSON envelope when CLAUDECODE env var is set
@@ -492,19 +487,56 @@ def codespace_login():
         "--timeout", "10m",
     ]
 
-    print("Starting Dynatrace Playground authentication...\n")
+    print()
+    print("  Dynatrace Playground Sign-In")
+    print("  " + "-" * 40)
+    print()
 
+    # Pipe stdout+stderr so we can extract the SSO URL in real time.
     proc = subprocess.Popen(
         cmd,
-        stdin=subprocess.DEVNULL,  # prevent dtctl from stealing terminal stdin
-        # stdout and stderr inherited so the user sees the SSO URL
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
     )
 
-    print("\n--- After SSO in the browser ---")
-    print("  Codespace: the browser shows a connection error. Copy the URL from the")
-    print("  address bar and paste it here, then press Enter.")
-    print("  Local machine: auth completed in the browser. Just press Enter.")
+    sso_url_ready = threading.Event()
+    shared = {"sso_url": None}
+
+    def _read_output():
+        want_url = False
+        for raw in proc.stdout:
+            line = raw.rstrip()
+            if "please visit:" in line.lower():
+                want_url = True
+            elif want_url and line.startswith("https://"):
+                shared["sso_url"] = line
+                sso_url_ready.set()
+                want_url = False
+
+    threading.Thread(target=_read_output, daemon=True).start()
+
+    # Wait up to 15 s for dtctl to emit the SSO URL, then show it.
+    sso_url_ready.wait(timeout=15)
+
+    print("Step 1 — Open this URL in your browser and sign in:")
     print()
+    if shared["sso_url"]:
+        print(f"  {shared['sso_url']}")
+    else:
+        print("  (copy the URL dtctl printed above)")
+    print()
+    print("  No account? https://www.dynatrace.com/signup/playground/")
+    print()
+    print("Step 2 — After sign-in, the browser redirects to localhost:3232.")
+    print("  • Connection error in browser → copy that URL and paste it below.")
+    print("  • Auth completed silently (VS Code forwarded the port) → press Enter.")
+    print()
+    sys.stdout.write("  Paste URL or press Enter → ")
+    sys.stdout.flush()
 
     try:
         pasted = sys.stdin.readline().strip()
@@ -520,8 +552,8 @@ def codespace_login():
             proc.terminate()
             print(f"\nError: {e}")
             sys.exit(1)
-
-        print("Replaying callback to dtctl... ", end="", flush=True)
+        sys.stdout.write("\n  Completing authentication... ")
+        sys.stdout.flush()
         try:
             _replay_callback(callback_url)
             print("done.")
@@ -530,7 +562,7 @@ def codespace_login():
             proc.terminate()
             sys.exit(1)
 
-    # Give dtctl time to finish the token exchange and exit; terminate if it hangs.
+    # Give dtctl time to wrap up the token exchange; terminate if it hangs.
     try:
         proc.wait(timeout=15)
     except subprocess.TimeoutExpired:
@@ -540,7 +572,10 @@ def codespace_login():
         except subprocess.TimeoutExpired:
             proc.kill()
 
-    print("\nAuthentication complete. Run 'python tools/preflight.py check' to verify.")
+    print()
+    print("  " + "-" * 40)
+    print()
+    check_connectivity()
 
 def main():
     args = sys.argv[1:]

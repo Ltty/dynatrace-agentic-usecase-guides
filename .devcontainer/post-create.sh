@@ -102,16 +102,18 @@ echo "  1. Sign in to Claude — click 'Sign in' in the Claude Code extension pa
 echo "     Do NOT run 'claude login' from the terminal — that OAuth callback can't reach"
 echo "     the container. Use the extension's built-in sign-in instead."
 echo ""
+echo ""
 echo "  2. Authenticate against the Dynatrace Playground:"
 echo "       python tools/preflight.py login"
-echo "     Follow the prompts: a browser tab opens for Dynatrace SSO."
-echo "     After sign-in, the browser shows a connection error — copy that URL and paste"
-echo "     it back here. No local tools needed."
+echo "     A wizard opens: follow the steps (browser SSO + paste callback URL)."
+echo "     The wizard runs a connectivity check automatically when done."
 echo "     No account yet? Free signup: https://www.dynatrace.com/signup/playground/"
 echo ""
 echo "  Then, in Claude Code:"
-echo "    /demo-doctor   (verify everything is wired)"
 echo "    /demo          (start an incident investigation)"
 echo ""
 echo "================================================================"
 echo ""
+
+# Run preflight so the user sees what is installed vs what still needs auth.
+python tools/preflight.py check 2>/dev/null || true
