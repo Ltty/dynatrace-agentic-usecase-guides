@@ -86,11 +86,18 @@ fetch spans, from: "{{DQL_TIMEFRAME_FROM}}", to: "{{DQL_TIMEFRAME_TO}}"
 | ...
 ```
 
-**Test with the substitution helper, not raw dtctl** — raw `dtctl query --file` won't
-substitute the placeholder tokens:
+**Test queries by pre-loading them** — raw `dtctl query --file` won't substitute the
+placeholder tokens:
 
 ```bash
-python tools/preflight.py resolve my-new-demo --write     # writes .demo-state.json once
+python tools/preflight.py resolve my-new-demo --write       # writes .demo-state.json once
+python tools/preflight.py load-queries my-new-demo          # shows substituted single-line DQL
+# then run the DQL directly:
+dtctl query "<paste the DQL from load-queries output>" --agent -o json --plain --max-field-chars 0 -M=all
+```
+
+For development convenience `run-query` still works as a single-shot debug helper:
+```bash
 python tools/preflight.py run-query my-new-demo queries/beat-01-something.dql
 ```
 
@@ -134,10 +141,11 @@ chained_evidence:
 ```
 
 The chained query file references `{{TRACE_ID}}` like any other placeholder. At runtime the
-engine runs the dependency first, reads `extract_field` from its first record, then runs the
-chained query with `--var TRACE_ID=<value>` (see `skills/dynatrace-playground/SKILL.md` →
-"Chained queries"). `tools/validate_scenarios.py --live` resolves this chain automatically —
-no extra work to keep it covered by the standing gate.
+engine runs the dependency first, reads `extract_field` from its first record, then substitutes
+it into the stored DQL string (`dql.replace("{{TRACE_ID}}", value)`) and runs the chained query
+directly via `dtctl query "..."` (see `skills/dynatrace-playground/SKILL.md` → "Chained
+queries"). `tools/validate_scenarios.py --live` resolves this chain automatically — no extra
+work to keep it covered by the standing gate.
 
 ### 4. Write the beats
 
@@ -282,9 +290,9 @@ The engine reads your scenario manifest and runs your queries. It will:
 - Always offer the deep link from your beat at the end of the beat
 - Follow the user wherever they diverge (side quest, front-run, compound question), then
   explicitly re-anchor by naming what's still unknown and proposing the next step back on the path
-- Print a DQL snippet and liveness proof stamp (queryId, scannedBytes, ms) to stderr for
-  every beat query, and include both in its chat narration so the user can see the query ran
-  live against the Playground
+- Include a liveness proof stamp (queryId, scannedBytes, ms — parsed from `envelope.metadata`)
+  in its chat narration after every beat query, so the user can see the query ran live against
+  the Playground
 
 What it will not do:
 - Guarantee `dtctl exec copilot` output is deterministic (use it for narrative colour fed by

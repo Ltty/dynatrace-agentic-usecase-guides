@@ -32,7 +32,7 @@ export PATH="$PATH:/c/Users/$USERNAME/AppData/Local/dtctl"
 export PATH="$PATH:$HOME/.local/bin"
 
 # 1. Authenticate against the Playground (browser, one-time per machine)
-dtctl auth login --context playground --environment https://playground.apps.dynatrace.com
+python tools/preflight.py login
 
 # 2. Verify everything is wired
 /demo-doctor
@@ -59,10 +59,11 @@ feels like pair-debugging on a real incident.
 - **Resolved state:** `tools/preflight.py resolve <id> --write` → `.demo-state.json`, mode is
   one of `live_active` / `live_recent` (no fixture fallback — the pattern fires twice daily,
   a 48h lookback always finds an occurrence; if the Playground is quiet, the engine says so)
-- **Beat queries:** always run via `python tools/preflight.py run-query <id> <dql-path>` —
-  substitutes `{{DQL_TIMEFRAME_FROM}}`/`{{DQL_TIMEFRAME_TO}}` etc. from state. For the trace
-  waterfall beat, append `--render waterfall` to get ASCII bar output. Raw `dtctl query --file`
-  on a beat query will not substitute placeholders.
+- **Beat queries:** DQL is pre-substituted at session start via `python tools/preflight.py
+  load-queries <id>` → `{relative_path: single_line_dql}` dict. Beats run
+  `dtctl query "<pre-loaded-dql>" --agent -o json --plain --max-field-chars 0 -M=all` directly.
+  Proof stamp parsed from `envelope.metadata` (queryId, executionTimeMilliseconds, scannedBytes).
+  For the trace waterfall, pipe to `python tools/render_waterfall.py`.
 
 ## Directory map
 
@@ -99,9 +100,10 @@ query against the Playground, not just static checks. Zero changes to `skills/` 
 - `python tools/preflight.py check` — connectivity/auth/safety-level gate (what `/demo-doctor` runs)
 - `python tools/preflight.py resolve <id> [--write]` — find the live problem, derive the incident
   window, optionally write `.demo-state.json`
+- `python tools/preflight.py load-queries <id>` — pre-substitute all `{{PLACEHOLDER}}` tokens
+  in every beat query and return `{relative_path: single_line_dql}`; called once at session start
 - `python tools/preflight.py run-query <id> <dql-path> [--var KEY=VAL] [--render waterfall]`
-  — substitute placeholders + execute; prints a DQL snippet + liveness proof stamp (queryId,
-  scannedBytes, ms) to stderr. `--render waterfall` pipes the output through render_waterfall.py
+  — development/debug helper: substitute + execute a single query; prints proof stamp to stderr
 - `python tools/render_waterfall.py` — ASCII waterfall renderer (reads dtctl envelope from stdin)
 - `python tools/validate_scenarios.py [--live] [scenarios/<id>]` — schema/integrity/DQL-lint,
   plus (with `--live`) real execution of every query

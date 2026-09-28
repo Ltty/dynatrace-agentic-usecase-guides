@@ -51,43 +51,29 @@ Always pass `-o json --plain --max-field-chars 0` for exact field names and untr
 
 Some beats declare `chained_evidence` in `scenario.yaml`: a query that needs a value only
 known after running a different query first (e.g. a trace ID, discovered from a failing
-span, then used to fetch that trace's full waterfall). Run the dependency first via the
-normal `run-query`, extract the named field from its **first record**, then pass it to the
-chained query with `--var`:
+span, then used to fetch the full waterfall). `load-queries` pre-substitutes all state-level
+tokens but leaves runtime-only tokens like `{{TRACE_ID}}` as literals. Substitute them
+yourself before running:
 
 ```bash
-# 1. Run the dependency (already part of this beat's plain `evidence` list)
-python tools/preflight.py run-query payment-failure queries/beat-04-failing-spans.dql
+# 1. Run the dependency beat query from the pre-loaded queries dict
+dtctl query "<queries['queries/beat-04-failing-spans.dql']>" --agent -o json --plain --max-field-chars 0 -M=all
 #    -> read `trace_id` from the first record of the result
 
-# 2. Feed it into the chained query as an ad-hoc var
-python tools/preflight.py run-query payment-failure queries/beat-04-trace-waterfall.dql \
-  --var TRACE_ID=<the trace_id you just read>
+# 2. Substitute {{TRACE_ID}} in the chained query and run:
+#    dql = queries['queries/beat-04-trace-waterfall.dql'].replace('{{TRACE_ID}}', trace_id)
+dtctl query "<dql-with-trace-id>" --agent -o json --plain --max-field-chars 0 | python tools/render_waterfall.py
 ```
-
-`--var` merges into the same placeholder set as the state-level ones (`{{DQL_TIMEFRAME_FROM}}`
-etc.) — the chained query's `.dql` file just references `{{TRACE_ID}}` like any other token.
-This is a general mechanism, not specific to traces: any beat that needs "run query A, then
-use a value from A inside query B" uses the same pattern.
 
 **Filtering by `trace.id` requires a cast — this is the one gotcha in the whole chain.**
 `trace.id` is a `uid`-typed field, not a plain string, even though it displays as a hex
 string in results. `filter trace.id == "<hex>"` and `matchesValue(trace.id, "<hex>")` both
 silently match nothing — no error, `matchesValue` only warns if you pass `--metadata` to see
-it. Cast the literal first: `filter trace.id == toUid("<hex>")`.
+it. Cast the literal first: `filter trace.id == toUid("<hex>")`. The `beat-04-trace-waterfall.dql`
+query already uses `toUid("{{TRACE_ID}}")` — just replace the token and the cast is in place.
 
-**For the trace waterfall, use `--render waterfall`** to get proportional ASCII bars
-instead of raw JSON. The `beat-04-trace-waterfall.dql` query fetches all spans (no
-`span.kind` filter) so the renderer has the full parent chain for nesting. The renderer
-collapses consecutive successful leaf siblings into one summary line and marks failing
-spans with ✗. Run the chained query with render like this:
-
-```bash
-python tools/preflight.py run-query payment-failure queries/beat-04-trace-waterfall.dql \
-  --var TRACE_ID=<trace_id_from_failing_spans> --render waterfall
-```
-
-The renderer handles the 6 spans in the Astroshop trace whose `parent_id` points at a span
+**Waterfall rendering:** pipe the dtctl envelope directly to `render_waterfall.py`. The
+renderer handles the 6 spans in the Astroshop trace whose `parent_id` points at a span
 outside the result set (mixed OneAgent/OTel instrumentation) via a time-containment fallback:
 it finds the smallest containing span by `[start, end]` interval rather than exact parent match.
 
@@ -114,10 +100,10 @@ it finds the smallest containing span by `[start, end]` interval rather than exa
 | Code | Meaning | Action |
 |------|---------|--------|
 | 0 | Success | Parse and use result |
-| 3 | Auth failure | Run `dtctl auth login` |
+| 3 | Auth failure | Run `python tools/preflight.py login` |
 | 4 | Not found | Try a broader filter or check entity ID |
 | 5 | Permission denied | Token scope insufficient |
-| 127 | dtctl not found | `run-query`/`preflight.py` auto-locate it; raw calls need PATH set |
+| 127 | dtctl not found | `preflight.py` commands auto-locate dtctl; direct calls need PATH set |
 
 ## Presenting evidence to the user
 
@@ -238,5 +224,6 @@ that in via `--context`; that's what turns a vague answer into a sharp, specific
 - `DQL_TIMEFRAME_FROM` / `DQL_TIMEFRAME_TO` — ISO8601 strings, for use inside DQL `from:`/`to:`
 - `PAYMENT_FAILURE_PROBLEM` — the resolved problem's event id
 
-`tools/preflight.py run-query` substitutes these automatically. When building a deep link by
-hand, read `.demo-state.json` yourself and substitute the epoch-ms pair.
+`python tools/preflight.py load-queries <id>` substitutes all of these at session start and
+returns pre-built DQL strings in the `queries` dict. When building a deep link by hand, read
+`.demo-state.json` yourself and substitute the epoch-ms pair.

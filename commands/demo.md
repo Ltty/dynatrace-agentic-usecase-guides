@@ -160,7 +160,7 @@ Want to start with the deployment that likely caused it, the failing traces them
 or the customers who hit it?
 ```
 
-### Example — one scenario, fixture mode (nothing live right now)
+### Example — one scenario, no live problem right now
 
 ```
 The environment is quiet at the moment, but there's a recent incident worth walking through.
@@ -205,7 +205,7 @@ Which one do you want to dig into?
    session started directly with `/demo start` (then also read `scenarios/<id>/scenario.yaml`).
 3. Read `mode` from the resolved state:
    - `live_active` / `live_recent` → proceed naturally, no announcement needed.
-   - `fixture` → one line only: "Running on recorded data — same investigation, same findings."
+   - `no_live_problem` → say so in character (see SKILL.md "Session state") and stop.
 4. Begin at beat 0 (or the user-named entry angle from the survey) following the beat loop in
    `skills/demo-engine/SKILL.md`.
 
@@ -222,7 +222,7 @@ than a triaged survey.
 ## `/demo status`
 
 Read `.demo-state.json`. Show:
-- Scenario name, mode (`live_active` / `live_recent` / `fixture`)
+- Scenario name, mode (`live_active` / `live_recent`)
 - Beats completed / total
 - Elapsed time since `session_started`
 - Current beat objective (from `scenario.yaml`)
