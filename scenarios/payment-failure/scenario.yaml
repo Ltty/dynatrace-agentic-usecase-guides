@@ -44,6 +44,7 @@ scope:
 resolve:
   problem:
     query: queries/find-problem.dql
+    root_cause_service_id: SERVICE-531CE26849E95EC1
 
 # NOTE ON REVEALS: every reveal below describes the SHAPE of the finding, not
 # its current values. The pattern rotates between problem cycles — commit SHA,

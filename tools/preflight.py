@@ -87,6 +87,14 @@ def parse_envelope(raw: str):
         return None
 
 
+def _flatten_records(envelope: dict) -> list:
+    """Merge envelope constant + per-row deltas into full record dicts."""
+    result = envelope.get("result", {})
+    constant = result.get("constant", {})
+    rows = result.get("records", [])
+    return [{**constant, **row} for row in rows]
+
+
 def check(label: str, ok: bool, detail: str = ""):
     status = "OK  " if ok else "FAIL"
     line = f"[{status}] {label}"
@@ -258,19 +266,32 @@ def resolve_scenario(scenario_id: str, write_state: bool = False, quiet: bool = 
     envelope = parse_envelope(out)
 
     if rc == 0 and envelope and envelope.get("ok"):
-        records = envelope.get("result", {}).get("records", [])
+        records = _flatten_records(envelope)
         if records:
-            rec = records[0]
-            return _emit_state(scenario_id, rec, write_state=write_state, quiet=quiet)
+            return _emit_state(scenario_id, records[0], write_state=write_state, quiet=quiet)
 
-    msg = {
-        "status": "no_live_problem",
-        "message": (
-            f"Playground is quiet — no live problem matching scenario '{scenario_id}' "
-            f"in the last 48 hours. This pattern typically fires twice daily; "
-            f"try again shortly or check /demo-doctor."
-        ),
-    }
+    # Fallback: the is_duplicate filter may exclude everything if the cluster structure
+    # changed. Try a broader query for the same root-cause service without that filter.
+    svc = manifest.get("resolve", {}).get("problem", {}).get("root_cause_service_id", "")
+    if svc:
+        fallback_dql = (
+            f'fetch dt.davis.problems, from: now()-48h, to: now() '
+            f'| filter root_cause_entity_id == "{svc}" '
+            f'| sort dt.davis.affected_users_count desc, timestamp desc '
+            f'| limit 1 '
+            f'| fields problem_id = event.id, display_id, status = event.status, '
+            f'started = event.start, ended = event.end, '
+            f'affected_users = dt.davis.affected_users_count, '
+            f'root_cause = root_cause_entity_name'
+        )
+        rc2, out2, _ = run_dtctl("query", fallback_dql, "-o", "json", "--max-field-chars", "0")
+        env2 = parse_envelope(out2)
+        if rc2 == 0 and env2 and env2.get("ok"):
+            records2 = _flatten_records(env2)
+            if records2:
+                return _emit_state(scenario_id, records2[0], write_state=write_state, quiet=quiet)
+
+    msg = {"status": "no_live_problem", "message": f"No problem found for scenario '{scenario_id}'."}
     if not quiet:
         print(json.dumps(msg, indent=2))
     return 1, None
