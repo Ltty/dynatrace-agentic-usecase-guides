@@ -136,13 +136,8 @@ chained_evidence:
 The chained query file references `{{TRACE_ID}}` like any other placeholder. At runtime the
 engine runs the dependency first, reads `extract_field` from its first record, then runs the
 chained query with `--var TRACE_ID=<value>` (see `skills/dynatrace-playground/SKILL.md` →
-"Chained queries"). `tools/validate_scenarios.py --live` and `tools/capture_fixtures.py` both
-resolve this chain automatically — no extra work to keep it covered by the standing gate or
-by fixture capture.
-
-A chained query's fixture (`fixtures/beat-04-trace-waterfall.json`, captured the same way as
-any other beat fixture) is fully self-contained — in fixture mode the engine calls `run-query`
-on it directly with no `--var` needed at all, since the fixture already holds resolved data.
+"Chained queries"). `tools/validate_scenarios.py --live` resolves this chain automatically —
+no extra work to keep it covered by the standing gate.
 
 ### 4. Write the beats
 
@@ -175,7 +170,7 @@ Write instead: *"the failing spans carry a specific exception message — read i
 from the query result, don't paraphrase it."* The engine reads the actual value at runtime;
 your job is describing what kind of finding it is and why it matters, not what it currently says.
 
-### 6. Staging peak moments
+### 5. Staging peak moments
 
 Not every beat is equal. If your scenario has a climax (the finding that *is* the answer) or
 an emotional payoff (making the human impact concrete), mark it:
@@ -192,7 +187,7 @@ right for ordinary beats but flattens a climax into the same texture as everythi
 `staging` is where you say what should be different about the delivery for this one beat.
 See `skills/demo-engine/SKILL.md` → "Peak moments" for the engine's side of this contract.
 
-### 7. Fill in `business_context`
+### 6. Fill in `business_context`
 
 Used by the problem survey — the standing behavior that triggers when the user asks
 something like "any problems?" (not `/demo` itself, which only greets — see
@@ -219,7 +214,7 @@ doesn't carry a clean percentage/rate field (many bury it in unstructured markdo
 qualitatively instead ("erroring hard", "failure rate spiked") and let the beat evidence
 carry the exact number once the user is inside the investigation.
 
-### 8. Register the scenario
+### 7. Register the scenario
 
 Add an entry to `scenarios/registry.yaml`:
 
@@ -235,7 +230,7 @@ Add an entry to `scenarios/registry.yaml`:
 
 Use `state: draft` while building. Draft scenarios are not shown in `/demo`.
 
-### 9. Validate — statically, then live
+### 8. Validate — statically, then live
 
 ```bash
 python tools/validate_scenarios.py scenarios/my-new-demo          # schema, integrity, DQL lint
@@ -248,7 +243,7 @@ is the gate that catches a wrong field name or a bad `round()` call before a liv
 does — do not skip it and do not consider a scenario done until it passes clean. This is
 the standing regression check; wire it into CI for every scenario change.
 
-### 10. Change state to `published` and commit
+### 9. Change state to `published` and commit
 
 Update `scenarios/registry.yaml` → `state: published`.
 
@@ -262,11 +257,11 @@ Update `scenarios/registry.yaml` → `state: published`.
 These generalise beyond payment-failure — read them before writing your beats, not just
 your queries. Full detail in `skills/demo-engine/SKILL.md`; summarized here as authoring guidance:
 
-- **Don't write a `reveal` your engine will blurt out before the user has looked at the
-  data.** The engine's rule is to ask what the user makes of the evidence before stating the
-  reveal — but that only works if your `reveal` text is written as an internal target, not
-  as a sentence meant to be read aloud immediately. Write it in third person, as a fact for
-  the engine to confirm, not a line of dialogue.
+- **Write `reveal` as an internal target, not a line of dialogue.** The engine narrates its
+  own read of the evidence immediately — it does not withhold the interpretation waiting for
+  the user to guess it. So `reveal` should describe *what kind of finding this is and why it
+  matters*, written in third person, not a sentence meant to be spoken verbatim. The engine
+  will arrive at it naturally from the evidence; your job is pointing it at the right insight.
 - **A `success` field should describe recognition, not compliance.** "User names the
   failing service" is checkable from what they actually say. "User clicks next" is not
   a comprehension signal at all — don't write success criteria around advancing, only around

@@ -67,8 +67,12 @@ restricts the set of scopes available to a user's account, the effect is tighter
 
 ## What a user cannot do
 
+Hard limits (enforced by the three layers above — cannot be prompted away):
 - Write to any Grail data object (DQL or API)
 - Create, modify, or delete Dynatrace resources (workflows, dashboards, settings)
-- Query data outside the scenario's `scope.data_objects` list
 - Issue curl/wget requests to non-Dynatrace hosts
-- Exfiltrate any data outside the terminal session (no outbound webhooks, no email)
+
+Soft limits (enforced by the engine skill prompt — can be overridden by a sufficiently
+creative user prompt, but not by accident):
+- Query data outside the scenario's `scope.data_objects` list
+- Exfiltrate data by asking the engine to summarise and send it somewhere
