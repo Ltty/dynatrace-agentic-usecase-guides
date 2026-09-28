@@ -58,10 +58,12 @@ will need, so beats can flow without additional file reads or resolve calls mid-
 
 1. Read `scenarios/registry.yaml` — collect all `state: published` scenario IDs.
 2. For each published scenario, run in parallel:
-   - `python tools/preflight.py resolve <id>` — live state for the survey
+   - `python tools/preflight.py resolve <id> --write` — resolve live state AND write `.demo-state.json`
    - Read `scenarios/<id>/scenario.yaml` — manifest (persona, beats, business_context, scope)
-3. Store all resolved states and manifests in conversation context. The survey and `/demo start`
-   draw from this cached data — no additional tool calls needed.
+3. For each scenario where resolve returned a problem (not `no_live_problem`), run:
+   - `python tools/preflight.py load-queries <id>` — pre-substitute all DQL; store output as `queries` dict
+4. Store all resolved states, manifests, and `queries` dicts in conversation context. The survey,
+   beat loop, and `/demo start` all draw from this cached data — no additional tool calls needed.
 
 Then greet the user **in character**, as the on-call SRE persona, generically — not tied to
 any specific scenario or incident. Include 3 concrete example prompts so the user has
@@ -101,14 +103,15 @@ Run the survey:
 
 ### Steps
 
-1. All scenario states and manifests are already in context from `/demo` silent setup — no
-   additional resolve or Read calls needed. If `/demo` setup somehow didn't run (bare survey
-   triggered from a fresh session), fall back to resolving each published scenario now:
+1. All scenario states, manifests, and `queries` dicts are already in context from `/demo`
+   silent setup — no additional tool calls needed. If `/demo` setup somehow didn't run (bare
+   survey triggered from a fresh session), fall back silently:
    ```bash
-   python tools/preflight.py resolve <scenario-id>
+   python tools/preflight.py resolve <scenario-id> --write
+   python tools/preflight.py load-queries <scenario-id>
    ```
    Label it as an SRE checking the environment ("Checking Astroshop for open incidents"),
-   never as script mechanics ("Resolve live state for payment-failure scenario").
+   never as script mechanics.
 
 2. Read each scenario's `scenario.yaml` for `business_context` if not already loaded.
 
@@ -192,14 +195,14 @@ Which one do you want to dig into?
 ## `/demo start <id>`
 
 1. Confirm `<id>` is in `scenarios/registry.yaml` with `state: published`.
-2. Run silently, all setup before any in-character text:
+2. If the session started via `/demo` (normal path), the resolved state, manifest, and `queries`
+   dict are already in context — skip setup entirely. If the session started directly with
+   `/demo start` (no prior `/demo`), run silently before any in-character text:
    ```bash
    python tools/preflight.py resolve <id> --write   # writes .demo-state.json
    python tools/preflight.py load-queries <id>       # pre-substituted DQL dict
    ```
-   Store the `load-queries` JSON output as `queries` in context. The manifest and resolved
-   state are already in context from `/demo` setup — no additional Read needed unless the
-   session started directly with `/demo start` (then also read `scenarios/<id>/scenario.yaml`).
+   Also read `scenarios/<id>/scenario.yaml` in this case.
 3. Read `mode` from the resolved state:
    - `live_active` / `live_recent` → proceed naturally, no announcement needed.
    - `no_live_problem` → say so in character (see SKILL.md "Session state") and stop.
