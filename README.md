@@ -16,11 +16,18 @@ A Claude Code plugin for interactive, AI-guided incident investigations on the
    ```
 
 3. **Authenticate against the Dynatrace Playground:**
-   ```bash
-   dtctl auth login --context playground \
-     --environment https://playground.apps.dynatrace.com
-   ```
-   A browser tab opens for Dynatrace SSO.
+
+   In a Codespace the browser OAuth callback can't reach the container, so use an API token instead:
+   - Log in to [playground.apps.dynatrace.com](https://playground.apps.dynatrace.com)
+   - Profile → **Access tokens** → generate a token with these scopes:
+     `storage:logs:read`, `storage:spans:read`, `storage:events:read`,
+     `storage:entities:read`, `storage:user.sessions:read`,
+     `davis:analyzers:read`, `davis-copilot:conversations:execute`, `app-engine:apps:run`
+   - Paste the token into the Codespace terminal:
+     ```bash
+     dtctl config set-credentials playground --token <your-token> --global
+     ```
+
    No account? Free signup: [dynatrace.com/signup/playground](https://www.dynatrace.com/signup/playground/)
 
 4. **Run** — in the Claude Code chat panel (VS Code extension) or after running `claude` in the terminal:
