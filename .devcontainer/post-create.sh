@@ -54,6 +54,9 @@ if DTCTL_VERSION=$(curl -fsSL https://api.github.com/repos/dynatrace-oss/dtctl/r
       && chmod +x "${DTCTL_INSTALL_DIR}/dtctl"; then
     rm -f /tmp/dtctl.tar.gz
     export PATH="$DTCTL_INSTALL_DIR:$PATH"
+    # Persist to profile so Claude Code's Bash tool picks it up in new sessions
+    echo "export PATH=\"\$HOME/.local/bin:\$PATH\"" >> ~/.bashrc
+    echo "export PATH=\"\$HOME/.local/bin:\$PATH\"" >> ~/.profile
     STATUS_DTCTL="OK ($("${DTCTL_INSTALL_DIR}/dtctl" version 2>/dev/null | head -1))"
 
     echo ""
@@ -115,5 +118,4 @@ echo ""
 echo "================================================================"
 echo ""
 
-# Run preflight so the user sees what is installed vs what still needs auth.
-python tools/preflight.py check 2>/dev/null || true
+# Preflight check requires Dynatrace auth — run it manually after: python tools/preflight.py login
