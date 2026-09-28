@@ -474,17 +474,17 @@ def _replay_callback(url: str):
 
 
 def codespace_login():
-    """Run dtctl auth login with a paste-back relay for Codespace environments.
+    """Run dtctl auth login with an optional paste-back relay.
 
-    Launches dtctl so the user sees the SSO URL in the terminal.  After SSO,
-    the browser tries to hit 127.0.0.1:3232 on the local machine — that fails.
-    The user copies the failed URL from the browser address bar and pastes it
-    here; we replay it into the still-running dtctl process on 127.0.0.1:3232
-    inside the container.  No tunnel, no local tooling required.
+    Works in all environments. In a Codespace the browser callback to
+    127.0.0.1:3232 cannot reach the container; the user pastes the failed
+    redirect URL here and we replay it via urllib into the still-running
+    dtctl process. On a local machine the browser callback succeeds on its
+    own and the user just presses Enter.
     """
     cmd = [
         DTCTL,
-        "--no-agent",  # suppress JSON envelope output (CLAUDECODE env var triggers it)
+        "--no-agent",  # suppress JSON envelope when CLAUDECODE env var is set
         "auth", "login",
         "--context", "playground",
         "--environment", "https://playground.apps.dynatrace.com",
@@ -492,53 +492,47 @@ def codespace_login():
         "--timeout", "10m",
     ]
 
-    in_container = _in_container()
-
-    if not in_container:
-        # Local dev: the browser callback reaches 127.0.0.1:3232 directly — just run normally.
-        subprocess.run(cmd)
-        return
-
     print("Starting Dynatrace Playground authentication...\n")
-    print("dtctl will print a browser URL. Open it, complete SSO, then come back here.\n")
 
     proc = subprocess.Popen(
         cmd,
-        stdin=subprocess.DEVNULL,  # prevent dtctl's child from stealing terminal stdin
+        stdin=subprocess.DEVNULL,  # prevent dtctl from stealing terminal stdin
         # stdout and stderr inherited so the user sees the SSO URL
     )
 
-    print("\n--- After SSO ---")
-    print("The browser will redirect to http://127.0.0.1:3232/... and show a connection error.")
-    print("Copy that URL from the browser address bar and paste it here, then press Enter:")
+    print("\n--- After SSO in the browser ---")
+    print("  Codespace: the browser shows a connection error. Copy the URL from the")
+    print("  address bar and paste it here, then press Enter.")
+    print("  Local machine: auth completed in the browser. Just press Enter.")
     print()
 
     try:
-        pasted = sys.stdin.readline()
+        pasted = sys.stdin.readline().strip()
     except (EOFError, KeyboardInterrupt):
         proc.terminate()
         print("\nCancelled.")
         return
 
-    try:
-        callback_url = _normalize_callback(pasted)
-    except ValueError as e:
-        proc.terminate()
-        print(f"\nError: {e}")
-        sys.exit(1)
+    if pasted:
+        try:
+            callback_url = _normalize_callback(pasted)
+        except ValueError as e:
+            proc.terminate()
+            print(f"\nError: {e}")
+            sys.exit(1)
 
-    print(f"\nReplaying callback to dtctl... ", end="", flush=True)
-    try:
-        _replay_callback(callback_url)
-        print("done.")
-    except Exception as e:
-        print(f"failed: {e}")
-        proc.terminate()
-        sys.exit(1)
+        print("Replaying callback to dtctl... ", end="", flush=True)
+        try:
+            _replay_callback(callback_url)
+            print("done.")
+        except Exception as e:
+            print(f"failed: {e}")
+            proc.terminate()
+            sys.exit(1)
 
-    # dtctl may not exit automatically after auth; give it a few seconds then terminate.
+    # Give dtctl time to finish the token exchange and exit; terminate if it hangs.
     try:
-        proc.wait(timeout=10)
+        proc.wait(timeout=15)
     except subprocess.TimeoutExpired:
         proc.terminate()
         try:
@@ -547,11 +541,6 @@ def codespace_login():
             proc.kill()
 
     print("\nAuthentication complete. Run 'python tools/preflight.py check' to verify.")
-
-
-# ---------------------------------------------------------------------------
-# Entry point
-# ---------------------------------------------------------------------------
 
 def main():
     args = sys.argv[1:]
