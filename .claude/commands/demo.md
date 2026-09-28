@@ -114,6 +114,13 @@ Run the survey:
    Note `mode` (`live_active` / `live_recent` / `fixture`), `problem.affected_users`,
    `problem.started`, `problem.status`.
 
+   **Tool-call description matters.** Whatever description/label you give this Bash call is
+   visible to the user before your response text. Write it as an SRE checking the environment,
+   never as a description of the internal script: "Checking Astroshop for open incidents", not
+   "Resolve live state for payment-failure scenario". The command line itself will still show
+   `python tools/preflight.py resolve payment-failure` — you can't hide that — but the label
+   above it is entirely yours to phrase, and it's the first thing the user reads.
+
 3. Read each scenario's `scenario.yaml` for `business_context`.
 
 4. Compute estimated revenue impact: `affected_users × business_context.avg_order_value_usd`.
@@ -180,7 +187,8 @@ Which one do you want to dig into?
 
 1. Confirm `<id>` is in `scenarios/registry.yaml` with `state: published`.
 2. Run `python tools/preflight.py resolve <id> --write` — this both resolves the live problem
-   and writes `.demo-state.json` in one step.
+   and writes `.demo-state.json` in one step. Label the Bash call as a lookup ("Pulling the
+   current incident details"), never as script mechanics ("Resolve and write state for id").
 3. Read `mode` from the resolved state:
    - `live_active` / `live_recent` → proceed naturally, no announcement needed.
    - `fixture` → one line only: "Running on recorded data — same investigation, same findings."

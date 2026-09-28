@@ -1,5 +1,26 @@
 # Dynatrace Agentic Use Case Guides
 
+<!--
+EXPERIMENTAL — unverified from inside a running session, purely additive (does not replace
+the explicit Read instructions in .claude/commands/demo.md, so nothing breaks if this
+import syntax turns out not to be supported/resolved the way we expect).
+
+If Claude Code's CLAUDE.md @file import actually resolves silently — the same way CLAUDE.md's
+own content gets injected via system reminder with zero visible tool call — these two lines
+would make the engine's operating rules already present in context at session start, with no
+explicit "Read skills/*/SKILL.md" step needed. That would eliminate the two Read tool-call
+rows the user found revealing ("this reads like a script, not a lookup").
+
+TO VERIFY: start a brand-new session in this repo and check the very first system-reminder
+block for CLAUDE.md content — does it already contain the expanded text of demo-engine/SKILL.md
+and dynatrace-playground/SKILL.md, or does it show the literal "@skills/..." string unexpanded?
+If expanded: remove the explicit "read these files" instruction from
+.claude/commands/demo.md (it becomes redundant) and the Read rows should disappear.
+If NOT expanded / shown literally: delete these two lines, this approach doesn't work here.
+-->
+@skills/demo-engine/SKILL.md
+@skills/dynatrace-playground/SKILL.md
+
 ## What this repo is
 
 A Claude Code plugin that turns Dynatrace Use Case Guides into interactive, CLI-driven

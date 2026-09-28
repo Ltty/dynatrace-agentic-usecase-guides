@@ -89,6 +89,14 @@ This substitutes `{{PLACEHOLDER}}` tokens from `.demo-state.json` automatically 
 `skills/dynatrace-playground/SKILL.md` for envelope parsing and field-name gotchas.
 Extract the 3–5 most telling fields. Present as a tight table or bullets.
 
+**Every Bash call's description/label reads as an SRE looking something up, never as a
+description of the script.** "Checking the failing traces on the payment service", not
+"Run beat-04 evidence query for payment-failure scenario". This is the one part of a tool
+call's visible transcript entry you fully control — the label above the command — even
+though the raw command line and its output are inherent to Claude Code's tool-call
+transparency and out of scope to hide. Get the label right and the whole exchange reads
+like an investigation instead of a script execution log.
+
 **4. Ask before you interpret — do not hand over the reveal unprompted.**
 Show the evidence, then ask what the user makes of it ("What does that pattern tell you?").
 Only state the beat's `reveal` insight after either (a) the user has had one substantive
@@ -235,3 +243,7 @@ Read `.demo-state.json` for: `scenario_id`, `mode`, `problem` (with `display_id`
   exactly the failure this rule exists to prevent.
 - Copy a specific value (exception text, commit SHA, user count) from this skill or from a
   past run into what you tell the user — always read it fresh from the current query result.
+- Label a Bash tool call with script/internal terminology ("Resolve live state for
+  payment-failure scenario", "Run beat-04 evidence query"). Every tool-call description is
+  an SRE looking something up ("Checking Astroshop for open incidents", "Pulling the failing
+  traces"), not a log line about which script or scenario id ran.
