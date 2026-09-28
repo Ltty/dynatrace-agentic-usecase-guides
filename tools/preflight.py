@@ -69,7 +69,7 @@ DTCTL = _find_dtctl()
 def run_dtctl(*args, timeout=30):
     cmd = [DTCTL, "--agent", "--plain"] + list(args)
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+        result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", timeout=timeout)
         return result.returncode, result.stdout, result.stderr
     except FileNotFoundError:
         return 127, "", "dtctl executable not found"
@@ -121,7 +121,7 @@ def _extract_dql_snippet(dql: str, max_lines: int = 4) -> list:
     snippet = (important + rest)[:max_lines]
     leftover = len(important + rest) - max_lines
     if leftover > 0:
-        snippet.append(f"    … ({leftover} more lines)")
+        snippet.append(f"    ... ({leftover} more lines)")
     return snippet
 
 
@@ -132,7 +132,7 @@ def _print_proof_stamp(dql: str, envelope: dict):
     ctx = envelope.get("context", {})
 
     qid = meta.get("queryId", "")
-    qid_short = qid[:8] if qid else "—"
+    qid_short = qid[:8] if qid else "?"
 
     scanned_bytes = meta.get("scannedBytes", 0)
     elapsed_ms = meta.get("executionTimeMilliseconds", "?")
@@ -143,7 +143,7 @@ def _print_proof_stamp(dql: str, envelope: dict):
     else:
         scanned_str = "?"
 
-    proof = f"→ live · queryId {qid_short} · {total} records · {scanned_str} scanned · {elapsed_ms}ms"
+    proof = f">> live - queryId {qid_short} - {total} records - {scanned_str} scanned - {elapsed_ms}ms"
 
     max_len = max((len(l) for l in snippet), default=0)
     w = min(72, max(60, max_len + 4, len(proof) + 4))
@@ -400,7 +400,7 @@ def run_query(scenario_id: str, dql_rel_path: str, extra_vars: dict = None,
             proc = subprocess.run(
                 [sys.executable, str(renderer)],
                 input=json.dumps(envelope),
-                capture_output=True, text=True
+                capture_output=True, text=True, encoding="utf-8"
             )
             if proc.returncode == 0:
                 print(proc.stdout)

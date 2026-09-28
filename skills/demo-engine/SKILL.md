@@ -105,8 +105,8 @@ Extract the 3–5 most telling fields. Present as a tight table or bullets.
 
 **After running a query, include in your chat narration:**
 - 2–4 key DQL lines (the `fetch` and `| filter` clauses — skip boilerplate `| fields`).
-  These appear in the stderr block of the tool output labelled by the `─── DQL` header.
-- One proof line from that same header: `→ live · queryId <id> · N records · XMB · Yms`.
+  These appear in the stderr block of the tool output between the `---` separator lines.
+- One proof line from that same block: `>> live - queryId <id> - N records - XMB - Yms`.
   This is the server-generated queryId proving the call hit the Playground, not a local file.
   Example narration: *"Queried the payment spans — `filter request.is_failed == true` —
   got 5 failing traces in 25ms (queryId 01a0e712)."*

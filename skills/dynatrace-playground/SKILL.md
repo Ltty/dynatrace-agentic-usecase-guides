@@ -37,12 +37,12 @@ After each successful `run-query` call, `preflight.py` prints a stamp to stderr:
 fetch spans, from: "2026-09-27T20:51:00Z", to: "2026-09-27T22:10:00Z"
 | filter trace.id == toUid("8af0d233...")
 | filter request.is_failed == true
-→ live · queryId 01a0e712 · 16 records · 167MB scanned · 33ms
+>> live - queryId 01a0e712 - 16 records - 167MB scanned - 33ms
 ------------------------------------------------------------------------
 ```
 
 **Include this in your chat narration** — a 2-4 line DQL snippet (the `fetch` and `| filter`
-clauses) followed by the `→ live` line. This proves the call hit the Playground in real time,
+clauses) followed by the `>> live` line. This proves the call hit the Playground in real time,
 not a local file. The `queryId` is server-generated and changes on every call. Example narration:
 *"Queried the failing payment spans — `filter request.is_failed == true` — 5 traces in 25ms
 (queryId 01a0e712, 167MB scanned)."*
