@@ -536,7 +536,16 @@ def codespace_login():
         proc.terminate()
         sys.exit(1)
 
-    proc.wait()
+    # dtctl may not exit automatically after auth; give it a few seconds then terminate.
+    try:
+        proc.wait(timeout=10)
+    except subprocess.TimeoutExpired:
+        proc.terminate()
+        try:
+            proc.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+
     print("\nAuthentication complete. Run 'python tools/preflight.py check' to verify.")
 
 
