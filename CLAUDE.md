@@ -40,6 +40,12 @@ feels like pair-debugging on a real incident.
 - **Safety level:** `readonly` — hard-enforced at the dtctl context layer
 - **Agent mode:** auto-activates (`CLAUDECODE` env var present); output is JSON envelope
 - **Auth:** per-user browser OAuth; no shared tokens exist in this repo
+- **Resolved state:** `tools/preflight.py resolve <id> --write` → `.demo-state.json`, mode is
+  one of `live_active` / `live_recent` / `fixture`
+- **Beat queries:** always run via `python tools/preflight.py run-query <id> <dql-path>` —
+  substitutes `{{DQL_TIMEFRAME_FROM}}`/`{{DQL_TIMEFRAME_TO}}` etc. from state, and transparently
+  falls back to a captured fixture when `mode == fixture`. Raw `dtctl query --file` on a beat
+  query will not substitute placeholders.
 
 ## Directory map
 
@@ -67,19 +73,33 @@ Soft (skill-level):
 ## Adding a demo
 
 See `docs/AUTHORING.md`. The contract: add `scenarios/<new-id>/scenario.yaml` plus beats,
-queries, and fixtures. Register in `scenarios/registry.yaml`. Run `python tools/validate_scenarios.py`.
-Zero changes to `skills/` or `commands/`.
+queries, and fixtures. Register in `scenarios/registry.yaml`. Run
+`python tools/validate_scenarios.py --live scenarios/<new-id>` — this actually executes every
+query against the Playground, not just static checks. Zero changes to `skills/` or `commands/`.
 
-## dtctl reference
+## Tooling reference
 
-- `dtctl query "<DQL>" --agent` — run a DQL query, get JSON envelope
-- `dtctl exec copilot` — chat with Davis CoPilot
-- `dtctl inventory --agent` — discover what data exists in the environment
-- `dtctl doctor` — verify auth and connectivity
-- `dtctl config describe-context playground` — show current context and safety level
+- `python tools/preflight.py check` — connectivity/auth/safety-level gate (what `/demo-doctor` runs)
+- `python tools/preflight.py resolve <id> [--write]` — find the live problem, derive the incident
+  window, optionally write `.demo-state.json`
+- `python tools/preflight.py run-query <id> <dql-path>` — substitute placeholders + execute
+  (or read a fixture, if `mode == fixture`) — what beat evidence queries actually run through
+- `python tools/validate_scenarios.py [--live] [scenarios/<id>]` — schema/integrity/DQL-lint,
+  plus (with `--live`) real execution of every query
+- `python tools/capture_fixtures.py <id>` — capture fresh beat-level fixtures from a currently-live
+  problem occurrence
+- `dtctl exec copilot "<question>" --context "<your own query facts>"` — Davis CoPilot; message
+  is positional, not stdin
 
 ## Known constraints
 
-- Playground problem IDs change on each problem cycle; the resolver derives them fresh at `/demo start`
-- `dtctl exec copilot` output is non-deterministic; used for colour/narrative, not as primary evidence
-- The Playground is read-only; the engine must never attempt a write (hook enforces this)
+- Recurring Playground problem patterns fire as a **cluster of near-duplicate Davis problems**.
+  The resolver filters `dt.davis.is_duplicate == false` to get one deterministic instance — do
+  not additionally filter on `event.name`, the umbrella problem is often generically named.
+- Specific values (exception text, commit SHA, line numbers, affected-user counts) **rotate
+  every problem cycle** — never hardcode them in a `scenario.yaml` reveal; read them live.
+- `dtctl exec copilot` output is non-deterministic; used for colour/narrative fed by your own
+  query results, not as primary evidence.
+- The Playground is read-only; the engine must never attempt a write (hook enforces this).
+- Field names in this Playground do not always match generic DQL documentation — see the
+  verified list in `skills/dynatrace-playground/SKILL.md` before trusting an assumption.

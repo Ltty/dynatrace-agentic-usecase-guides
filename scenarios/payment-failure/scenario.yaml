@@ -4,17 +4,21 @@ source_guide: "96474054-260e-4b94-805e-d10fcbfb8e7a"
 duration_minutes: [8, 15]
 
 # Used by the ambient discovery flow to frame the scenario as a live problem
-# before the user has chosen anything. Real affected_users comes from the resolver;
-# avg_order_value is used to compute an estimated revenue impact.
+# before the user has chosen anything. affected_users, started/ended and status
+# all come straight from tools/preflight.py resolve — no second query needed.
+# There is deliberately no {failure_rate} placeholder: the resolver's problem
+# record only carries a failure percentage buried in unstructured markdown
+# (event.description), which is too fragile to parse reliably. Say "failure
+# rate spiked hard" qualitatively; don't try to extract or guess a number here.
 business_context:
   service_name: "payment service"
   avg_order_value_usd: 87
   user_action: "checkout"
   urgency_phrase: "Every minute this is open costs your team customers and revenue."
   discovery_hook: >
-    The {service_name} is failing for {affected_users} users.
-    Checkout requests are erroring at {failure_rate}% — it's been going on
-    for {duration_min} minutes. That's roughly ${revenue_impact} in abandoned carts.
+    The {service_name} is failing for {affected_users} users. Checkout requests
+    are erroring hard — it's been going on for {duration_min} minutes. That's
+    roughly ${revenue_impact} in abandoned carts.
 
 persona:
   role: "On-call SRE pairing with the user"
@@ -42,18 +46,27 @@ resolve:
     query: queries/find-problem.dql
     fallback: fixtures/problem.json
 
+# NOTE ON REVEALS: every reveal below describes the SHAPE of the finding, not
+# its current values. The pattern rotates between problem cycles — commit SHA,
+# exception text, exception line number, affected-user count, and deployment
+# timestamp all change run to run. The engine reads the actual values from the
+# live evidence query at runtime. Never copy a specific value from a past run
+# back into this file (see docs/AUTHORING.md).
+
 beats:
   - id: the-page
     source_step_id: "769e0cc1-4e6a-4cdc-899b-ae0b26864bc2"
     objective: >
       User grasps the blast radius: which service is the root cause, how many
-      users are impacted, when it started, and that checkout is a downstream victim.
+      users are impacted, when it started, and that checkout is a downstream victim,
+      not the source.
     evidence:
       - queries/beat-01-problem-summary.dql
     reveal: >
-      astroshop-payment Charge endpoint at ~100% failure rate; started roughly
-      14 minutes ago; 310+ users impacted; astroshop-checkout is a downstream
-      victim, not a root cause.
+      A sharp failure-rate spike on the payment service's Charge endpoint, started
+      recently, affecting a large user count. Checkout shows up as impacted too,
+      but the root-cause field points at payment — checkout is collateral, not the
+      cause. State the actual numbers from the query result, not a guess.
     success: >
       User names 'payment' or 'Charge' as the failing service/endpoint,
       OR asks to drill into the payment service.
@@ -64,16 +77,17 @@ beats:
   - id: explain-with-davis
     source_step_id: "2069195f-c986-489c-ad34-2b121bfb7b81"
     objective: >
-      User sees a concise AI-generated root-cause explanation that points to
-      a specific deployment/commit as the likely cause and names the remediation step.
+      User sees a concise AI-generated root-cause explanation that points to a
+      specific deployment/commit as the likely cause and names the remediation step.
     evidence:
       - queries/beat-02-deployment-events.dql
     reveal: >
-      Davis identifies a new deployment of astroshop-payment at version 0.4.7-payment
-      as the change event correlated with the failure; recommends reverting that commit.
+      A recent deployment to astroshop-payment (an ArgoCD sync carrying a specific
+      git commit SHA) lines up with the failure onset. Ask Davis CoPilot
+      (dtctl exec copilot) to confirm the causal read and recommend a fix, feeding
+      it the actual commit and timestamp from the query — don't let it guess.
     success: >
-      User asks which commit to revert, or asks for the deployment details,
-      or mentions the version number.
+      User asks which commit to revert, or asks for the deployment details.
     nudges: [open, narrowing, concrete, do-it-for-them]
     deep_link: >
       https://playground.apps.dynatrace.com/ui/intent/dynatrace.davis.copilot/ask-question#%7B%22prompt%22%3A%22Explain%20what%20happened%20in%20the%20problem%20with%20id%20{{PAYMENT_FAILURE_PROBLEM}}%2C%20why%20it%20happened%2C%20and%20actionable%20steps%20to%20remediate%20it.%22%2C%22execute%22%3Atrue%7D
@@ -81,15 +95,17 @@ beats:
   - id: service-deep-dive
     source_step_id: "faa50d59-7e4d-43f0-8cd1-1ea339c1f56f"
     objective: >
-      User can read the service performance data: failure rate on the Charge endpoint,
-      recent deployment markers, and that the failure rate spike aligns exactly with
-      the deployment timestamp.
+      User can read the service performance data: failure rate on the Charge endpoint
+      over time, the deployment marker, and that the failure rate spike aligns exactly
+      with the deployment timestamp.
     evidence:
       - queries/beat-03-service-failure-rate.dql
       - queries/beat-03-deployment-marker.dql
     reveal: >
-      Failure rate on Charge went from ~0% to >50% at the exact moment of the
-      0.4.7-payment deployment. The deployment is the smoking gun.
+      The failure-rate time series shows a step change from near-zero to a sustained
+      elevated rate, and the deployment marker timestamp lands inside the same 5-minute
+      bucket as the jump. That alignment is the smoking gun — state the actual before/after
+      percentages and the bucket timestamp from the two queries, not approximations.
     success: >
       User connects the deployment timestamp to the failure rate spike,
       or asks to see the traces/logs for the failing requests.
@@ -99,33 +115,55 @@ beats:
 
   - id: failing-traces
     source_step_id: "bb0bda14-36e6-4192-90c5-7f34e0a36c80"
+    peak_moment: true
     objective: >
-      User sees a failing distributed trace end-to-end: the Charge span, the exception
-      type, and the stack frame that identifies the faulty code path.
+      User sees a failing distributed trace end-to-end: the exact exception message,
+      source file, and line number that identifies the faulty code path — the payoff
+      of the whole investigation.
     evidence:
       - queries/beat-04-failing-spans.dql
     reveal: >
-      The Charge endpoint throws a Python Exception (InvalidRequest or equivalent)
-      at the payment gateway call. The exception message and stack frame are enough
-      to identify the exact line in the commit that broke production.
+      The failing spans carry a specific exception message from the payment charge
+      code — read it verbatim from the query result, do not paraphrase it. It reads
+      as a business-logic validation regression (rejecting input that should be
+      valid), not an infrastructure fault — exactly the kind of bug unit tests miss
+      and only real traffic exposes. Note the exact file and line number. If more
+      than one distinct exception message appears across the failing spans, say so —
+      that's a second finding, not noise to filter out.
     success: >
-      User identifies the exception type or the failing code path from the trace data.
+      User identifies the exception message or the failing code path from the trace data.
+    staging: >
+      This is the climax of the investigation — the source guide's own title for
+      this step is "check which commit needs to be reverted to fix the issue fast."
+      Do not present this as an ordinary evidence table. Land the exception message
+      on its own line, verbatim, before any other commentary. Then explain what kind
+      of bug it is. Then give the file and line as the concrete next action. See
+      skills/demo-engine/SKILL.md for the general pacing rule this beat exists to test.
     nudges: [open, narrowing, concrete, do-it-for-them]
     deep_link: >
       https://playground.apps.dynatrace.com/ui/apps/dynatrace.distributedtracing/explorer?filter=request.is_failed+%3D+Failure+AND+dt.smartscape.service+%3D+SERVICE-531CE26849E95EC1+AND+endpoint.name+%3D+Charge&tf={{TIMEFRAME_FROM}}%3B{{TIMEFRAME_TO}}
 
   - id: the-humans
     source_step_id: "673c8524-7065-4d24-b43a-118d1308a52a"
+    peak_moment: true
     objective: >
-      User understands the real-world impact: which user sessions were affected,
-      the error they saw, and that session replay exists to show the exact UX.
+      User understands the real-world impact: how many real user sessions were
+      affected, where in the world they were, and that session replay exists to
+      show the exact UX a customer hit.
     evidence:
       - queries/beat-05-affected-sessions.dql
     reveal: >
-      310 user sessions hit the Internal Server Error during checkout. Session replay
-      is available — the user can watch exactly what a customer experienced.
+      Sessions with 5xx errors span many countries, and nearly all of them have
+      session replay available. State the actual session count and top countries
+      from the query result. The point isn't the number — it's that every one of
+      those failures is a replayable recording of a real customer hitting a real error.
     success: >
       User asks about affected users, the customer experience, or session replay.
+    staging: >
+      This is the emotional payoff, not another data table. After the numbers, make
+      concrete what "session replay" means: an SRE can open a recording and watch
+      exactly what that customer saw and clicked, not infer it from logs. That's
+      the gap between "310 error events" and "310 people who had a bad day."
     nudges: [open, narrowing, concrete, do-it-for-them]
     deep_link: >
       https://playground.apps.dynatrace.com/ui/apps/dynatrace.error.inspector/error-explorer?tf={{TIMEFRAME_FROM}}%3B{{TIMEFRAME_TO}}&problemId={{PAYMENT_FAILURE_PROBLEM}}&perspective=impact&sort=affected_users%3Adescending

@@ -1,17 +1,18 @@
 // Beat 2 — deployment events correlated with the payment service failure.
-// Looks for CUSTOM_DEPLOYMENT events on the payment service in the 2h window
-// around the problem start. The engine uses this to support the Davis explanation.
+// ArgoCD sync events carry the git commit SHA directly — this is the "which
+// commit do we revert" answer the source guide's beat 2 is built around.
 
-fetch events, from: now()-24h, to: now()
+fetch events, from: "{{DQL_TIMEFRAME_FROM}}", to: "{{DQL_TIMEFRAME_TO}}"
 | filter event.type == "CUSTOM_DEPLOYMENT"
 | filter in(dt.entity.service, "SERVICE-531CE26849E95EC1", "SERVICE-5ACC60E0079F8E6D")
 | sort timestamp desc
 | limit 5
 | fields
     timestamp,
-    service       = dt.entity.service,
-    version       = dt.release_version,
-    build         = dt.release_build_version,
-    stage         = dt.release_stage,
-    product       = dt.release_product,
-    changed_by    = event.provider
+    service     = dt.entity.service.name,
+    commit,
+    git_url     = gitUrl,
+    stage,
+    app,
+    owner,
+    deploy_name = event.name

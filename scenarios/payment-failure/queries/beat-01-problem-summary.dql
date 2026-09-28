@@ -1,10 +1,11 @@
 // Beat 1 — blast radius summary.
 // Shows the problem, which services are hit, user count, and when it started.
 // Compact output: 8 columns, engine formats into a 4-line summary for the user.
+// Same is_duplicate filter as the resolver — must return the identical problem instance.
 
 fetch dt.davis.problems, from: now()-24h, to: now()
 | filter root_cause_entity_id == "SERVICE-531CE26849E95EC1"
-| filter event.name == "Failure rate increase"
+| filter dt.davis.is_duplicate == false
 | sort timestamp desc
 | limit 1
 | fields

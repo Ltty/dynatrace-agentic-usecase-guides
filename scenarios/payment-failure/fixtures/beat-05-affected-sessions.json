@@ -1,0 +1,72 @@
+{
+  "ok": true,
+  "envelope_version": 1,
+  "result": {
+    "kind": "records",
+    "records": [
+      {
+        "country": "US",
+        "sessions": "51",
+        "with_replay": "51"
+      },
+      {
+        "sessions": "20",
+        "with_replay": "8"
+      },
+      {
+        "country": "GB",
+        "sessions": "14",
+        "with_replay": "14"
+      },
+      {
+        "country": "CN",
+        "sessions": "13",
+        "with_replay": "13"
+      },
+      {
+        "country": "AU",
+        "sessions": "11",
+        "with_replay": "11"
+      },
+      {
+        "country": "NG",
+        "sessions": "11",
+        "with_replay": "11"
+      },
+      {
+        "country": "BR",
+        "sessions": "9",
+        "with_replay": "9"
+      },
+      {
+        "country": "CZ",
+        "sessions": "7",
+        "with_replay": "7"
+      },
+      {
+        "country": "EG",
+        "sessions": "7",
+        "with_replay": "7"
+      },
+      {
+        "country": "JP",
+        "sessions": "7",
+        "with_replay": "7"
+      }
+    ]
+  },
+  "context": {
+    "total": 10,
+    "verb": "query",
+    "resource": "user.sessions",
+    "suggestions": [
+      "# rows compacted: row = result.constant + record, absent key = null; --compact=false for full rows",
+      "# metadata trimmed by default; -M=all for the full block"
+    ],
+    "decided": "inline"
+  },
+  "metadata": {
+    "executionTimeMilliseconds": 35,
+    "scannedBytes": 3003881
+  }
+}

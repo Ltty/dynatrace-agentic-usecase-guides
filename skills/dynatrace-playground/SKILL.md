@@ -3,20 +3,31 @@
 This skill teaches you how to query the Dynatrace Playground via `dtctl`
 in agent mode, interpret the response envelope, and present evidence clearly.
 
-## dtctl basics for agent use
+## Running a beat's evidence query — use the substitution helper, not raw dtctl
 
-Always pass `--agent` (or rely on auto-detection via `CLAUDECODE` env var).
-Always pass `-o json` when you need exact field names (agent default is `-o auto` which may emit YAML).
-Always pass `--max-field-chars 0` when the full value of a field matters (default clips at 500 chars).
-Use `--plain` to suppress ANSI colours.
+Beat evidence queries contain `{{PLACEHOLDER}}` tokens (incident timeframe, problem id).
+Don't call `dtctl query --file` directly on them — the tokens won't be substituted.
+Instead:
 
 ```bash
-dtctl query "fetch dt.davis.problems | limit 5" --agent -o json --plain
-dtctl query --file scenarios/payment-failure/queries/find-problem.dql --agent -o json --plain
-dtctl exec copilot   # interactive Davis CoPilot session
-dtctl inventory --agent
-dtctl doctor
+python tools/preflight.py run-query <scenario-id> <relative-dql-path>
 ```
+
+This reads `.demo-state.json`, substitutes every `{{TOKEN}}` in the file against
+`placeholders`, executes via dtctl, and prints the envelope. Example:
+
+```bash
+python tools/preflight.py run-query payment-failure queries/beat-04-failing-spans.dql
+```
+
+For ad-hoc queries with no placeholders (exploring beyond the scripted beats), call dtctl directly:
+
+```bash
+dtctl query "fetch dt.davis.problems | limit 5" --agent -o json --plain --max-field-chars 0
+```
+
+Always pass `-o json --plain --max-field-chars 0` for exact field names and untruncated values
+(agent-mode defaults to `-o auto`, which may emit YAML, and clips fields at 500 chars).
 
 ## Response envelope shape
 
@@ -29,23 +40,12 @@ dtctl doctor
     "constant": { ... },   // fields identical in every row; absent key = use constant value
     "records": [ ... ]     // per-row delta; absent key means use constant
   },
-  "context": {
-    "total": 5,
-    "suggestions": [ ... ],
-    "truncated": true,
-    "truncated_fields": ["event.description"]
-  },
-  "metadata": {
-    "analysisTimeframe": { "start": "...", "end": "..." },
-    "executionTimeMilliseconds": 46,
-    "scannedBytes": 10064354
-  }
+  "context": { "total": 5, "suggestions": [ ... ], "truncated": true },
+  "metadata": { "executionTimeMilliseconds": 46, "scannedBytes": 10064354 }
 }
 ```
 
-**Reconstruct a full row:** merge `result.constant` with the record dict; the record wins on conflicts.
-
-**Truncated fields:** re-run with `--max-field-chars 0 | fields <truncated_field>` to get the full value.
+**Reconstruct a full row:** merge `result.constant` with the record dict; the record wins.
 
 ## Exit codes
 
@@ -55,7 +55,7 @@ dtctl doctor
 | 3 | Auth failure | Run `dtctl auth login` |
 | 4 | Not found | Try a broader filter or check entity ID |
 | 5 | Permission denied | Token scope insufficient |
-| 127 | dtctl not found | Run devcontainer setup |
+| 127 | dtctl not found | `run-query`/`preflight.py` auto-locate it; raw calls need PATH set |
 
 ## Presenting evidence to the user
 
@@ -65,62 +65,106 @@ Never dump raw JSON. Always:
 3. Follow immediately with the "so what" — one or two sentences of interpretation.
 4. Offer the deep link for the equivalent Dynatrace app view.
 
-Example — good:
-```
-Payment service Charge endpoint:
-  • Failure rate: 54.7% (was <1% before 09:11 UTC)
-  • Affected users: 310
-  • Root cause: astroshop-payment → astroshop-checkout downstream
-
-The spike is sharp — this isn't gradual degradation, it's a hard break.
-That pattern usually means a bad deployment or a config push. Want to check recent deploys?
-
-→ Open in Dynatrace: [Problems app link]
-```
-
-Example — bad (never do this):
-```
-Here is the full JSON: {"ok":true,"result":{"records":[{"event.id":"..."...
-```
+But see `skills/demo-engine/SKILL.md` for *when* to state the interpretation — evidence and
+interpretation are not always the same turn. Ask what the user makes of it before handing over
+the reveal, except on the climax beat where the finding IS the payoff and lands immediately.
 
 ## Key entity IDs for the payment-failure scenario
+
+Stable across problem cycles — safe to hardcode:
 
 | Name | Entity ID | Type |
 |------|-----------|------|
 | astroshop-payment | SERVICE-531CE26849E95EC1 | Service (root cause) |
 | astroshop-checkout | SERVICE-5ACC60E0079F8E6D | Service (downstream) |
-| payment K8s app | CLOUD_APPLICATION-C3724834CF7ADFFF | K8s workload |
-| checkout K8s app | CLOUD_APPLICATION-7D7961E55D2923B0 | K8s workload |
+| Charge endpoint | (filter `endpoint.name == "Charge"`) | The failing endpoint |
+| segment | Apy24Rcu0cO | Filter segment used in deep links |
 
-## DQL patterns for this environment
+Rotates every problem cycle — never hardcode, always read from the live query result:
+problem id / display id, affected-user count, exception message text, exception line number,
+deployment commit SHA, incident timestamps. The exact numbers in this file (e.g. "431 users",
+"commit b35672") are illustrative of the *shape* of the data, not values to repeat verbatim.
+
+## Verified DQL field names and gotchas
+
+These were wrong in earlier drafts of the beat queries and cost real time debugging live —
+trust this list over intuition or generic DQL docs.
 
 ```dql
-// Problems (last 24h, sorted newest first)
-fetch dt.davis.problems, from: now()-24h, to: now()
-| sort timestamp desc
+// Rounding takes a NAMED second argument. round(x, 1) errors with
+// TOO_MANY_POSITIONAL_PARAMETERS_WITH_OPTIONS.
+round(value, decimals: 1)
 
-// Spans for a service with error filter
-fetch spans
-| filter dt.entity.service == "SERVICE-531CE26849E95EC1"
-| filter span.status_code == "ERROR"
-| limit 20
+// Spans expose start_time, NOT timestamp. bin(timestamp, 5m) silently
+// returns null (no error!) and collapses every bucket into one row.
+summarize total = count(), by: { bucket = bin(start_time, 5m) }
 
-// Failure rate by 5-minute bucket
-fetch spans
-| filter endpoint.name == "Charge"
-| summarize total = count(), failures = countIf(span.status_code == "ERROR"), by: bin(timestamp, 5m)
-| fieldsAdd rate = round(toDouble(failures)/toDouble(total)*100, 1)
+// Span failure signal: request.is_failed == true is the direct flag.
+// span.status_code also exists but its value is lowercase 'error', not "ERROR".
+filter request.is_failed == true
 
-// Deployment events
-fetch events
-| filter event.type == "CUSTOM_DEPLOYMENT"
-| filter dt.entity.service == "SERVICE-531CE26849E95EC1"
-| sort timestamp desc
-| limit 5
+// Trace/duration field names on spans:
+trace.id                          // NOT dt.trace_id
+toDouble(duration) / 1000000      // NOT span.duration; duration is a numeric STRING
+
+// Exception detail lives in span.events, but `expand span.events` does NOT
+// flatten exception.* onto the row as top-level fields. Project with bracket
+// access into the expanded object:
+| expand span.events
+| fields
+    exc_type = span.events[exception.type],
+    exc_msg  = span.events[exception.message],
+    exc_file = span.events[exception.file.full],
+    exc_line = span.events[exception.line_number]
+
+// A single incident can carry MORE THAN ONE distinct exception message on the
+// same endpoint (e.g. two different validation regressions in one deploy).
+// Don't assume the first failing span tells the whole story — skim all rows.
+
+// Deployment events (CUSTOM_DEPLOYMENT, ArgoCD) carry the git commit directly:
+fetch events | filter event.type == "CUSTOM_DEPLOYMENT"
+| fields commit, gitUrl, stage, app, owner, service = dt.entity.service.name
+// NOT dt.release_version / dt.release_build_version — those fields don't exist
+// on this event shape. `commit` is the short git SHA; `gitUrl` links straight
+// to the GitHub commit.
+
+// User sessions: start_time (not startTime), geo.country.iso_code for geo,
+// characteristics.has_replay (not session.hasSessionReplay),
+// error.http_5xx_count > 0 (not matchesPhrase(useraction.errors, ...) — that
+// field doesn't exist on this data object).
+// user.sessions is NOT tagged with a service entity ID — don't filter on
+// dt.entity.service here.
+fetch user.sessions
+| filter error.http_5xx_count > 0
+| summarize sessions = count(), with_replay = countIf(characteristics.has_replay == true),
+    by: { country = geo.country.iso_code }
+
+// Problems: the pattern fires as a cluster of near-duplicate Davis problems.
+// dt.davis.is_duplicate == false selects Davis's own merged/umbrella problem —
+// note its event.name is "Multiple application problems", NOT the specific
+// symptom name. Do not filter on event.name when selecting the canonical problem.
+fetch dt.davis.problems
+| filter root_cause_entity_id == "SERVICE-531CE26849E95EC1"
+| filter dt.davis.is_duplicate == false
 ```
+
+## Davis CoPilot
+
+```bash
+dtctl exec copilot "<question>" --context "<structured facts from your own queries>" --instruction "<format hint>"
+```
+
+The message is a **positional argument**, not stdin (`echo ... | dtctl exec copilot` fails with
+"message is required"). Pass the facts you already gathered via `--context` — CoPilot gives a
+much sharper answer grounded in your own query results than it does re-deriving them itself.
+`--instruction "2-3 sentences max"` keeps the response terse enough for the beat loop's length budget.
 
 ## Placeholder resolution
 
-Scenario placeholders (`{{PAYMENT_FAILURE_PROBLEM}}`, `{{TIMEFRAME_FROM}}`, `{{TIMEFRAME_TO}}`)
-are resolved at `/demo start` and stored in `.demo-state.json` under `placeholders`.
-Read that file and substitute before presenting any deep link URL.
+`.demo-state.json` → `placeholders` holds both representations:
+- `TIMEFRAME_FROM` / `TIMEFRAME_TO` — epoch milliseconds, for Dynatrace app deep-link URLs
+- `DQL_TIMEFRAME_FROM` / `DQL_TIMEFRAME_TO` — ISO8601 strings, for use inside DQL `from:`/`to:`
+- `PAYMENT_FAILURE_PROBLEM` — the resolved problem's event id
+
+`tools/preflight.py run-query` substitutes these automatically. When building a deep link by
+hand, read `.demo-state.json` yourself and substitute the epoch-ms pair.

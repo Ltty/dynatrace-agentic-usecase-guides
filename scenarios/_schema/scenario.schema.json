@@ -137,6 +137,14 @@
           "source_step_id": {
             "type": "string",
             "description": "UUID of the originating step in the source guide JSON (provenance)."
+          },
+          "peak_moment": {
+            "type": "boolean",
+            "description": "Marks this beat as a climax/payoff moment the engine should stage distinctly rather than present as an ordinary evidence table. See the 'staging' field for how."
+          },
+          "staging": {
+            "type": "string",
+            "description": "Pacing/delivery instructions for a peak_moment beat — how to land the finding, not what the finding is (that's 'reveal')."
           }
         }
       }

@@ -1,17 +1,27 @@
 #!/usr/bin/env python3
 """
-validate_scenarios.py — Phase 1 gate tool.
+validate_scenarios.py — scenario pack validator and (--live) execution gate.
 
 Validates scenario packs against the JSON schema, checks referential integrity
 (every path referenced in scenario.yaml must exist), and lints DQL files for
 write/ingest constructs.
 
+--live additionally EXECUTES every query in the scenario against the live
+Playground (resolver + every beat's evidence queries, with placeholder
+substitution) and asserts each returns ok:true. This is the standing gate
+that makes it structurally impossible to ship a scenario with a query that
+has never actually been run — the failure mode that cost the first test run
+its naturalness (three query errors debugged live, in front of the user).
+
 Usage:
-  python tools/validate_scenarios.py                  # validate all scenarios
-  python tools/validate_scenarios.py scenarios/foo    # validate one scenario
-  python tools/validate_scenarios.py --strict         # exit 1 on any warning
+  python tools/validate_scenarios.py                  # static checks, all scenarios
+  python tools/validate_scenarios.py scenarios/foo     # static checks, one scenario
+  python tools/validate_scenarios.py --strict          # exit 1 on any warning
+  python tools/validate_scenarios.py --live            # static + execute every query
+  python tools/validate_scenarios.py --live scenarios/foo
 """
 
+import importlib.util
 import json
 import re
 import sys
@@ -47,11 +57,24 @@ DQL_WRITE_PATTERNS = [
 # Placeholder pattern in deep_link templates
 PLACEHOLDER_RE = re.compile(r"\{\{([A-Z_]+)\}\}")
 
-# Known resolvable placeholders (set by the engine at /demo start)
+# Known resolvable placeholders (set by tools/preflight.py at resolve time)
 KNOWN_PLACEHOLDERS = {
     "PROBLEM_ID", "TIMEFRAME_FROM", "TIMEFRAME_TO",
+    "DQL_TIMEFRAME_FROM", "DQL_TIMEFRAME_TO",
     "PAYMENT_FAILURE_PROBLEM",  # alias used in the source guide JSON
 }
+
+# Loaded lazily only when --live is used (avoids requiring dtctl for static checks)
+_preflight = None
+
+
+def _load_preflight():
+    global _preflight
+    if _preflight is None:
+        spec = importlib.util.spec_from_file_location("preflight", Path(__file__).parent / "preflight.py")
+        _preflight = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(_preflight)
+    return _preflight
 
 errors: list[str] = []
 warnings: list[str] = []
@@ -78,7 +101,7 @@ def load_schema() -> dict:
 # Validators
 # ---------------------------------------------------------------------------
 
-def validate_scenario_dir(scenario_dir: Path, schema: dict) -> bool:
+def validate_scenario_dir(scenario_dir: Path, schema: dict, live: bool = False) -> bool:
     """Validate one scenario directory. Returns True if no errors."""
     global errors, warnings
     errors = []
@@ -139,7 +162,60 @@ def validate_scenario_dir(scenario_dir: Path, schema: dict) -> bool:
         warn("No fixtures found. Scenario will not work offline (fixture-mode fallback).")
 
     _report()
-    return len(errors) == 0
+    static_ok = len(errors) == 0
+
+    if not live:
+        return static_ok
+
+    # --- Live execution gate ---
+    live_ok = _validate_live(scenario_dir, manifest)
+    return static_ok and live_ok
+
+
+def _validate_live(scenario_dir: Path, manifest: dict) -> bool:
+    """Resolve the scenario live, then execute every query (resolver + all
+    beat evidence) with placeholder substitution. Asserts each returns ok:true.
+    """
+    preflight = _load_preflight()
+    scenario_id = scenario_dir.name
+
+    print(f"  [LIVE] resolving {scenario_id}...")
+    exit_code, state = preflight.resolve_scenario(scenario_id, write_state=False, quiet=True)
+    if state is None:
+        print(f"    ERROR: resolver failed entirely (exit {exit_code}) — cannot run live checks")
+        return False
+
+    mode = state.get("mode", "?")
+    print(f"    resolved: mode={mode}, problem={state.get('problem', {}).get('display_id', '?')}")
+
+    all_ok = True
+
+    # Resolver query itself
+    query_rel = manifest["resolve"]["problem"]["query"]
+    query_path = scenario_dir / query_rel
+    ok, envelope, error_str = preflight.run_query_with_state(query_path, state)
+    if ok:
+        print(f"    OK    {query_rel}")
+    else:
+        print(f"    ERROR {query_rel}: {error_str}")
+        all_ok = False
+
+    # Every beat's evidence queries
+    for beat in manifest.get("beats", []):
+        bid = beat.get("id", "?")
+        for ev_rel in beat.get("evidence", []):
+            ev_path = scenario_dir / ev_rel
+            if not ev_path.exists():
+                continue  # already reported as a static error
+            ok, envelope, error_str = preflight.run_query_with_state(ev_path, state)
+            if ok:
+                n = len(envelope.get("result", {}).get("records", [])) if envelope else 0
+                print(f"    OK    beats[{bid}] {ev_rel} ({n} records)")
+            else:
+                print(f"    ERROR beats[{bid}] {ev_rel}: {error_str}")
+                all_ok = False
+
+    return all_ok
 
 
 def _check_path(base: Path, rel: str, field: str):
@@ -169,6 +245,12 @@ def _lint_dql(dql_file: Path):
         if re.search(pattern, content, re.IGNORECASE):
             err(f"DQL write construct '{pattern}' found in {dql_file.name}")
 
+    placeholders = set(PLACEHOLDER_RE.findall(content))
+    unknown = placeholders - KNOWN_PLACEHOLDERS
+    if unknown:
+        warn(f"{dql_file.name}: unknown placeholders {unknown} — "
+             f"add to KNOWN_PLACEHOLDERS in validate_scenarios.py if intentional")
+
 
 def _report():
     for msg in errors:
@@ -185,6 +267,7 @@ def _report():
 
 def main():
     strict = "--strict" in sys.argv
+    live = "--live" in sys.argv
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
 
     schema = load_schema()
@@ -199,7 +282,7 @@ def main():
 
     all_ok = True
     for target in targets:
-        ok = validate_scenario_dir(target, schema)
+        ok = validate_scenario_dir(target, schema, live=live)
         if not ok:
             all_ok = False
 

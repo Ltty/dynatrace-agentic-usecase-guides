@@ -1,0 +1,63 @@
+{
+  "ok": true,
+  "envelope_version": 1,
+  "result": {
+    "kind": "records",
+    "constant": {
+      "app": "astroshop",
+      "owner": "team-astroshop",
+      "stage": "prod"
+    },
+    "records": [
+      {
+        "commit": "8b677d",
+        "deploy_name": "ArgoCD Sync: astroshop (git#8b677d)",
+        "git_url": "https://github.com/Dynatrace/opentelemetry-demo-gitops/commit/8b677de04d5fbb0244d5988673c668aab0f27f85",
+        "service": "astroshop-checkout",
+        "timestamp": "2026-09-27T21:34:10.323000000Z"
+      },
+      {
+        "commit": "8b677d",
+        "deploy_name": "ArgoCD Sync: astroshop (git#8b677d)",
+        "git_url": "https://github.com/Dynatrace/opentelemetry-demo-gitops/commit/8b677de04d5fbb0244d5988673c668aab0f27f85",
+        "service": "astroshop-payment",
+        "timestamp": "2026-09-27T21:34:10.323000000Z"
+      },
+      {
+        "commit": "b35672",
+        "deploy_name": "ArgoCD Sync: astroshop (git#b35672)",
+        "git_url": "https://github.com/Dynatrace/opentelemetry-demo-gitops/commit/b3567203bcf61c25b821bf9c52d7fd15ab215c29",
+        "service": "astroshop-payment",
+        "timestamp": "2026-09-27T21:15:57.120000000Z"
+      },
+      {
+        "commit": "b35672",
+        "deploy_name": "ArgoCD Sync: astroshop (git#b35672)",
+        "git_url": "https://github.com/Dynatrace/opentelemetry-demo-gitops/commit/b3567203bcf61c25b821bf9c52d7fd15ab215c29",
+        "service": "astroshop-payment",
+        "timestamp": "2026-09-27T21:12:31.029000000Z"
+      },
+      {
+        "commit": "b35672",
+        "deploy_name": "ArgoCD Sync: astroshop (git#b35672)",
+        "git_url": "https://github.com/Dynatrace/opentelemetry-demo-gitops/commit/b3567203bcf61c25b821bf9c52d7fd15ab215c29",
+        "service": "astroshop-checkout",
+        "timestamp": "2026-09-27T21:12:31.029000000Z"
+      }
+    ]
+  },
+  "context": {
+    "total": 5,
+    "verb": "query",
+    "resource": "events",
+    "suggestions": [
+      "# rows compacted: row = result.constant + record, absent key = null; --compact=false for full rows",
+      "# metadata trimmed by default; -M=all for the full block"
+    ],
+    "decided": "inline"
+  },
+  "metadata": {
+    "executionTimeMilliseconds": 33,
+    "scannedBytes": 1992745
+  }
+}

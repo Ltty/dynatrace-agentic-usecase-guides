@@ -1,13 +1,21 @@
-// Beat 5 — user sessions impacted by the Internal Server Error during checkout.
-// Shows session count, error distribution, and whether session replay is available.
+// Beat 5 — user sessions impacted by 5xx errors during checkout, broken down
+// by country, with session replay availability.
+//
+// Field notes (all verified live):
+// - error.http_5xx_count > 0 (not matchesPhrase(useraction.errors, ...) —
+//   that field doesn't exist on this data object)
+// - characteristics.has_replay (not session.hasSessionReplay)
+// - start_time (not startTime) if a time bucket is ever added back
+// - geo.country.iso_code for the geo breakdown
+// - user.sessions is NOT tagged with a service entity ID — do not filter on
+//   dt.entity.service here; scoping to the incident timeframe is sufficient
+//   since the failure is service-wide during that window.
 
-fetch user.sessions, from: now()-24h, to: now()
-| filter matchesPhrase(useraction.errors, "Internal Server Error")
-| filter in(dt.entity.service, "SERVICE-531CE26849E95EC1", "SERVICE-5ACC60E0079F8E6D")
+fetch user.sessions, from: "{{DQL_TIMEFRAME_FROM}}", to: "{{DQL_TIMEFRAME_TO}}"
+| filter error.http_5xx_count > 0
 | summarize
-    affected_sessions = count(),
-    with_replay       = countIf(session.hasSessionReplay == true),
-    by: bin(startTime, 30m)
-| sort startTime desc
+    sessions    = count(),
+    with_replay = countIf(characteristics.has_replay == true),
+    by: { country = geo.country.iso_code }
+| sort sessions desc
 | limit 10
-| fields startTime, affected_sessions, with_replay
