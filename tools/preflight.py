@@ -585,6 +585,7 @@ def codespace_login():
     )
 
     sso_url_ready = threading.Event()
+    auth_complete = threading.Event()
     shared = {"sso_url": None}
 
     def _read_output():
@@ -597,6 +598,9 @@ def codespace_login():
                 shared["sso_url"] = line
                 sso_url_ready.set()
                 want_url = False
+            # Detect auth success — dtctl prints this after a successful exchange
+            if "successful" in line.lower() or "authenticated" in line.lower():
+                auth_complete.set()
 
     threading.Thread(target=_read_output, daemon=True).start()
 
@@ -627,21 +631,29 @@ def codespace_login():
         return
 
     if pasted:
-        try:
-            callback_url = _normalize_callback(pasted)
-        except ValueError as e:
-            proc.terminate()
-            print(f"\nError: {e}")
-            sys.exit(1)
-        sys.stdout.write("\n  Completing authentication... ")
-        sys.stdout.flush()
-        try:
-            _replay_callback(callback_url)
-            print("done.")
-        except Exception as e:
-            print(f"failed: {e}")
-            proc.terminate()
-            sys.exit(1)
+        # If dtctl already exited cleanly (exit 0) or signalled success, auth
+        # completed via VS Code port forwarding — replaying the URL would send
+        # an already-used OAuth code and cause a 403. Skip the replay.
+        already_done = proc.poll() == 0 or auth_complete.is_set()
+        if already_done:
+            print()
+            print("  Auth already completed via port forwarding — skipping replay.")
+        else:
+            try:
+                callback_url = _normalize_callback(pasted)
+            except ValueError as e:
+                proc.terminate()
+                print(f"\nError: {e}")
+                sys.exit(1)
+            sys.stdout.write("\n  Completing authentication... ")
+            sys.stdout.flush()
+            try:
+                _replay_callback(callback_url)
+                print("done.")
+            except Exception as e:
+                print(f"failed: {e}")
+                proc.terminate()
+                sys.exit(1)
 
     # Give dtctl time to wrap up the token exchange; terminate if it hangs.
     try:
