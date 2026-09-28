@@ -14,6 +14,7 @@ fetch dt.davis.problems, from: now()-24h, to: now()
     started       = event.start,
     affected_users = dt.davis.affected_users_count,
     root_cause    = root_cause_entity_name,
+    owning_team   = team,
     also_affected = affected_entity_names,
     impact_level  = dt.davis.impact_level,
     description   = event.description

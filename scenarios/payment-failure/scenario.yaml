@@ -58,15 +58,20 @@ beats:
     source_step_id: "769e0cc1-4e6a-4cdc-899b-ae0b26864bc2"
     objective: >
       User grasps the blast radius: which service is the root cause, how many
-      users are impacted, when it started, and that checkout is a downstream victim,
-      not the source.
+      users are impacted, when it started, that checkout is a downstream victim
+      not the source, and which team owns the failing service.
     evidence:
       - queries/beat-01-problem-summary.dql
     reveal: >
       A sharp failure-rate spike on the payment service's Charge endpoint, started
       recently, affecting a large user count. Checkout shows up as impacted too,
       but the root-cause field points at payment — checkout is collateral, not the
-      cause. State the actual numbers from the query result, not a guess.
+      cause. State the actual numbers from the query result, not a guess. Also state
+      the owning team by name (`owning_team` field) — Dynatrace already knows who to
+      page, no separate lookup needed. This is a real part of the incident-response
+      value, not a footnote: skipping it undersells one of the things the source
+      guide explicitly calls out ("no lengthy internal investigation to find the
+      responsible team").
     success: >
       User names 'payment' or 'Charge' as the failing service/endpoint,
       OR asks to drill into the payment service.
@@ -114,11 +119,18 @@ beats:
     source_step_id: "bb0bda14-36e6-4192-90c5-7f34e0a36c80"
     peak_moment: true
     objective: >
-      User sees a failing distributed trace end-to-end: the exact exception message,
-      source file, and line number that identifies the faulty code path — the payoff
-      of the whole investigation.
+      User sees the FULL distributed trace end-to-end — not just the one failing
+      payment span — so it's visible that the frontend and checkout legs of the
+      request were clean, and the failure is isolated to the payment call: the exact
+      exception message, source file, and line number that identifies the faulty
+      code path. This is the payoff of the whole investigation.
     evidence:
       - queries/beat-04-failing-spans.dql
+    chained_evidence:
+      - query: queries/beat-04-trace-waterfall.dql
+        depends_on: queries/beat-04-failing-spans.dql
+        extract_field: trace_id
+        var_name: TRACE_ID
     reveal: >
       The failing spans carry a specific exception message from the payment charge
       code — read it verbatim from the query result, do not paraphrase it. It reads
@@ -127,15 +139,31 @@ beats:
       and only real traffic exposes. Note the exact file and line number. If more
       than one distinct exception message appears across the failing spans, say so —
       that's a second finding, not noise to filter out.
+
+      Then go one level up: the waterfall (chained_evidence) shows the WHOLE request,
+      one row per service hop, in call order — edge/frontend, checkout, then several
+      downstream calls checkout makes (cart, catalog, currency, shipping, quote,
+      feature-flag checks), then payment. Everything before payment is clean
+      (`failed: false` / no status). Payment is the one hop that fails. That's the
+      actual answer to "show me the trace": not just where the exception is, but
+      confirmation that nothing upstream was broken — the fault is fully isolated to
+      one call. State this explicitly; don't just show the table and move on.
     success: >
       User identifies the exception message or the failing code path from the trace data.
     staging: >
       This is the climax of the investigation — the source guide's own title for
-      this step is "check which commit needs to be reverted to fix the issue fast."
-      Do not present this as an ordinary evidence table. Land the exception message
-      on its own line, verbatim, before any other commentary. Then explain what kind
-      of bug it is. Then give the file and line as the concrete next action. See
-      skills/demo-engine/SKILL.md for the general pacing rule this beat exists to test.
+      this step is "check which commit needs to be reverted to fix the issue fast,"
+      and its narration is explicit: "select a particular failure... here we can see
+      WHERE the error occurred in the trace" — that's the waterfall, not the single
+      span. Sequence: (1) land the exception message on its own line, verbatim,
+      before any other commentary; (2) explain what kind of bug it is; (3) then show
+      the waterfall, condensed — don't dump all ~16 rows. Collapse the run of
+      successful downstream calls into one line ("checkout also called cart, catalog,
+      currency, shipping and quote — all clean") and show only the 3-4 rows that
+      matter: the entry point, checkout, and the failing payment call. The condensed
+      version IS the evidence a user needs; the raw row count is not the point. See
+      skills/demo-engine/SKILL.md for the general pacing rule this beat exists to test,
+      and skills/dynatrace-playground/SKILL.md for how to run the chained query.
     deep_link: >
       https://playground.apps.dynatrace.com/ui/apps/dynatrace.distributedtracing/explorer?filter=request.is_failed+%3D+Failure+AND+dt.smartscape.service+%3D+SERVICE-531CE26849E95EC1+AND+endpoint.name+%3D+Charge&tf={{TIMEFRAME_FROM}}%3B{{TIMEFRAME_TO}}
 
@@ -160,5 +188,13 @@ beats:
       concrete what "session replay" means: an SRE can open a recording and watch
       exactly what that customer saw and clicked, not infer it from logs. That's
       the gap between "310 error events" and "310 people who had a bad day."
+
+      Pose the actual question the source guide poses here, not just the count: "for
+      a front-end problem, what did the user actually see?" Invite the user to open
+      one replay via the deep link and check for themselves whether the UI gave any
+      visual feedback on the failed payment, or whether it silently did nothing. This
+      is a genuine open question the DQL evidence here can't answer by itself — don't
+      assert a specific answer as fact; frame it as exactly the kind of thing you'd
+      pull up the replay to check, in character, the way an SRE actually would.
     deep_link: >
       https://playground.apps.dynatrace.com/ui/apps/dynatrace.error.inspector/error-explorer?tf={{TIMEFRAME_FROM}}%3B{{TIMEFRAME_TO}}&problemId={{PAYMENT_FAILURE_PROBLEM}}&perspective=impact&sort=affected_users%3Adescending

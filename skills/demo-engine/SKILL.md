@@ -103,6 +103,12 @@ This substitutes `{{PLACEHOLDER}}` tokens from `.demo-state.json` automatically 
 `skills/dynatrace-playground/SKILL.md` for envelope parsing and field-name gotchas.
 Extract the 3–5 most telling fields. Present as a tight table or bullets.
 
+If the beat has a `chained_evidence` entry, run it now too, after its `evidence` dependency:
+read `extract_field` from the depended-on query's first record, then run the chained query
+with that value injected — `python tools/preflight.py run-query <scenario-id>
+<chained-query-path> --var <VAR_NAME>=<extracted-value>`. See `skills/dynatrace-playground/
+SKILL.md` → "Chained queries" for a worked example (the failing-traces beat's trace waterfall).
+
 **Every Bash call's description/label reads as an SRE looking something up, never as a
 description of the script.** "Checking the failing traces on the payment service", not
 "Run beat-04 evidence query for payment-failure scenario". This is the one part of a tool
@@ -111,7 +117,18 @@ though the raw command line and its output are inherent to Claude Code's tool-ca
 transparency and out of scope to hide. Get the label right and the whole exchange reads
 like an investigation instead of a script execution log.
 
-**4. Narrate your own read, then invite the next step.**
+**4. Update state** — now, immediately, before writing a word of narration:
+Edit `.demo-state.json` — append the beat id to `beats_completed`, increment `current_beat`.
+
+**Every tool call for this beat happens before you say anything about it — never after.**
+A turn that ends in a tool call (this `Edit`, or any trailing Bash/Read) risks the preceding
+narrative text rendering as invisible in some Claude Code clients' compact views — a user
+reported "no visible output" four times in one session, every time, right after this exact
+`Edit` landed at the end of a turn. The fix is strict ordering, not hoping the client renders
+it fine: gather evidence, update state, and only then write the narration below. The very
+last thing in your turn must be plain text.
+
+**5. Narrate your own read, then invite the next step.**
 Show the evidence, then give your interpretation as confident, reasoned SRE analysis — you
 have a read on this, say it. Immediately attach a forward-looking option: either the natural
 next move in the investigation, or an explicit opening to push back ("Sound right to you, or
@@ -142,11 +159,9 @@ Right:
 because it calls payment, not because it's broken itself. Want to check what actually changed
 on payment right before this started?"*
 
-**5. Offer the UI bridge** — resolve placeholders from `.demo-state.json`, present the deep link:
+**6. Offer the UI bridge** — resolve placeholders from `.demo-state.json`, present the deep link,
+as part of the same text response as step 5, not a separate turn:
 "Same view in Dynatrace: [resolved URL]"
-
-**6. Update state** when the beat is complete:
-Edit `.demo-state.json` — append the beat id to `beats_completed`, increment `current_beat`.
 
 ## Peak moments
 
@@ -163,7 +178,7 @@ IS the root cause) and `the-humans` (real customers, real replay) are marked as 
 
 ## Optional engagement — inviting a guess without gating on it
 
-You don't need to invite the user's own hypothesis before confirming a finding (rule 4 above
+You don't need to invite the user's own hypothesis before confirming a finding (rule 5 above
 already covers stating your read directly). But sometimes it's good texture — scene-setting,
 or when the user seems like they'd enjoy guessing first. If you do invite one, treat it as
 strictly optional flavor, never a requirement to advance:
@@ -176,7 +191,7 @@ strictly optional flavor, never a requirement to advance:
 **Never let this run past one unanswered turn.** If the user stalls, doesn't know, or gives a
 wrong-but-interesting answer, fill in your own read immediately — don't escalate through
 multiple rungs of narrowing hints waiting for them to arrive at it themselves. That waiting
-*is* the stuck feeling. When in doubt, skip the invite and just narrate (rule 4).
+*is* the stuck feeling. When in doubt, skip the invite and just narrate (rule 5).
 
 ## Diverging from the path — and guiding back onto it
 
@@ -201,7 +216,8 @@ Go there. Run the evidence for the beat they named and narrate it exactly like a
 Fold in whatever a skipped beat would have established if it's needed for the jump to make
 sense (e.g., they need to know a deployment happened before an exception is interesting) —
 weave it into the narration rather than making them backtrack. Mark the folded-in beat(s) as
-completed in `.demo-state.json` once their evidence has been covered this way.
+completed in `.demo-state.json` — same as rule 4 in the beat loop, do this before narrating,
+not after.
 
 **Compound requests** ("what does this mean? frontend or backend? what's the root cause?"):
 Answer every clause in one pass, in the order asked — this is one question with several parts,
@@ -264,10 +280,15 @@ Read `.demo-state.json` for: `scenario_id`, `mode`, `problem` (with `display_id`
 ## What you must never do
 
 - Withhold your interpretation waiting for the user to guess it — narrate your read as you go
-  (rule 4 in "The beat loop"). Reserve invited guesses for optional flavor only, and never let
+  (rule 5 in "The beat loop"). Reserve invited guesses for optional flavor only, and never let
   one run past a single unanswered turn before you fill it in yourself.
 - Leave a side quest, front-run, or compound question dangling without re-anchoring — always
   name what's still unknown and propose the concrete next step back on the path.
+- End a turn with a tool call (an `Edit` to `.demo-state.json`, a trailing Bash/Read) after
+  the narrative text — always update state first, narrate last (rule 4 in "The beat loop").
+  A turn that ends in a tool call risks the preceding text rendering invisible in some
+  clients; this was found live, four times in one session, every time state was updated
+  after narrating instead of before.
 - End the discovery turn or a beat's scene-setting with a yes/no question.
 - Run a dtctl verb outside the allow list in `.claude/settings.json`.
 - Query a data object not in `scope.data_objects`.

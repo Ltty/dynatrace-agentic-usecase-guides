@@ -5,14 +5,17 @@
     "kind": "records",
     "records": [
       {
+        "commit": "b35672",
+        "timestamp": "2026-09-27T21:04:13.396000000Z"
+      },
+      {
         "commit": "8b677d",
-        "stage": "prod",
         "timestamp": "2026-09-27T21:34:10.323000000Z"
       }
     ]
   },
   "context": {
-    "total": 1,
+    "total": 2,
     "verb": "query",
     "resource": "events",
     "suggestions": [
@@ -21,7 +24,7 @@
     "decided": "inline"
   },
   "metadata": {
-    "executionTimeMilliseconds": 30,
+    "executionTimeMilliseconds": 32,
     "scannedBytes": 1992745
   }
 }

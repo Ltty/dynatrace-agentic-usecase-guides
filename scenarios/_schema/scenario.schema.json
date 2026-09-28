@@ -112,7 +112,22 @@
           "evidence": {
             "type": "array",
             "items": { "type": "string" },
-            "description": "Paths to DQL files that produce the evidence for this beat."
+            "description": "Paths to DQL files that produce the evidence for this beat. Each runs independently via tools/preflight.py run-query — no dependency between them."
+          },
+          "chained_evidence": {
+            "type": "array",
+            "description": "Evidence queries that need a value discovered from an earlier query in THIS beat's `evidence` list — e.g. a trace ID found by one query, fed into a second query that expands it. See docs/AUTHORING.md 'Chained evidence' and skills/dynatrace-playground/SKILL.md for the mechanism (tools/preflight.py run-query ... --var KEY=VALUE).",
+            "items": {
+              "type": "object",
+              "required": ["query", "depends_on", "extract_field", "var_name"],
+              "additionalProperties": false,
+              "properties": {
+                "query": { "type": "string", "description": "Path to the dependent DQL file. Must reference {{var_name}} as a placeholder." },
+                "depends_on": { "type": "string", "description": "Path to the query (must be in this beat's `evidence` list) whose result supplies the value." },
+                "extract_field": { "type": "string", "description": "Field name to read from depends_on's FIRST record." },
+                "var_name": { "type": "string", "pattern": "^[A-Z_]+$", "description": "Placeholder name the extracted value is injected as, e.g. TRACE_ID for {{TRACE_ID}}." }
+              }
+            }
           },
           "reveal": {
             "type": "string",

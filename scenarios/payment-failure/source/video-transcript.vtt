@@ -1,0 +1,246 @@
+WEBVTT
+
+84fcd030-2164-4af2-a113-e4c7b6baaeb5-0
+00:00:06.560 --> 00:00:10.175
+When an incident hits,
+Dynatrace alerts the SRE team and takes
+
+84fcd030-2164-4af2-a113-e4c7b6baaeb5-1
+00:00:10.175 --> 00:00:11.840
+them straight to the problem.
+
+65121253-1501-4017-a830-e1a2cf6d3bf4-0
+00:00:12.200 --> 00:00:15.327
+Instead of scrambling to figure out what
+broke and where,
+
+65121253-1501-4017-a830-e1a2cf6d3bf4-1
+00:00:15.327 --> 00:00:18.240
+Dynatrace provides a direct link to the
+Problems app.
+
+09b8d73c-eab5-4b43-adbe-b18fe17c6fa8-0
+00:00:19.040 --> 00:00:20.800
+One click and you're in Dynatrace.
+
+5e3ec39a-7c45-4fd6-8fbb-d5be8c507745-0
+00:00:20.960 --> 00:00:24.520
+It has already detected the issue and
+correlated all telemetry signals.
+
+a46136f2-d4f1-4fdb-9e1d-ce4301505bbc-0
+00:00:25.040 --> 00:00:29.625
+So the incident overview tells you
+exactly what Front End app is affected,
+
+a46136f2-d4f1-4fdb-9e1d-ce4301505bbc-1
+00:00:29.625 --> 00:00:33.600
+how many services are involved,
+and how many users are impacted.
+
+19aaf212-08dc-4dd8-9460-48dbc4af9e57-0
+00:00:34.680 --> 00:00:35.920
+And it gets better.
+
+6f74ded4-f8fb-47cf-b189-03955aff72d4-0
+00:00:36.240 --> 00:00:39.152
+Harnessing the power of Dynatrace
+intelligence,
+
+6f74ded4-f8fb-47cf-b189-03955aff72d4-1
+00:00:39.152 --> 00:00:43.520
+Assist explains the incident,
+why it happened, and how to remediate it.
+
+8c8f886a-af36-4786-bc36-9ec91d6e3799-0
+00:00:44.040 --> 00:00:48.613
+The context is enriched through your
+preferred CICD tooling,
+
+8c8f886a-af36-4786-bc36-9ec91d6e3799-1
+00:00:48.613 --> 00:00:54.460
+in this case Argo CD and Assist directs
+you to the PR and the exact file that
+
+8c8f886a-af36-4786-bc36-9ec91d6e3799-2
+00:00:54.460 --> 00:00:55.960
+caused the incident.
+
+01160406-ae0c-4e4a-ab9a-4c110a12ff89-0
+00:00:56.320 --> 00:00:58.320
+No more hunting through your Git history.
+
+57539a66-a313-48cb-b0fd-c0a8a7bb57da-0
+00:01:00.080 --> 00:01:03.298
+When you expand the code,
+you can see exactly where things went
+
+57539a66-a313-48cb-b0fd-c0a8a7bb57da-1
+00:01:03.298 --> 00:01:03.600
+wrong.
+
+3a6f5ca3-b981-435c-9a4a-43010f663743-0
+00:01:04.640 --> 00:01:07.897
+In this case,
+we can see that one of the credit card
+
+3a6f5ca3-b981-435c-9a4a-43010f663743-1
+00:01:07.897 --> 00:01:09.680
+brands is not being accepted.
+
+897a6d18-b315-434c-a55f-7a0bea72fc7f-0
+00:01:11.320 --> 00:01:15.875
+The culprit was just a variable change,
+but in a more complex problem spanning
+
+897a6d18-b315-434c-a55f-7a0bea72fc7f-1
+00:01:15.875 --> 00:01:19.335
+over multiple files,
+we could simply revert the PR and then
+
+897a6d18-b315-434c-a55f-7a0bea72fc7f-2
+00:01:19.335 --> 00:01:20.720
+look for the root cause.
+
+74438207-eb78-42a5-8fb1-03d0496de9aa-0
+00:01:26.710 --> 00:01:29.630
+Now we're in the Services app
+investigating the problem.
+
+3270d2ba-3f45-478a-88cb-dd3fbd887d87-0
+00:01:30.790 --> 00:01:34.623
+We will select the Properties tab to
+understand which team owns the service
+
+3270d2ba-3f45-478a-88cb-dd3fbd887d87-1
+00:01:34.623 --> 00:01:35.430
+that has failed.
+
+33df3ddd-5703-4dbb-bd2e-108372b6387f-0
+00:01:38.920 --> 00:01:42.130
+As you can see,
+we would want to notify someone from Team
+
+33df3ddd-5703-4dbb-bd2e-108372b6387f-1
+00:01:42.130 --> 00:01:44.400
+Financial Services regarding the failure.
+
+ab09087e-4642-4ff5-b781-b80107886375-0
+00:01:44.880 --> 00:01:48.480
+No lengthy internal investigation to find
+the responsible team.
+
+5eb802f4-50f4-4207-9139-38f65ea2259d-0
+00:01:49.680 --> 00:01:52.251
+Normally your investigation would end
+here,
+
+5eb802f4-50f4-4207-9139-38f65ea2259d-1
+00:01:52.251 --> 00:01:56.634
+but let's imagine we're in the role of
+the owning team conducting A deeper
+
+5eb802f4-50f4-4207-9139-38f65ea2259d-2
+00:01:56.634 --> 00:01:57.160
+analysis.
+
+6d0a22e2-3953-4575-ba5d-4aa2699aca9e-0
+00:02:01.560 --> 00:02:03.920
+Specify the time frame when the error hit.
+
+be41ee55-eee9-40a4-b0df-a513639925fc-0
+00:02:07.120 --> 00:02:09.280
+Now you've zeroed in on the key signals.
+
+0392a589-2ccd-47e1-8cce-04b666248342-0
+00:02:11.280 --> 00:02:13.840
+Select a particular failure marked in red.
+
+8285de15-d480-4e64-95e0-8c0948962500-0
+00:02:22.700 --> 00:02:25.380
+Here we can see where the error occurred
+in the trace.
+
+cb1db009-c596-41f5-9da4-ecf017edda48-0
+00:02:30.670 --> 00:02:34.967
+Select the Exceptions tab to see the
+exact line of code where the exception
+
+cb1db009-c596-41f5-9da4-ecf017edda48-1
+00:02:34.967 --> 00:02:35.590
+was thrown.
+
+07cd2801-6cee-4c56-813b-ffb8bbdcc874-0
+00:02:42.280 --> 00:02:46.048
+Now for a front end problem,
+it's important to know what the user
+
+07cd2801-6cee-4c56-813b-ffb8bbdcc874-1
+00:02:46.048 --> 00:02:48.960
+actually saw when experiencing this
+payment issue.
+
+bf642feb-0c70-4a90-96b1-bf6b02b9802a-0
+00:02:49.480 --> 00:02:51.000
+From the incident overview.
+
+9ad1d578-c82f-4c73-b0cb-048cb5a38fd8-0
+00:02:51.000 --> 00:02:54.320
+Let's analyse the error in the Error
+Inspector app.
+
+72dabb7b-1947-440e-9cfd-40911321257f-0
+00:02:55.320 --> 00:03:01.188
+In Error Inspector,
+in the context of our problem,
+
+72dabb7b-1947-440e-9cfd-40911321257f-1
+00:03:01.188 --> 00:03:07.978
+we click Analyse, select the exception,
+first party error,
+
+72dabb7b-1947-440e-9cfd-40911321257f-2
+00:03:07.978 --> 00:03:17.184
+click on the session ID to understand
+what the user saw when this payment issue
+
+72dabb7b-1947-440e-9cfd-40911321257f-3
+00:03:17.184 --> 00:03:18.220
+occurred.
+
+1d68631f-cd9b-4746-8627-f7304577d90d-0
+00:03:22.520 --> 00:03:26.600
+Scrub through the clip to see every click
+and every screen prior to failure.
+
+e09aa938-059e-481d-bc79-ef49a76709ac-0
+00:03:27.520 --> 00:03:31.160
+The red markings in the timeline will
+tell you exactly when the error occurred.
+
+3956a30a-2af6-4c20-9057-4136ee664637-0
+00:03:31.520 --> 00:03:34.368
+In this case,
+the UI did not provide the user any
+
+3956a30a-2af6-4c20-9057-4136ee664637-1
+00:03:34.368 --> 00:03:35.280
+visual feedback.
+
+ff2010e5-4ccc-4e6a-bbf4-6afb4d452070-0
+00:03:37.440 --> 00:03:39.320
+This completes our investigation.
+
+8308cd20-b74a-4fd5-ba00-871f5e9fcc83-0
+00:03:39.760 --> 00:03:42.440
+The error was traced from the back end to
+the front end.
+
+80c79749-b8c5-4891-bd52-3aba26926dff-0
+00:03:42.440 --> 00:03:45.960
+The responsible team was informed and the
+root cause was determined.
+
+f4a02b4f-50bf-4d31-ad7c-693acc4aa0ed-0
+00:03:50.080 --> 00:03:52.000
+Start your Dynatrace trial today.

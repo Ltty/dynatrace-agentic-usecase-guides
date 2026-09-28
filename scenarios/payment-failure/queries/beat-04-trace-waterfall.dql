@@ -1,0 +1,33 @@
+// Beat 4 (part 2) — full distributed trace waterfall for one representative failing
+// request: frontend -> checkout -> payment, in call order. This is what actually answers
+// "show me the trace" — not just the one failing span on the payment service, but the
+// whole chain, so it's visible that everything up to the payment call succeeded and only
+// the Charge call failed.
+//
+// {{TRACE_ID}} is NOT a scenario-level placeholder — it's the trace.id of one specific
+// failing span, discovered from beat-04-failing-spans.dql's result and passed in as an
+// ad-hoc var: `python tools/preflight.py run-query <id> <path> --var TRACE_ID=<value>`.
+// See skills/dynatrace-playground/SKILL.md for the chained-query pattern this beat uses.
+//
+// trace.id is a `uid`-typed field, not a plain string — filtering with a bare string
+// literal (`==` or matchesValue()) silently matches nothing, no error, no warning from
+// matchesValue misuse unless you check for it. Cast with toUid() first.
+
+// span.kind == "server" keeps one row per service hop (frontend receives, checkout
+// receives, payment receives) and drops the internal client-side/nested calls a single
+// hop makes internally (cart, catalog, currency, shipping, quote, feature-flag checks —
+// typically another ~18 rows on this trace). Those are real and available if the user
+// wants to go deeper, but they're noise for the headline "where did this actually break"
+// question — present the condensed 5-hop version, not all ~34 raw spans.
+
+fetch spans, from: "{{DQL_TIMEFRAME_FROM}}", to: "{{DQL_TIMEFRAME_TO}}"
+| filter trace.id == toUid("{{TRACE_ID}}")
+| filter span.kind == "server"
+| sort start_time asc
+| fields
+    start_time,
+    service     = dt.service.name,
+    span_name   = span.name,
+    duration_ms = round(toDouble(duration) / 1000000, decimals: 2),
+    failed      = request.is_failed,
+    status      = span.status_code

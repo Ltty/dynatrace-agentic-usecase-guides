@@ -25,6 +25,7 @@
           "Services",
           "Synthetic"
         ],
+        "owning_team": "Team-Financial-Services",
         "root_cause": "astroshop-payment",
         "started": "2026-09-27T21:06:53.123000000Z",
         "status": "CLOSED"
@@ -41,7 +42,7 @@
     "decided": "inline"
   },
   "metadata": {
-    "executionTimeMilliseconds": 50,
-    "scannedBytes": 34445744
+    "executionTimeMilliseconds": 52,
+    "scannedBytes": 33007311
   }
 }

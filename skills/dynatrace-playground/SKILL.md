@@ -29,6 +29,44 @@ dtctl query "fetch dt.davis.problems | limit 5" --agent -o json --plain --max-fi
 Always pass `-o json --plain --max-field-chars 0` for exact field names and untruncated values
 (agent-mode defaults to `-o auto`, which may emit YAML, and clips fields at 500 chars).
 
+## Chained queries — a value discovered by one query, fed into a second
+
+Some beats declare `chained_evidence` in `scenario.yaml`: a query that needs a value only
+known after running a different query first (e.g. a trace ID, discovered from a failing
+span, then used to fetch that trace's full waterfall). Run the dependency first via the
+normal `run-query`, extract the named field from its **first record**, then pass it to the
+chained query with `--var`:
+
+```bash
+# 1. Run the dependency (already part of this beat's plain `evidence` list)
+python tools/preflight.py run-query payment-failure queries/beat-04-failing-spans.dql
+#    -> read `trace_id` from the first record of the result
+
+# 2. Feed it into the chained query as an ad-hoc var
+python tools/preflight.py run-query payment-failure queries/beat-04-trace-waterfall.dql \
+  --var TRACE_ID=<the trace_id you just read>
+```
+
+`--var` merges into the same placeholder set as the state-level ones (`{{DQL_TIMEFRAME_FROM}}`
+etc.) — the chained query's `.dql` file just references `{{TRACE_ID}}` like any other token.
+This is a general mechanism, not specific to traces: any beat that needs "run query A, then
+use a value from A inside query B" uses the same pattern.
+
+**Filtering by `trace.id` requires a cast — this is the one gotcha in the whole chain.**
+`trace.id` is a `uid`-typed field, not a plain string, even though it displays as a hex
+string in results. `filter trace.id == "<hex>"` and `matchesValue(trace.id, "<hex>")` both
+silently match nothing — no error, `matchesValue` only warns if you pass `--metadata` to see
+it. Cast the literal first: `filter trace.id == toUid("<hex>")`.
+
+**A full trace waterfall is large (30+ spans on a typical Astroshop request) — filter to
+`span.kind == "server"`** to collapse it to one row per service hop (frontend receives,
+checkout receives, payment receives — dropping the internal client-side calls each hop
+makes to its own dependencies). That's usually still a dozen-plus rows; the evidence query
+returns all of them, but *presenting* the beat means condensing the run of successful
+downstream calls into one summary line and showing only the 3-4 rows that actually matter
+(entry point, the calling service, the one that failed) — see the beat's own `staging` field
+for exactly what to collapse.
+
 ## Response envelope shape
 
 ```json

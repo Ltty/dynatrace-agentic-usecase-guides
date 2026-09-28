@@ -144,17 +144,39 @@ def validate_scenario_dir(scenario_dir: Path, schema: dict, live: bool = False) 
     # --- Beats ---
     for beat in manifest.get("beats", []):
         bid = beat.get("id", "?")
-        for ev_path in beat.get("evidence", []):
+        evidence_list = beat.get("evidence", [])
+        for ev_path in evidence_list:
             _check_path(scenario_dir, ev_path, f"beats[{bid}].evidence")
         deep_link = beat.get("deep_link", "")
         if deep_link:
             _validate_deep_link(deep_link, bid)
+        for chain in beat.get("chained_evidence", []):
+            _check_path(scenario_dir, chain.get("query", ""), f"beats[{bid}].chained_evidence.query")
+            depends_on = chain.get("depends_on", "")
+            _check_path(scenario_dir, depends_on, f"beats[{bid}].chained_evidence.depends_on")
+            if depends_on and depends_on not in evidence_list:
+                err(f"beats[{bid}].chained_evidence.depends_on: '{depends_on}' is not in "
+                    f"this beat's own evidence list — chaining only works across the same beat")
+            var_name = chain.get("var_name", "")
+            query_path = scenario_dir / chain.get("query", "")
+            if var_name and query_path.exists():
+                if "{{" + var_name + "}}" not in query_path.read_text(encoding="utf-8"):
+                    warn(f"beats[{bid}].chained_evidence: var_name '{var_name}' is not "
+                         f"referenced as {{{{{var_name}}}}} in {chain.get('query')}")
 
     # --- DQL lint ---
+    # Chained-evidence var_names are legitimate placeholders scoped to this manifest,
+    # not universal ones — collect them here rather than hardcoding into KNOWN_PLACEHOLDERS.
+    chained_var_names = {
+        chain["var_name"]
+        for beat in manifest.get("beats", [])
+        for chain in beat.get("chained_evidence", [])
+        if "var_name" in chain
+    }
     queries_dir = scenario_dir / "queries"
     if queries_dir.exists():
         for dql_file in queries_dir.glob("*.dql"):
-            _lint_dql(dql_file)
+            _lint_dql(dql_file, extra_known=chained_var_names)
 
     # --- Fixtures exist ---
     fixtures_dir = scenario_dir / "fixtures"
@@ -203,6 +225,7 @@ def _validate_live(scenario_dir: Path, manifest: dict) -> bool:
     # Every beat's evidence queries
     for beat in manifest.get("beats", []):
         bid = beat.get("id", "?")
+        results_by_path = {}  # ev_rel -> envelope, so chained_evidence can extract from them
         for ev_rel in beat.get("evidence", []):
             ev_path = scenario_dir / ev_rel
             if not ev_path.exists():
@@ -211,11 +234,57 @@ def _validate_live(scenario_dir: Path, manifest: dict) -> bool:
             if ok:
                 n = len(envelope.get("result", {}).get("records", [])) if envelope else 0
                 print(f"    OK    beats[{bid}] {ev_rel} ({n} records)")
+                results_by_path[ev_rel] = envelope
             else:
                 print(f"    ERROR beats[{bid}] {ev_rel}: {error_str}")
                 all_ok = False
 
+        for chain in beat.get("chained_evidence", []):
+            chain_ok = _validate_chained_query(preflight, scenario_dir, state, bid, chain, results_by_path)
+            if not chain_ok:
+                all_ok = False
+
     return all_ok
+
+
+def _validate_chained_query(preflight, scenario_dir, state, bid, chain, results_by_path) -> bool:
+    """Extract chain['extract_field'] from the first record of chain['depends_on']'s
+    already-fetched result, inject it as chain['var_name'], and run chain['query'].
+    """
+    query_rel = chain.get("query", "")
+    depends_on = chain.get("depends_on", "")
+    extract_field = chain.get("extract_field", "")
+    var_name = chain.get("var_name", "")
+
+    dep_envelope = results_by_path.get(depends_on)
+    if dep_envelope is None:
+        print(f"    ERROR beats[{bid}] chained_evidence {query_rel}: "
+              f"dependency '{depends_on}' did not run successfully")
+        return False
+
+    records = dep_envelope.get("result", {}).get("records", [])
+    constant = dep_envelope.get("result", {}).get("constant", {})
+    if not records:
+        print(f"    ERROR beats[{bid}] chained_evidence {query_rel}: "
+              f"'{depends_on}' returned no records to extract '{extract_field}' from")
+        return False
+
+    merged_first_record = {**constant, **records[0]}
+    value = merged_first_record.get(extract_field)
+    if value is None:
+        print(f"    ERROR beats[{bid}] chained_evidence {query_rel}: "
+              f"field '{extract_field}' not found in '{depends_on}' first record")
+        return False
+
+    query_path = scenario_dir / query_rel
+    ok, envelope, error_str = preflight.run_query_with_state(query_path, state, extra_vars={var_name: str(value)})
+    if ok:
+        n = len(envelope.get("result", {}).get("records", [])) if envelope else 0
+        print(f"    OK    beats[{bid}] {query_rel} (chained {var_name}={value}, {n} records)")
+        return True
+    else:
+        print(f"    ERROR beats[{bid}] {query_rel} (chained {var_name}={value}): {error_str}")
+        return False
 
 
 def _check_path(base: Path, rel: str, field: str):
@@ -239,17 +308,18 @@ def _validate_deep_link(url: str, beat_id: str):
              f"add to KNOWN_PLACEHOLDERS in validate_scenarios.py if intentional")
 
 
-def _lint_dql(dql_file: Path):
+def _lint_dql(dql_file: Path, extra_known: set = frozenset()):
     content = dql_file.read_text(encoding="utf-8")
     for pattern in DQL_WRITE_PATTERNS:
         if re.search(pattern, content, re.IGNORECASE):
             err(f"DQL write construct '{pattern}' found in {dql_file.name}")
 
     placeholders = set(PLACEHOLDER_RE.findall(content))
-    unknown = placeholders - KNOWN_PLACEHOLDERS
+    unknown = placeholders - KNOWN_PLACEHOLDERS - extra_known
     if unknown:
         warn(f"{dql_file.name}: unknown placeholders {unknown} — "
-             f"add to KNOWN_PLACEHOLDERS in validate_scenarios.py if intentional")
+             f"add to KNOWN_PLACEHOLDERS in validate_scenarios.py if universal, "
+             f"or declare as a chained_evidence var_name if beat-specific")
 
 
 def _report():

@@ -82,10 +82,11 @@ def capture(scenario_id: str) -> int:
     else:
         print(f"  FAILED: resolver fixture — {error_str}", file=sys.stderr)
 
-    # 2. Every beat's evidence queries
+    # 2. Every beat's evidence queries (plus any chained_evidence that depends on them)
     captured, failed = 0, 0
     for beat in manifest.get("beats", []):
         bid = beat.get("id", "?")
+        results_by_path = {}
         for ev_rel in beat.get("evidence", []):
             ev_path = scenario_dir / ev_rel
             if not ev_path.exists():
@@ -99,16 +100,60 @@ def capture(scenario_id: str) -> int:
                 failed += 1
                 continue
 
-            fixture_name = Path(ev_rel).stem + ".json"  # beat-04-failing-spans.dql -> .json
-            fixture_path = fixtures_dir / fixture_name
-            with open(fixture_path, "w") as f:
-                json.dump(envelope, f, indent=2)
-            n_records = len(envelope.get("result", {}).get("records", []))
-            print(f"  captured: fixtures/{fixture_name} ({n_records} records)")
+            _write_fixture(fixtures_dir, ev_rel, envelope)
+            results_by_path[ev_rel] = envelope
             captured += 1
+
+        for chain in beat.get("chained_evidence", []):
+            ok = _capture_chained(preflight, scenario_dir, fixtures_dir, state, bid, chain, results_by_path)
+            captured += 1 if ok else 0
+            failed += 0 if ok else 1
 
     print(f"\nDone. {captured} beat fixtures captured, {failed} failed.")
     return 0 if failed == 0 else 1
+
+
+def _write_fixture(fixtures_dir: Path, ev_rel: str, envelope: dict):
+    fixture_name = Path(ev_rel).stem + ".json"  # beat-04-failing-spans.dql -> .json
+    fixture_path = fixtures_dir / fixture_name
+    with open(fixture_path, "w") as f:
+        json.dump(envelope, f, indent=2)
+    n_records = len(envelope.get("result", {}).get("records", []))
+    print(f"  captured: fixtures/{fixture_name} ({n_records} records)")
+
+
+def _capture_chained(preflight, scenario_dir, fixtures_dir, state, bid, chain, results_by_path) -> bool:
+    """Same extraction logic as validate_scenarios.py's _validate_chained_query,
+    but writes a fixture on success instead of just reporting pass/fail."""
+    query_rel = chain.get("query", "")
+    depends_on = chain.get("depends_on", "")
+    extract_field = chain.get("extract_field", "")
+    var_name = chain.get("var_name", "")
+
+    dep_envelope = results_by_path.get(depends_on)
+    if dep_envelope is None:
+        print(f"  FAILED: beats[{bid}] {query_rel} — dependency '{depends_on}' unavailable", file=sys.stderr)
+        return False
+
+    records = dep_envelope.get("result", {}).get("records", [])
+    constant = dep_envelope.get("result", {}).get("constant", {})
+    if not records:
+        print(f"  FAILED: beats[{bid}] {query_rel} — '{depends_on}' returned no records", file=sys.stderr)
+        return False
+
+    value = {**constant, **records[0]}.get(extract_field)
+    if value is None:
+        print(f"  FAILED: beats[{bid}] {query_rel} — field '{extract_field}' not found", file=sys.stderr)
+        return False
+
+    query_path = scenario_dir / query_rel
+    ok, envelope, error_str = preflight.run_query_with_state(query_path, state, extra_vars={var_name: str(value)})
+    if not ok:
+        print(f"  FAILED: beats[{bid}] {query_rel} (chained {var_name}={value}) — {error_str}", file=sys.stderr)
+        return False
+
+    _write_fixture(fixtures_dir, query_rel, envelope)
+    return True
 
 
 def main():

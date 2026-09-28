@@ -18,8 +18,16 @@ scenarios/my-new-demo/
 │   ├── problem.json               # frozen resolver output for offline/fixture mode
 │   └── beat-NN-*.json             # frozen per-beat evidence (see step 9)
 └── source/
-    └── usecase.json       # original guide JSON (provenance)
+    ├── usecase.json           # original guide JSON (provenance)
+    └── video-transcript.vtt   # video narration transcript, if you have one (provenance)
 ```
+
+**Read the video transcript before writing beats, if one exists.** It's often richer than
+the step titles in `usecase.json` alone — the payment-failure scenario's transcript revealed
+an entire missing beat (which team owns the failing service — straight off the Services app
+Properties tab, and free: the field is already on the Davis problem record) and reframed what
+"show me the trace" should mean (the full waterfall, confirming upstream services are clean,
+not just the one failing span). Mine it for beats, not just flavor text.
 
 ## Step-by-step
 
@@ -105,8 +113,39 @@ names on your data object may differ — verify your own):
 - `round()` takes a **named** second argument: `round(x, decimals: 1)`, not `round(x, 1)`.
 - `expand <nested-array-field>` does not flatten the nested object's keys onto the row as
   top-level fields — project them with bracket access: `span.events[some.nested.key]`.
+- A `uid`-typed field (e.g. `trace.id`) displays as a plain hex string but filtering it with
+  a string literal — `== "..."` or `matchesValue(...)` — silently matches **nothing**, no
+  error. Cast first: `filter trace.id == toUid("...")`.
 - Run `python tools/validate_scenarios.py --live scenarios/my-new-demo` (see step 8) as the
   actual proof, not a spec read or a single manual test — it executes every query for real.
+
+### 3b. Chained evidence — when one query needs a value from another
+
+Sometimes a beat's real evidence isn't answerable by one independent query — e.g. "show me
+the full trace" requires first finding *which* trace (from a failing-spans query), then
+fetching everything in it. Declare this in `scenario.yaml` rather than hand-waving it in
+prose:
+
+```yaml
+evidence:
+  - queries/beat-04-failing-spans.dql        # finds failing spans, including a trace_id field
+chained_evidence:
+  - query: queries/beat-04-trace-waterfall.dql
+    depends_on: queries/beat-04-failing-spans.dql   # must be in this beat's own `evidence` list
+    extract_field: trace_id                          # field name, read from depends_on's FIRST record
+    var_name: TRACE_ID                                # injected as {{TRACE_ID}} in the chained query
+```
+
+The chained query file references `{{TRACE_ID}}` like any other placeholder. At runtime the
+engine runs the dependency first, reads `extract_field` from its first record, then runs the
+chained query with `--var TRACE_ID=<value>` (see `skills/dynatrace-playground/SKILL.md` →
+"Chained queries"). `tools/validate_scenarios.py --live` and `tools/capture_fixtures.py` both
+resolve this chain automatically — no extra work to keep it covered by the standing gate or
+by fixture capture.
+
+A chained query's fixture (`fixtures/beat-04-trace-waterfall.json`, captured the same way as
+any other beat fixture) is fully self-contained — in fixture mode the engine calls `run-query`
+on it directly with no `--var` needed at all, since the fixture already holds resolved data.
 
 ### 4. Capture beat fixtures
 

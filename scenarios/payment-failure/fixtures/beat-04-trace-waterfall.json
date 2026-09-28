@@ -1,0 +1,142 @@
+{
+  "ok": true,
+  "envelope_version": 1,
+  "result": {
+    "kind": "records",
+    "records": [
+      {
+        "duration_ms": 379.4,
+        "failed": true,
+        "service": "astroshop.playground.demoability.dynatracelabs.com:80,443",
+        "span_name": "POST",
+        "start_time": "2026-09-27T21:43:43.200000000Z",
+        "status": "error"
+      },
+      {
+        "duration_ms": 377.8,
+        "failed": true,
+        "service": "frontend (frontend)",
+        "span_name": "POST",
+        "start_time": "2026-09-27T21:43:43.201122000Z",
+        "status": "error"
+      },
+      {
+        "duration_ms": 1.43,
+        "service": "frontend (frontend)",
+        "span_name": "POST /api/checkout?currencyCode=USD",
+        "start_time": "2026-09-27T21:43:43.201881000Z"
+      },
+      {
+        "duration_ms": 332.8,
+        "service": "frontend (frontend)",
+        "span_name": "POST /api/checkout?currencyCode=USD",
+        "start_time": "2026-09-27T21:43:43.203550000Z",
+        "status": "error"
+      },
+      {
+        "duration_ms": 92.98,
+        "failed": true,
+        "service": "checkout (oteldemo.CheckoutService)",
+        "span_name": "oteldemo.CheckoutService/PlaceOrder",
+        "start_time": "2026-09-27T21:43:43.207050000Z",
+        "status": "error"
+      },
+      {
+        "duration_ms": 0.46,
+        "failed": false,
+        "service": "astroshop-cart",
+        "span_name": "POST /oteldemo.CartService/GetCart",
+        "start_time": "2026-09-27T21:43:43.208196800Z"
+      },
+      {
+        "duration_ms": 1.08,
+        "failed": false,
+        "service": "product-catalog (oteldemo.ProductCatalogService)",
+        "span_name": "oteldemo.ProductCatalogService/GetProduct",
+        "start_time": "2026-09-27T21:43:43.210020000Z"
+      },
+      {
+        "duration_ms": 2.18,
+        "failed": false,
+        "service": "astroshop-currency",
+        "span_name": "Currency/Convert",
+        "start_time": "2026-09-27T21:43:43.211834101Z",
+        "status": "ok"
+      },
+      {
+        "duration_ms": 1,
+        "failed": false,
+        "service": "product-catalog (oteldemo.ProductCatalogService)",
+        "span_name": "oteldemo.ProductCatalogService/GetProduct",
+        "start_time": "2026-09-27T21:43:43.216020000Z"
+      },
+      {
+        "duration_ms": 0.58,
+        "failed": false,
+        "service": "astroshop-currency",
+        "span_name": "Currency/Convert",
+        "start_time": "2026-09-27T21:43:43.217887623Z",
+        "status": "ok"
+      },
+      {
+        "duration_ms": 3.48,
+        "failed": false,
+        "service": "astroshop-shipping",
+        "span_name": "/get-quote",
+        "start_time": "2026-09-27T21:43:43.220615472Z"
+      },
+      {
+        "duration_ms": 0.3,
+        "failed": false,
+        "service": "astroshop-quote",
+        "span_name": "POST /getquote",
+        "start_time": "2026-09-27T21:43:43.223505024Z"
+      },
+      {
+        "duration_ms": 0.6,
+        "failed": false,
+        "service": "astroshop-currency",
+        "span_name": "Currency/Convert",
+        "start_time": "2026-09-27T21:43:43.224733372Z",
+        "status": "ok"
+      },
+      {
+        "duration_ms": 0.05,
+        "failed": false,
+        "service": "astroshop-flagd",
+        "span_name": "flagd.evaluation.v1.Service/ResolveBoolean",
+        "start_time": "2026-09-27T21:43:43.226951759Z"
+      },
+      {
+        "duration_ms": 0.03,
+        "failed": false,
+        "service": "astroshop-flagd",
+        "span_name": "resolveBoolean",
+        "start_time": "2026-09-27T21:43:43.226962109Z"
+      },
+      {
+        "duration_ms": 0.71,
+        "failed": true,
+        "service": "payment (oteldemo.PaymentService)",
+        "span_name": "oteldemo.PaymentService/Charge",
+        "start_time": "2026-09-27T21:43:43.298062000Z",
+        "status": "error"
+      }
+    ]
+  },
+  "context": {
+    "total": 16,
+    "verb": "query",
+    "resource": "spans",
+    "suggestions": [
+      "# numbers rounded to 4 significant digits (agent-mode default) \u00e2\u20ac\u201d add --precision 0 for full precision",
+      "# rows compacted: row = result.constant + record, absent key = null; --compact=false for full rows",
+      "# metadata trimmed by default; -M=all for the full block"
+    ],
+    "decided": "inline"
+  },
+  "metadata": {
+    "executionTimeMilliseconds": 32,
+    "scannedBytes": 225784406
+  }
+}

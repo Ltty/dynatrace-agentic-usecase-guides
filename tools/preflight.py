@@ -319,11 +319,17 @@ def _emit_state(scenario_id: str, rec: dict, live: bool, write_state: bool = Fal
 # Query runner — substitutes placeholders from .demo-state.json, executes
 # ---------------------------------------------------------------------------
 
-def run_query_with_state(dql_path: Path, state: dict):
-    """Substitute placeholders from state and execute. Returns (ok, envelope_or_None, error_str)."""
+def run_query_with_state(dql_path: Path, state: dict, extra_vars: dict = None):
+    """Substitute placeholders from state (plus any extra_vars, e.g. a chained-in
+    TRACE_ID discovered from a prior query) and execute.
+    Returns (ok, envelope_or_None, error_str).
+    """
     dql_text = dql_path.read_text(encoding="utf-8")
+    placeholders = dict(state.get("placeholders", {}))
+    if extra_vars:
+        placeholders.update(extra_vars)
     try:
-        substituted = substitute_placeholders(dql_text, state.get("placeholders", {}))
+        substituted = substitute_placeholders(dql_text, placeholders)
     except KeyError as e:
         return False, None, str(e)
 
@@ -339,11 +345,11 @@ def run_query_with_state(dql_path: Path, state: dict):
     return True, envelope, ""
 
 
-def run_query_with_fixture_fallback(dql_path: Path, state: dict):
+def run_query_with_fixture_fallback(dql_path: Path, state: dict, extra_vars: dict = None):
     """Like run_query_with_state, but if state['mode'] == 'fixture' and a matching
     fixture file exists (fixtures/<dql-stem>.json — see tools/capture_fixtures.py),
     returns the captured fixture instead of calling dtctl live. Falls through to a
-    live attempt if no matching fixture exists yet.
+    live attempt (with extra_vars, if any) if no matching fixture exists yet.
     """
     if state.get("mode") == "fixture":
         scenario_id = state.get("scenario_id", "")
@@ -355,10 +361,10 @@ def run_query_with_fixture_fallback(dql_path: Path, state: dict):
                 return True, envelope, ""
             except Exception as e:
                 return False, None, f"fixture load failed ({fixture_path.name}): {e}"
-    return run_query_with_state(dql_path, state)
+    return run_query_with_state(dql_path, state, extra_vars)
 
 
-def run_query(scenario_id: str, dql_rel_path: str) -> int:
+def run_query(scenario_id: str, dql_rel_path: str, extra_vars: dict = None) -> int:
     scenario_dir = REPO_ROOT / "scenarios" / scenario_id
     dql_path = scenario_dir / dql_rel_path
     if not dql_path.exists():
@@ -372,13 +378,30 @@ def run_query(scenario_id: str, dql_rel_path: str) -> int:
     with open(STATE_PATH) as f:
         state = json.load(f)
 
-    ok, envelope, error_str = run_query_with_fixture_fallback(dql_path, state)
+    ok, envelope, error_str = run_query_with_fixture_fallback(dql_path, state, extra_vars)
     if not ok:
         print(json.dumps({"error": error_str}))
         return 1
 
     print(json.dumps(envelope))
     return 0
+
+
+def _parse_var_flags(args) -> dict:
+    """Parse repeatable --var KEY=VALUE flags from a CLI arg list."""
+    result = {}
+    i = 0
+    while i < len(args):
+        if args[i] == "--var" and i + 1 < len(args):
+            kv = args[i + 1]
+            if "=" not in kv:
+                raise ValueError(f"--var must be KEY=VALUE, got: {kv}")
+            key, _, value = kv.partition("=")
+            result[key] = value
+            i += 2
+        else:
+            i += 1
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -398,9 +421,15 @@ def main():
         sys.exit(exit_code)
 
     if args[0] == "run-query" and len(args) >= 3:
-        sys.exit(run_query(args[1], args[2]))
+        try:
+            extra_vars = _parse_var_flags(args[3:])
+        except ValueError as e:
+            print(json.dumps({"error": str(e)}))
+            sys.exit(2)
+        sys.exit(run_query(args[1], args[2], extra_vars=extra_vars or None))
 
-    print(f"Usage: {sys.argv[0]} [check|resolve <scenario-id> [--write]|run-query <scenario-id> <dql-path>]",
+    print(f"Usage: {sys.argv[0]} [check|resolve <scenario-id> [--write]|"
+          f"run-query <scenario-id> <dql-path> [--var KEY=VALUE ...]]",
           file=sys.stderr)
     sys.exit(2)
 
