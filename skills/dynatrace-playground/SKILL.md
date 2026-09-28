@@ -3,61 +3,46 @@
 This skill teaches you how to query the Dynatrace Playground via `dtctl`
 in agent mode, interpret the response envelope, and present evidence clearly.
 
-## Running a beat's evidence query — use the substitution helper, not raw dtctl
+## Running a beat's evidence query — use pre-loaded DQL, not the file
 
-Beat evidence queries contain `{{PLACEHOLDER}}` tokens (incident timeframe, problem id).
-Don't call `dtctl query --file` directly on them — the tokens won't be substituted.
-Instead:
-
-```bash
-python tools/preflight.py run-query <scenario-id> <relative-dql-path>
-```
-
-This reads `.demo-state.json`, substitutes every `{{TOKEN}}` in the file against
-`placeholders`, executes via dtctl, prints a liveness proof stamp to stderr, and emits the
-envelope to stdout. Example:
+At session start `python tools/preflight.py load-queries <scenario-id>` pre-substitutes every
+`{{PLACEHOLDER}}` token and collapses each query to a single line. The engine holds the result
+as a `queries` dict in conversation context. Per beat, run the stored DQL directly:
 
 ```bash
-python tools/preflight.py run-query payment-failure queries/beat-04-failing-spans.dql
+dtctl query "<queries['queries/beat-04-failing-spans.dql']>" --agent -o json --plain --max-field-chars 0 -M=all
 ```
 
-For the trace waterfall beat, append `--render waterfall` to get ASCII bar output:
+For chained queries (e.g. trace waterfall), substitute the runtime placeholder yourself first:
 
 ```bash
-python tools/preflight.py run-query payment-failure queries/beat-04-trace-waterfall.dql \
-  --var TRACE_ID=<id> --render waterfall
+# dql = queries['queries/beat-04-trace-waterfall.dql'].replace('{{TRACE_ID}}', trace_id)
+dtctl query "<dql-with-trace-id>" --agent -o json --plain --max-field-chars 0 | python tools/render_waterfall.py
 ```
 
-## Liveness proof stamp
-
-After each successful `run-query` call, `preflight.py` prints a stamp to stderr:
-
-```
-------------------------------------------------------------------------
-fetch spans, from: "2026-09-27T20:51:00Z", to: "2026-09-27T22:10:00Z"
-| filter trace.id == toUid("8af0d233...")
-| filter request.is_failed == true
->> live - queryId 01a0e712 - 16 records - 167MB scanned - 33ms
-------------------------------------------------------------------------
-```
-
-**Include this in your chat narration** — a 2-4 line DQL snippet (the `fetch` and `| filter`
-clauses) followed by the `>> live` line. This proves the call hit the Playground in real time,
-not a local file. The `queryId` is server-generated and changes on every call. Example narration:
-*"Queried the failing payment spans — `filter request.is_failed == true` — 5 traces in 25ms
-(queryId 01a0e712, 167MB scanned)."*
-
-The proof stamp fields come from `envelope.metadata` (with `-M=all` passed by `run_query_with_state`):
-- `queryId` — server-generated UUID; first 8 chars are enough to distinguish runs
-- `executionTimeMilliseconds` — wall-clock query time at the server
-- `scannedBytes` — data volume scanned, proves a real index walk happened
-- `context.total` — record count returned
-
-For ad-hoc queries with no placeholders (exploring beyond the scripted beats), call dtctl directly:
+For ad-hoc exploration beyond the scripted beats:
 
 ```bash
 dtctl query "fetch dt.davis.problems | limit 5" --agent -o json --plain --max-field-chars 0
 ```
+
+## Liveness proof stamp
+
+Build the proof stamp from the envelope after each successful query:
+
+```
+queryId  = envelope.metadata.queryId[:8]      # server-generated; first 8 chars suffice
+ms       = envelope.metadata.executionTimeMilliseconds
+scanned  = f"{envelope.metadata.scannedBytes / 1_000_000:.0f}MB"
+total    = envelope.context.total
+```
+
+**Include the proof in your chat narration** — a short DQL snippet (the `fetch` and key `| filter`
+clauses) plus the proof line. Example:
+*"Queried the failing payment spans — `filter request.is_failed == true` — 5 traces in 25ms
+(queryId 01a0e712, 167MB scanned)."*
+
+Always pass `-M=all` on beat queries so `envelope.metadata` is populated.
 
 Always pass `-o json --plain --max-field-chars 0` for exact field names and untruncated values
 (agent-mode defaults to `-o auto`, which may emit YAML, and clips fields at 500 chars).

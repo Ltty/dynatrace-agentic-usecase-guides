@@ -14,13 +14,10 @@ If a session somehow doesn't show that context (e.g. a client that doesn't resol
 `skills/dynatrace-playground/SKILL.md` directly before proceeding — but treat that as a
 fallback for a broken assumption, not the normal path.
 
-**Do NOT export PATH.** The bare `/demo` greeting makes no `dtctl` call of any kind — don't
-run a PATH fix pre-emptively just because a later step might need it. `python tools/preflight.py
-...` (used by the survey, `/demo start`, and every beat query) auto-locates dtctl on its own and
-never needs PATH set. Only fix PATH immediately before a **raw** `dtctl` call you're about to make
-directly (Davis CoPilot, or an ad-hoc query outside the scripted beats) — see "Raw dtctl calls"
-below. Every unnecessary tool call is a visible row in the user's transcript before you've said
-a single word; don't spend that budget on setup the current step doesn't need.
+**PATH is exported once during `/demo` silent setup** — see the setup steps below. Beat queries
+now run `dtctl query "..."` directly, so PATH must be in place before any beat evidence call.
+`python tools/preflight.py ...` commands (resolve, load-queries, check) auto-locate dtctl
+themselves and never need PATH set.
 
 **Emit zero text output during any setup step.** No "Loading rules...", no summary of what's
 in context — not even one line. The very first piece of text you produce in the entire session
@@ -36,17 +33,21 @@ own display, not something a skill or command file can suppress. The lever here 
 *count* of unavoidable calls as low as each step actually needs, and never adding narration
 text around them — not eliminating the rows outright.
 
-### Raw dtctl calls — fix PATH first, but only then
+### Raw dtctl calls — PATH must be set first
+
+Beat evidence queries now run `dtctl query "<dql>"` directly. Set PATH once during `/demo`
+silent setup so every subsequent dtctl call works without a separate fix step:
 
 ```bash
-# Windows (Bash tool):
-export PATH="$PATH:/c/Users/$USERNAME/AppData/Local/dtctl"
-# Linux/Mac:
+# Linux/Mac (Codespace / devcontainer):
 export PATH="$PATH:$HOME/.local/bin"
+# Windows (Bash tool only if running locally):
+export PATH="$PATH:/c/Users/$USERNAME/AppData/Local/dtctl"
 ```
-Needed before: `dtctl exec copilot ...`, or any ad-hoc `dtctl query ...` you run directly outside
-`tools/preflight.py run-query`. Not needed for the greeting, the survey, `/demo start`, or any
-beat's evidence query — all of those go through `tools/preflight.py`, which locates dtctl itself.
+
+Also needed before: `dtctl exec copilot ...`, or any ad-hoc `dtctl query ...`.
+`python tools/preflight.py ...` commands (resolve, load-queries, check) auto-locate dtctl
+themselves — they never need PATH set.
 
 ---
 
@@ -67,11 +68,20 @@ loads and greets.
 
 ## `/demo` — load and greet (the entry point)
 
-Do all setup **silently** — no query output, no incident framing, nothing scenario-specific,
-and nothing beyond what this exact step needs:
-1. Confirm the skill files above are loaded.
-2. That's it. Do not export PATH (nothing here calls dtctl). Do not call
-   `tools/preflight.py resolve` yet — no scenario has been chosen or asked about yet.
+Do all setup **silently** before the greeting — every tool call in this block happens with
+no surrounding text. This is the right place to front-load all the data the conversation
+will need, so beats can flow without additional file reads or resolve calls mid-session:
+
+1. Export PATH so dtctl is reachable for direct calls throughout the session:
+   ```bash
+   export PATH="$PATH:$HOME/.local/bin"
+   ```
+2. Read `scenarios/registry.yaml` — collect all `state: published` scenario IDs.
+3. For each published scenario, run in parallel:
+   - `python tools/preflight.py resolve <id>` — live state for the survey
+   - Read `scenarios/<id>/scenario.yaml` — manifest (persona, beats, business_context, scope)
+4. Store all resolved states and manifests in conversation context. The survey and `/demo start`
+   draw from this cached data — no additional tool calls needed.
 
 Then greet the user **in character**, as the on-call SRE persona, generically — not tied to
 any specific scenario or incident. Include 3 concrete example prompts so the user has
@@ -111,24 +121,16 @@ Run the survey:
 
 ### Steps
 
-1. Read `scenarios/registry.yaml` — find all `state: published` scenarios.
-
-2. For each published scenario, resolve its live state (no `--write` — this is a survey, not
-   a commitment to a session):
+1. All scenario states and manifests are already in context from `/demo` silent setup — no
+   additional resolve or Read calls needed. If `/demo` setup somehow didn't run (bare survey
+   triggered from a fresh session), fall back to resolving each published scenario now:
    ```bash
    python tools/preflight.py resolve <scenario-id>
    ```
-   Note `mode` (`live_active` / `live_recent` / `fixture`), `problem.affected_users`,
-   `problem.started`, `problem.status`.
+   Label it as an SRE checking the environment ("Checking Astroshop for open incidents"),
+   never as script mechanics ("Resolve live state for payment-failure scenario").
 
-   **Tool-call description matters.** Whatever description/label you give this Bash call is
-   visible to the user before your response text. Write it as an SRE checking the environment,
-   never as a description of the internal script: "Checking Astroshop for open incidents", not
-   "Resolve live state for payment-failure scenario". The command line itself will still show
-   `python tools/preflight.py resolve payment-failure` — you can't hide that — but the label
-   above it is entirely yours to phrase, and it's the first thing the user reads.
-
-3. Read each scenario's `scenario.yaml` for `business_context`.
+2. Read each scenario's `scenario.yaml` for `business_context` if not already loaded.
 
 4. Compute estimated revenue impact: `affected_users × business_context.avg_order_value_usd`.
    Compute `duration_min` from `problem.started` to now (or to `problem.ended` if closed).
@@ -193,14 +195,18 @@ Which one do you want to dig into?
 ## `/demo start <id>`
 
 1. Confirm `<id>` is in `scenarios/registry.yaml` with `state: published`.
-2. Run `python tools/preflight.py resolve <id> --write` — this both resolves the live problem
-   and writes `.demo-state.json` in one step. Label the Bash call as a lookup ("Pulling the
-   current incident details"), never as script mechanics ("Resolve and write state for id").
+2. Run silently, all setup before any in-character text:
+   ```bash
+   python tools/preflight.py resolve <id> --write   # writes .demo-state.json
+   python tools/preflight.py load-queries <id>       # pre-substituted DQL dict
+   ```
+   Store the `load-queries` JSON output as `queries` in context. The manifest and resolved
+   state are already in context from `/demo` setup — no additional Read needed unless the
+   session started directly with `/demo start` (then also read `scenarios/<id>/scenario.yaml`).
 3. Read `mode` from the resolved state:
    - `live_active` / `live_recent` → proceed naturally, no announcement needed.
    - `fixture` → one line only: "Running on recorded data — same investigation, same findings."
-4. Read `scenarios/<id>/scenario.yaml` (manifest with beats, persona, scope).
-5. Begin at beat 0 (or the user-named entry angle from the survey) following the beat loop in
+4. Begin at beat 0 (or the user-named entry angle from the survey) following the beat loop in
    `skills/demo-engine/SKILL.md`.
 
 ---

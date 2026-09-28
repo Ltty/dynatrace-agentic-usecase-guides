@@ -99,12 +99,17 @@ def check(label: str, ok: bool, detail: str = ""):
 PLACEHOLDER_RE = re.compile(r"\{\{([A-Z_]+)\}\}")
 
 
-def substitute_placeholders(text: str, placeholders: dict) -> str:
-    """Replace every {{KEY}} token in text with placeholders[KEY]. Raises on unknown key."""
+def substitute_placeholders(text: str, placeholders: dict,
+                            pass_through_unknown: bool = False) -> str:
+    """Replace every {{KEY}} token in text with placeholders[KEY].
+    With pass_through_unknown=True, unknown keys are left as {{KEY}} instead of raising.
+    """
     def _sub(m):
         key = m.group(1)
         if key not in placeholders:
-            raise KeyError(f"unknown placeholder '{{{{{key}}}}}' — not in state placeholders")
+            if pass_through_unknown:
+                return m.group(0)
+            raise KeyError(f"unknown placeholder '{{{{{key}}}}}'  — not in state placeholders")
         return str(placeholders[key])
     return PLACEHOLDER_RE.sub(_sub, text)
 
@@ -432,6 +437,59 @@ def _parse_var_flags(args) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# Query pre-loader — substitutes placeholders at session start
+# ---------------------------------------------------------------------------
+
+def _dql_to_single_line(dql: str) -> str:
+    """Strip // comments and collapse a multi-line DQL query to one line.
+    DQL is whitespace-insensitive so this is always safe.
+    """
+    parts = []
+    for line in dql.splitlines():
+        stripped = line.strip()
+        if stripped and not stripped.startswith("//"):
+            parts.append(stripped)
+    return " ".join(parts)
+
+
+def load_queries(scenario_id: str) -> int:
+    """Pre-substitute all beat queries for a scenario and emit as a JSON dict.
+
+    Each entry: {relative_path: single_line_dql}.  State placeholders
+    (TIMEFRAME_FROM, PAYMENT_FAILURE_PROBLEM, etc.) are substituted; runtime-only
+    placeholders like {{TRACE_ID}} are left as-is for the engine to fill later.
+    The engine calls this once at session start and holds the dict in context,
+    then runs dtctl query directly per beat.
+    """
+    scenario_dir = REPO_ROOT / "scenarios" / scenario_id
+    if not scenario_dir.exists():
+        print(json.dumps({"error": f"scenario '{scenario_id}' not found"}))
+        return 2
+    if not STATE_PATH.exists():
+        print(json.dumps({"error": "no .demo-state.json — run resolve first"}))
+        return 2
+
+    with open(STATE_PATH) as f:
+        state = json.load(f)
+
+    placeholders = state.get("placeholders", {})
+    queries_dir = scenario_dir / "queries"
+    result = {}
+
+    for dql_path in sorted(queries_dir.glob("*.dql")):
+        rel = "queries/" + dql_path.name
+        try:
+            raw = dql_path.read_text(encoding="utf-8")
+            substituted = substitute_placeholders(raw, placeholders, pass_through_unknown=True)
+            result[rel] = _dql_to_single_line(substituted)
+        except Exception as e:
+            result[rel] = f"ERROR: {e}"
+
+    print(json.dumps(result, indent=2))
+    return 0
+
+
+# ---------------------------------------------------------------------------
 # Codespace login helper
 # ---------------------------------------------------------------------------
 
@@ -604,12 +662,15 @@ def main():
             sys.exit(2)
         sys.exit(run_query(args[1], args[2], extra_vars=extra_vars or None, render=render))
 
+    if args[0] == "load-queries" and len(args) >= 2:
+        sys.exit(load_queries(args[1]))
+
     if args[0] == "login":
         codespace_login()
         sys.exit(0)
 
     print(f"Usage: {sys.argv[0]} [check|resolve <scenario-id> [--write]|"
-          f"run-query <scenario-id> <dql-path> [--var KEY=VALUE ...] [--render waterfall]|login]",
+          f"run-query <scenario-id> <dql-path> [--var KEY=VALUE ...] [--render waterfall]|load-queries <scenario-id>|login]",
           file=sys.stderr)
     sys.exit(2)
 

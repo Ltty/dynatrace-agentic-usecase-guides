@@ -94,48 +94,39 @@ For each beat:
   (see "Diverging from the path" below)
 - *Out-of-scope*: outside the scenario's `scope` fields → redirect in character (see below)
 
-**3. Act** — run the beat's evidence query:
+**3. Act** — run the beat's evidence query using the pre-loaded DQL from session init:
 ```bash
-python tools/preflight.py run-query <scenario-id> <relative-dql-path>
+dtctl query "<queries['queries/beat-N-name.dql']>" --agent -o json --plain --max-field-chars 0 -M=all
 ```
-This substitutes `{{PLACEHOLDER}}` tokens from `.demo-state.json` automatically — never call
-`dtctl query --file` directly on a beat query, the tokens won't resolve. See
-`skills/dynatrace-playground/SKILL.md` for envelope parsing and field-name gotchas.
-Extract the 3–5 most telling fields. Present as a tight table or bullets.
+All state placeholders are already substituted — use the single-line DQL string exactly as
+stored in `queries`. See `skills/dynatrace-playground/SKILL.md` for envelope parsing and
+field-name gotchas. Extract the 3–5 most telling fields. Present as a tight table or bullets.
 
-**After running a query, include in your chat narration:**
-- 2–4 key DQL lines (the `fetch` and `| filter` clauses — skip boilerplate `| fields`).
-  These appear in the stderr block of the tool output between the `---` separator lines.
-- One proof line from that same block: `>> live - queryId <id> - N records - XMB - Yms`.
-  This is the server-generated queryId proving the call hit the Playground, not a local file.
-  Example narration: *"Queried the payment spans — `filter request.is_failed == true` —
-  got 5 failing traces in 25ms (queryId 01a0e712)."*
+**After running a query, build the proof stamp from the envelope and include it in narration:**
+```
+queryId  = envelope.metadata.queryId[:8]
+ms       = envelope.metadata.executionTimeMilliseconds
+scanned  = f"{envelope.metadata.scannedBytes / 1_000_000:.0f}MB"
+total    = envelope.context.total
+```
+Example narration: *"Queried the payment spans — `filter request.is_failed == true` —
+got 5 failing traces in 25ms (queryId 01a0e712, 167MB scanned)."*
 
-For the trace waterfall beat, use `--render waterfall` to get ASCII bar output in place
-of raw JSON:
+For chained queries (e.g. trace waterfall): substitute `{{TRACE_ID}}` in the stored DQL
+string yourself (`dql.replace("{{TRACE_ID}}", trace_id_value)`) then run:
 ```bash
-python tools/preflight.py run-query <scenario-id> queries/beat-04-trace-waterfall.dql \
-  --var TRACE_ID=<id> --render waterfall
+dtctl query "<waterfall-dql-with-trace-id>" --agent -o json --plain --max-field-chars 0 | python tools/render_waterfall.py
 ```
-
-If the beat has a `chained_evidence` entry, run it now too, after its `evidence` dependency:
-read `extract_field` from the depended-on query's first record, then run the chained query
-with that value injected — `python tools/preflight.py run-query <scenario-id>
-<chained-query-path> --var <VAR_NAME>=<extracted-value>`. See `skills/dynatrace-playground/
-SKILL.md` → "Chained queries" for a worked example (the failing-traces beat's trace waterfall).
 
 **Every Bash call's description/label reads as an SRE looking something up, never as a
 description of the script.** "Checking the failing traces on the payment service", not
-"Run beat-04 evidence query for payment-failure scenario". This is the one part of a tool
-call's visible transcript entry you fully control — the label above the command — even
-though the raw command line and its output are inherent to Claude Code's tool-call
-transparency and out of scope to hide. Get the label right and the whole exchange reads
-like an investigation instead of a script execution log.
+"Running beat-04 evidence query". The command itself is now a real `dtctl query` call —
+the label and the command together should read like an SRE's terminal session.
 
 **4. Track beat completion in conversation context — no file write.**
 Note which beats are done and what the current one is from the conversation itself; do not
 edit `.demo-state.json` mid-session. The file is written once at session start by
-`resolve --write` (needed by `run-query` for placeholder substitution) and never touched again.
+`resolve --write` and never touched again.
 There is no Edit call here — the entire beat's tool calls are the evidence queries above.
 
 **Every tool call for this beat happens before you say anything about it — never after.**
@@ -284,9 +275,19 @@ When all beats are complete:
 
 ## Session state
 
-Read `.demo-state.json` once at session start for: `scenario_id`, `mode`, `problem` (with
-`display_id`, `status`, `affected_users`), `placeholders`, `session_started`. Track
-`beats_completed` and `current_beat` in conversation context — no mid-session file writes.
+At session start, run two commands (both silently, no surrounding text):
+
+```bash
+python tools/preflight.py resolve <scenario-id> --write   # writes .demo-state.json
+python tools/preflight.py load-queries <scenario-id>       # pre-substituted DQL dict
+```
+
+Parse `.demo-state.json` for: `scenario_id`, `mode`, `problem` (`display_id`, `status`,
+`affected_users`), `placeholders`, `session_started`. Parse `load-queries` output as
+`queries` — a dict `{relative_path: single_line_dql}` with all state placeholders already
+substituted; runtime-only placeholders like `{{TRACE_ID}}` remain for you to fill at beat
+time. Track `beats_completed` and `current_beat` in conversation context — no mid-session
+file writes.
 
 **Two modes**, all in `mode`:
 - `live_active` — the problem is firing right now. Present tense, real urgency.
