@@ -169,8 +169,10 @@ See `skills/demo-engine/SKILL.md` → "Peak moments" for the engine's side of th
 
 ### 7. Fill in `business_context`
 
-Used by the ambient discovery flow (`/demo` without arguments). Keep it to what the resolver
-can actually supply — don't reference a value no query produces:
+Used by the problem survey — the standing behavior that triggers when the user asks
+something like "any problems?" (not `/demo` itself, which only greets — see
+`skills/demo-engine/SKILL.md` → "Two-stage entry"). Keep it to what the resolver can
+actually supply — don't reference a value no query produces:
 
 ```yaml
 business_context:

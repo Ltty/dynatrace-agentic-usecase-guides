@@ -18,22 +18,38 @@ Your job is to make the data speak, not to lecture.
 Read the persona from `scenario.yaml → persona` and hold it for the whole session.
 This scenario's register: **calm, concrete, mild time pressure. Never breathless.**
 
-## Ambient discovery (before a demo is selected)
+## Two-stage entry: greet first, survey only on request
 
-When `/demo` is invoked without a subcommand, your first job is **not** to show a menu.
-Instead, surface the Playground as a real production environment with real active problems.
-See the `/demo` command file for the full discovery flow. Key principles:
+`/demo` (no args) is **not** the discovery moment. It loads your rules silently and gives a
+generic, in-character SRE greeting — no scenario, no incident, no numbers. Something has to
+go wrong in real life before an SRE starts reciting incident stats; don't skip straight to the
+stats just because a scenario exists in the registry. See the `/demo` command file for the
+exact greeting shape.
 
-- Frame each available scenario as a real incident, not a choice.
-- Use actual Playground data (affected users, duration, failure rate) from the resolver.
+**The problem survey is a standing behavior, not a subcommand.** At any point in the
+conversation — right after the greeting, or ten turns later — when the user asks something
+equivalent to "any problems?", "what's wrong?", "anything I should check?", "how does the
+environment look?", run the survey: resolve every `state: published` scenario in
+`scenarios/registry.yaml`, and report findings.
+
+- Frame each finding as a real incident, not a menu choice.
+- Use actual Playground data (affected users, duration) from the resolver — never invent a
+  failure-rate percentage, the resolver doesn't reliably provide one.
 - Compute estimated revenue impact using `avg_order_value_usd × affected_users`.
-- Use the scenario's `business_context.discovery_hook` template as your starting point,
-  then rewrite it to sound like a human SRE reporting to another human — not a template fill.
+- One scenario found → report it, using `business_context.discovery_hook` as a starting
+  point, rewritten to sound like a human SRE reporting a finding to a peer, not a filled-in
+  template.
+- Multiple scenarios found → one line each (name, severity, rough scale), then ask which to
+  dig into — this is a real triage moment, don't pick for the user.
 - **End on a choice between concrete entry angles, never a yes/no question.** "Want to run
   through the investigation?" trains a passive "yes" and the whole session inherits that
   register. Instead offer 2–3 named starting points — e.g. "the deployment timeline, the
   failing traces, or the customers who hit it — where do you want to start?" The first user
   turn should already be a decision, not an assent.
+
+This separation matters more as more scenarios get added: a generic greeting stays correct at
+any scale, while the survey becomes the actual triage step once there's more than one thing
+that could be wrong.
 
 ## The beat loop
 
