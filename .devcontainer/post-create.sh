@@ -4,8 +4,7 @@
 # Installs the Claude Code CLI, dtctl, creates the playground context, and installs
 # Python deps. The user still needs two interactive steps afterward:
 #   1. `claude login` (or open the Claude Code panel and sign in) — browser auth
-#   2. `dtctl auth login --context playground` — browser OAuth; port 3232 is public so the
-#      callback works in both VS Code desktop and browser-based Codespaces
+#   2. `python tools/preflight.py login` — browser OAuth with paste-back relay
 
 set -uo pipefail  # deliberately not -e: one failed component shouldn't abort the rest;
                   # each step reports its own status and the summary at the end shows what's missing
@@ -103,17 +102,11 @@ echo "  1. Sign in to Claude — click 'Sign in' in the Claude Code extension pa
 echo "     Do NOT run 'claude login' from the terminal — that OAuth callback can't reach"
 echo "     the container. Use the extension's built-in sign-in instead."
 echo ""
-echo "  2. Authenticate against the Dynatrace Playground (two steps — dtctl's OAuth"
-echo "     callback goes to 127.0.0.1:3232 on your LOCAL machine, so tunnel it first):"
-echo ""
-echo "     Step A: in a LOCAL terminal (not this one):"
-echo "       gh codespace ssh -- -NL 3232:localhost:3232"
-echo "     Leave that running."
-echo ""
-echo "     Step B: back here:"
-echo "       dtctl auth login --context playground \\"
-echo "         --environment https://playground.apps.dynatrace.com"
-echo "     Log in, callback completes, then close the tunnel terminal."
+echo "  2. Authenticate against the Dynatrace Playground:"
+echo "       python tools/preflight.py login"
+echo "     Follow the prompts: a browser tab opens for Dynatrace SSO."
+echo "     After sign-in, the browser shows a connection error — copy that URL and paste"
+echo "     it back here. No local tools needed."
 echo "     No account yet? Free signup: https://www.dynatrace.com/signup/playground/"
 echo ""
 echo "  Then, in Claude Code:"

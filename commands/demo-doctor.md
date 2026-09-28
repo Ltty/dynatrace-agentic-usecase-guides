@@ -16,8 +16,7 @@ Run preflight checks for the Dynatrace Agentic Guides demo environment.
    > ❌ **dtctl not authenticated**
    > Run this to authenticate (a browser tab will open for Dynatrace SSO):
    > ```bash
-   > dtctl auth login --context playground \
-   >   --environment https://playground.apps.dynatrace.com
+   > python tools/preflight.py login
    > ```
    > No account yet? Free signup: https://www.dynatrace.com/signup/playground/
 
@@ -26,7 +25,7 @@ Run preflight checks for the Dynatrace Agentic Guides demo environment.
    | Check | Fix command |
    |-------|-------------|
    | dtctl not installed | Not found in any standard location. Use the devcontainer (zero-install), or download the binary from https://github.com/dynatrace-oss/dtctl/releases and add it to PATH. |
-   | dtctl doctor (auth) | `dtctl auth login --context playground --environment https://playground.apps.dynatrace.com` — opens a browser for Dynatrace SSO. |
+   | dtctl doctor (auth) | `python tools/preflight.py login` — opens a browser for Dynatrace SSO. In a Codespace, paste the failed callback URL back when prompted. |
    | safety level ≠ readonly | `dtctl config set-context playground --safety-level readonly` |
    | DQL not reachable | Auth is broken — fix dtctl doctor first, then re-run `/demo-doctor`. |
 

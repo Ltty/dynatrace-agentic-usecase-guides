@@ -15,7 +15,7 @@ Run preflight checks for the Dynatrace Agentic Guides demo environment.
 | Check | Fix if failing |
 |-------|---------------|
 | dtctl installed | Not found anywhere preflight.py checks. Windows: `$env:PATH += ";$env:LOCALAPPDATA\dtctl"` then restart terminal. Or run the devcontainer. |
-| dtctl doctor | Run: `dtctl auth login --context playground --environment https://playground.apps.dynatrace.com` |
+| dtctl doctor | Run: `python tools/preflight.py login` — opens a browser for Dynatrace SSO. In a Codespace, paste the failed callback URL back when prompted. |
 | safety level = readonly | Run: `dtctl config set-context playground --safety-level readonly` |
 | DQL reachable | Auth problem — fix auth first |
 

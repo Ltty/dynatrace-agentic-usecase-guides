@@ -20,6 +20,9 @@ import os
 import re
 import subprocess
 import sys
+import urllib.error
+import urllib.parse
+import urllib.request
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -186,8 +189,7 @@ def check_connectivity() -> bool:
     all_ok &= check("dtctl doctor", doctor_ok, summary)
 
     if not doctor_ok:
-        print("\n  Run: dtctl auth login --context playground "
-              "--environment https://playground.apps.dynatrace.com")
+        print("\n  Run: python tools/preflight.py login")
         return False
 
     rc, out, _ = run_dtctl("config", "describe-context", "playground")
@@ -430,6 +432,115 @@ def _parse_var_flags(args) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# Codespace login helper
+# ---------------------------------------------------------------------------
+
+def _in_container() -> bool:
+    return bool(
+        os.environ.get("CODESPACES")
+        or os.environ.get("REMOTE_CONTAINERS")
+        or os.path.exists("/.dockerenv")
+    )
+
+
+def _normalize_callback(pasted: str) -> str:
+    """Accept any URL the browser shows after a failed callback; rebuild as
+    http://127.0.0.1:3232/auth/login?... Raises ValueError if 'code' is absent."""
+    pasted = pasted.strip()
+
+    # Bare query string: ?state=...&code=...
+    if pasted.startswith("?"):
+        pasted = "http://127.0.0.1:3232/auth/login" + pasted
+
+    parsed = urllib.parse.urlparse(pasted)
+    qs = urllib.parse.parse_qs(parsed.query, keep_blank_values=True)
+
+    if "code" not in qs:
+        raise ValueError("no 'code' parameter found in pasted URL — copy the full browser URL")
+
+    # Reconstruct against the local dtctl server regardless of what host was in the paste
+    path = parsed.path or "/auth/login"
+    rebuilt = urllib.parse.urlunparse(("http", "127.0.0.1:3232", path, "", parsed.query, ""))
+    return rebuilt
+
+
+def _replay_callback(url: str):
+    """Deliver the callback URL to the dtctl server running on 127.0.0.1:3232.
+    An HTTPError still means the request was received — treat it as success."""
+    try:
+        urllib.request.urlopen(url, timeout=10)
+    except urllib.error.HTTPError:
+        pass  # dtctl consumed the request; a non-2xx reply is expected
+
+
+def codespace_login():
+    """Run dtctl auth login with a paste-back relay for Codespace environments.
+
+    Launches dtctl so the user sees the SSO URL in the terminal.  After SSO,
+    the browser tries to hit 127.0.0.1:3232 on the local machine — that fails.
+    The user copies the failed URL from the browser address bar and pastes it
+    here; we replay it into the still-running dtctl process on 127.0.0.1:3232
+    inside the container.  No tunnel, no local tooling required.
+    """
+    cmd = [
+        DTCTL,
+        "--no-agent",  # suppress JSON envelope output (CLAUDECODE env var triggers it)
+        "auth", "login",
+        "--context", "playground",
+        "--environment", "https://playground.apps.dynatrace.com",
+        "--safety-level", "readonly",
+        "--timeout", "10m",
+    ]
+
+    in_container = _in_container()
+
+    if not in_container:
+        # Local dev: the browser callback reaches 127.0.0.1:3232 directly — just run normally.
+        subprocess.run(cmd)
+        return
+
+    print("Starting Dynatrace Playground authentication...\n")
+    print("dtctl will print a browser URL. Open it, complete SSO, then come back here.\n")
+
+    proc = subprocess.Popen(
+        cmd,
+        stdin=subprocess.DEVNULL,  # prevent dtctl's child from stealing terminal stdin
+        # stdout and stderr inherited so the user sees the SSO URL
+    )
+
+    print("\n--- After SSO ---")
+    print("The browser will redirect to http://127.0.0.1:3232/... and show a connection error.")
+    print("Copy that URL from the browser address bar and paste it here, then press Enter:")
+    print()
+
+    try:
+        pasted = sys.stdin.readline()
+    except (EOFError, KeyboardInterrupt):
+        proc.terminate()
+        print("\nCancelled.")
+        return
+
+    try:
+        callback_url = _normalize_callback(pasted)
+    except ValueError as e:
+        proc.terminate()
+        print(f"\nError: {e}")
+        sys.exit(1)
+
+    print(f"\nReplaying callback to dtctl... ", end="", flush=True)
+    try:
+        _replay_callback(callback_url)
+        print("done.")
+    except Exception as e:
+        print(f"failed: {e}")
+        proc.terminate()
+        sys.exit(1)
+
+    proc.wait()
+    print("\nAuthentication complete. Run 'python tools/preflight.py check' to verify.")
+
+
+# ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
 
@@ -460,8 +571,12 @@ def main():
             sys.exit(2)
         sys.exit(run_query(args[1], args[2], extra_vars=extra_vars or None, render=render))
 
+    if args[0] == "login":
+        codespace_login()
+        sys.exit(0)
+
     print(f"Usage: {sys.argv[0]} [check|resolve <scenario-id> [--write]|"
-          f"run-query <scenario-id> <dql-path> [--var KEY=VALUE ...] [--render waterfall]]",
+          f"run-query <scenario-id> <dql-path> [--var KEY=VALUE ...] [--render waterfall]|login]",
           file=sys.stderr)
     sys.exit(2)
 

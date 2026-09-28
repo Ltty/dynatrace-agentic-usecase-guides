@@ -8,12 +8,17 @@ Codespaces secrets, not in environment variables baked into the image.
 Every user authenticates with their own Dynatrace account via browser OAuth:
 
 ```bash
-dtctl auth login --context playground \
-  --environment https://playground.apps.dynatrace.com
+python tools/preflight.py login
 ```
 
-The resulting token is stored in the user's own OS keyring (or in `~/.config/dtctl/` for
-headless environments with `DTCTL_TOKEN_STORAGE=file`). It never enters the repo.
+This runs `dtctl auth login --safety-level readonly` under the hood.
+In a Codespace the browser's OAuth callback (`127.0.0.1:3232`) can't reach the container;
+the helper prompts the user to paste the failed redirect URL back into the terminal and
+replays it via Python's `urllib` into the still-running dtctl process — no shared token,
+no tunnel, no local tooling required.
+
+The resulting token is stored per-user in `~/.local/share/dtctl/oauth-tokens/`
+(controlled by `DTCTL_TOKEN_STORAGE=file` in `devcontainer.json`). It never enters the repo.
 
 Why not a shared token? GitHub Codespaces secrets are readable by anyone who opens the
 Codespace (`echo $EXAMPLE_API_KEY` works by design). A shared token injected via Codespaces

@@ -14,22 +14,12 @@ A Claude Code plugin for interactive, AI-guided incident investigations on the
    Click **Sign in** in the Claude panel (sidebar).
    Do not run `claude login` from the terminal — the terminal OAuth callback won't reach the container.
 
-3. **Authenticate against the Dynatrace Playground** — two steps because dtctl's OAuth
-   callback goes to `127.0.0.1:3232` on your local machine, so you need to tunnel that
-   port to the Codespace first.
-
-   **Step A — in a local terminal** (not the Codespace):
+3. **Authenticate against the Dynatrace Playground:**
    ```bash
-   gh codespace ssh -- -NL 3232:localhost:3232
+   python tools/preflight.py login
    ```
-   Leave this running. It forwards local port 3232 → Codespace's dtctl server.
-
-   **Step B — back in the Codespace terminal:**
-   ```bash
-   dtctl auth login --context playground \
-     --environment https://playground.apps.dynatrace.com
-   ```
-   A browser tab opens. Log in, the callback completes, close the tunnel terminal.
+   Follow the prompts — a browser tab opens for Dynatrace SSO.
+   After sign-in the browser shows a connection error; copy that URL and paste it back in the terminal.
    No account? Free signup: [dynatrace.com/signup/playground](https://www.dynatrace.com/signup/playground/)
 
 4. **Run** — in the Claude Code chat panel:
