@@ -10,10 +10,9 @@ A Claude Code plugin for interactive, AI-guided incident investigations on the
 1. **Code → Codespaces → Create codespace on master**
    Claude Code, `dtctl`, and Python deps install automatically.
 
-2. **Sign in to Claude** (if not already prompted):
-   ```bash
-   claude login
-   ```
+2. **Sign in to Claude** — the Claude Code extension prompts automatically when the Codespace opens.
+   Click **Sign in** in the Claude panel (sidebar).
+   Do not run `claude login` from the terminal — the terminal OAuth callback won't reach the container.
 
 3. **Authenticate against the Dynatrace Playground:**
    ```bash
@@ -23,8 +22,7 @@ A Claude Code plugin for interactive, AI-guided incident investigations on the
    A browser tab opens for Dynatrace SSO.
    No account? Free signup: [dynatrace.com/signup/playground](https://www.dynatrace.com/signup/playground/)
 
-
-4. **Run** — in the Claude Code chat panel (VS Code extension) or after running `claude` in the terminal:
+4. **Run** — in the Claude Code chat panel:
    ```
    /demo-doctor   # verify everything is wired
    /demo          # start an incident investigation
@@ -33,6 +31,7 @@ A Claude Code plugin for interactive, AI-guided incident investigations on the
 ### Local (VS Code + Dev Containers)
 
 Clone the repo, open it in VS Code, click **Reopen in Container** when prompted, then follow steps 2–4 above.
+Here `claude login` from the terminal works fine — the callback reaches your local machine directly.
 
 ---
 
