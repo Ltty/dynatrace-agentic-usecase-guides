@@ -4,8 +4,8 @@
 # Installs the Claude Code CLI, dtctl, creates the playground context, and installs
 # Python deps. The user still needs two interactive steps afterward:
 #   1. `claude login` (or open the Claude Code panel and sign in) — browser auth
-#   2. Generate a Dynatrace API token and run `dtctl config set-credentials playground --token <token> --global`
-#      (browser OAuth callbacks can't reach the container; API tokens work everywhere)
+#   2. `dtctl auth login --context playground` — browser OAuth; port 3232 is public so the
+#      callback works in both VS Code desktop and browser-based Codespaces
 
 set -uo pipefail  # deliberately not -e: one failed component shouldn't abort the rest;
                   # each step reports its own status and the summary at the end shows what's missing
@@ -102,14 +102,11 @@ echo ""
 echo "  1. Sign in to Claude Code, if the extension didn't already prompt you:"
 echo "       claude login"
 echo ""
-echo "  2. Authenticate against the Dynatrace Playground (API token — works in all Codespace types):"
-echo "       a) Log in to https://playground.apps.dynatrace.com"
-echo "       b) Profile -> Access tokens -> generate a token with scopes:"
-echo "            storage:logs:read  storage:spans:read  storage:events:read"
-echo "            storage:entities:read  storage:user.sessions:read"
-echo "            davis:analyzers:read  davis-copilot:conversations:execute"
-echo "            app-engine:apps:run"
-echo "       c) Run:  dtctl config set-credentials playground --token <your-token> --global"
+echo "  2. Authenticate against the Dynatrace Playground:"
+echo "       dtctl auth login --context playground \\"
+echo "         --environment https://playground.apps.dynatrace.com"
+echo "     A browser tab opens for Dynatrace SSO. Port 3232 is public so the"
+echo "     OAuth callback works in both VS Code desktop and browser Codespaces."
 echo "     No account yet? Free signup: https://www.dynatrace.com/signup/playground/"
 echo ""
 echo "  Then, in Claude Code:"

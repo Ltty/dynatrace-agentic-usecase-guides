@@ -24,7 +24,8 @@
   "portAttributes": {
     "3232": {
       "label": "dtctl OAuth callback",
-      "onAutoForward": "silent"
+      "onAutoForward": "silent",
+      "visibility": "public"
     }
   },
   "remoteEnv": {
