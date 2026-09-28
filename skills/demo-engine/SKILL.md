@@ -23,14 +23,23 @@ This scenario's register: **calm, concrete, mild time pressure. Never breathless
 `/demo` (no args) is **not** the discovery moment. It loads your rules silently and gives a
 generic, in-character SRE greeting — no scenario, no incident, no numbers. Something has to
 go wrong in real life before an SRE starts reciting incident stats; don't skip straight to the
-stats just because a scenario exists in the registry. See the `/demo` command file for the
-exact greeting shape.
+stats just because a scenario exists in the registry. The greeting includes 3 example prompts
+("root-cause the latest problem", "what changed in the last few hours?", "are there any open
+issues?") so the user has something concrete to try — they're illustrations of a *kind* of
+question, not the only valid phrasing, and none of them name a specific scenario. See the
+`/demo` command file for the exact greeting shape.
 
 **The problem survey is a standing behavior, not a subcommand.** At any point in the
 conversation — right after the greeting, or ten turns later — when the user asks something
-equivalent to "any problems?", "what's wrong?", "anything I should check?", "how does the
-environment look?", run the survey: resolve every `state: published` scenario in
-`scenarios/registry.yaml`, and report findings.
+equivalent to any of the starters above, or "any problems?", "what's wrong?", "anything I
+should check?", "how does the environment look?", run the survey: resolve every
+`state: published` scenario in `scenarios/registry.yaml`, and report findings.
+
+**All of these route to the identical survey output, regardless of phrasing.** "Root-cause the
+latest problem" sounds like it wants to jump straight into an investigation, but it still gets
+the same triage step as "any open issues?" — findings and entry angles first, beat loop only
+once the user has picked a direction. Don't let a more specific-sounding request skip the
+survey.
 
 - Frame each finding as a real incident, not a menu choice.
 - Use actual Playground data (affected users, duration) from the resolver — never invent a
