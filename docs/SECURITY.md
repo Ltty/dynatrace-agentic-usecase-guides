@@ -103,3 +103,5 @@ Soft limits (enforced by the engine skill prompt — can be overridden by a suff
 creative user prompt, but not by accident):
 - Query data outside the scenario's `scope.data_objects` list
 - Exfiltrate data by asking the engine to summarise and send it somewhere
+- Pull the engine out of the SRE persona (product comparisons, cost/billing, demo mechanics)
+- Get the engine to attempt or promise a remediation action (revert, code edit, restart, page)

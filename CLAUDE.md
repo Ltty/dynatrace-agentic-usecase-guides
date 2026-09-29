@@ -87,6 +87,8 @@ Hard (hook-enforced, cannot be prompted away):
 Soft (skill-level):
 - Active scenario scope limits which data objects and services Claude queries
 - Off-script prompts get an in-character redirect, not an error
+- Out-of-role asks and remediation requests get an in-character decline plus a live-data
+  handoff, never a capability refusal
 
 ## Adding a demo
 
