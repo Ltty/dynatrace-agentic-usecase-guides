@@ -608,11 +608,7 @@ def _run_client_credentials_login():
     if os.environ.get("DTCTL_ACCOUNT_URN"):
         cmd += ["--account-urn", os.environ["DTCTL_ACCOUNT_URN"]]
 
-    env = dict(os.environ)
-    env["DTCTL_TOKEN_STORAGE"] = "file"
-    env["DTCTL_DISABLE_KEYRING"] = "true"
-
-    subprocess.run(cmd, text=True, encoding="utf-8", env=env)
+    subprocess.run(cmd, text=True, encoding="utf-8")
     print()
     print("  " + "-" * 40)
     print()
@@ -639,13 +635,6 @@ def codespace_login():
         "--timeout", "10m",
     ]
 
-    # Force file-backed token storage. Without this dtctl tries the OS keyring,
-    # which in a headless container blocks on a password prompt it can never get
-    # and the login flow never reaches the point of printing a URL.
-    env = dict(os.environ)
-    env["DTCTL_TOKEN_STORAGE"] = "file"
-    env["DTCTL_DISABLE_KEYRING"] = "true"
-
     print()
     print("  Dynatrace Playground Sign-In")
     print("  " + "-" * 40)
@@ -659,7 +648,6 @@ def codespace_login():
         text=True,
         encoding="utf-8",
         errors="replace",
-        env=env,
     )
 
     sso_url_ready = threading.Event()

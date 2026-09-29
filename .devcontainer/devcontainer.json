@@ -21,8 +21,6 @@
     }
   },
   "remoteEnv": {
-    "DTCTL_CONTEXT": "playground",
-    "DTCTL_TOKEN_STORAGE": "file",
-    "DTCTL_DISABLE_KEYRING": "true"
+    "DTCTL_CONTEXT": "playground"
   }
 }
