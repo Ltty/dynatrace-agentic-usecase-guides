@@ -42,7 +42,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python .claude/hooks/guard-dtctl.py"
+            "command": "python tools/guard_dtctl.py"
           }
         ]
       }

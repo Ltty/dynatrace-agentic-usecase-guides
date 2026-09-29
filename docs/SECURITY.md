@@ -50,23 +50,35 @@ a token with `dtctl config set-credentials`; see `dtctl config --help`.
 
 ## Read-only enforcement
 
-The Playground is a read-only environment. We enforce this in three independent layers:
+The Playground is a read-only environment. We enforce this in three independent layers.
+The specific mechanism for layers 2 and 3 differs by harness, but the guarantee is the same.
+
+### Claude Code
 
 | Layer | Mechanism | Enforced by |
 |-------|-----------|-------------|
-| 1 | dtctl context `safety-level: readonly` | dtctl config (client-side) |
-| 2 | `.claude/settings.json` deny-by-default | Claude Code harness |
-| 3 | `PreToolUse` hook `guard-dtctl.py` | Python hook, per-call |
+| 1 | dtctl context `safety-level: readonly` | dtctl config (client-side) — harness-independent |
+| 2 | `.claude/settings.json` deny-by-default | Claude Code permission system |
+| 3 | `PreToolUse` hook (`tools/guard_dtctl.py`) | Python hook, per-call |
 
-Layer 1 is dtctl's own client-side protection — it blocks mutating verbs before any HTTP
-request is made. Layer 2 is Claude Code's permission system — it prevents the model from
-invoking non-allowlisted tool calls. Layer 3 is the hook — it parses every Bash call at
-the verb and DQL level, independent of the model's intent.
+### OpenCode
+
+| Layer | Mechanism | Enforced by |
+|-------|-----------|-------------|
+| 1 | dtctl context `safety-level: readonly` | dtctl config (client-side) — harness-independent |
+| 2 | `opencode.json` permission globs | OpenCode permission system |
+| 3 | `.opencode/plugin/guard-dtctl.ts` (shells to `tools/guard_dtctl.py`) | TypeScript plugin, per-call |
+
+**Layer 1 is the only layer that is truly harness-independent.** Layers 2 and 3 are
+reimplementations for each harness, both backed by the same underlying Python script
+(`tools/guard_dtctl.py`) for verb+DQL enforcement. The OpenCode path's read-only guarantee
+was added in the `opencode-port` branch and should be verified with a full demo run before
+treating it as equivalent to the Claude Code path.
 
 All three layers must be bypassed simultaneously to issue a write. That requires:
 - Modifying the dtctl config (needs OS keyring access or file write to `~/.local/share/dtctl`)
-- Modifying `.claude/settings.json` (needs repo write access)
-- Modifying the hook itself (needs repo write access)
+- Modifying the harness permission config (`settings.json` or `opencode.json`) — needs repo write access
+- Modifying the guard script itself (`tools/guard_dtctl.py`) — needs repo write access
 
 In a Codespace, the user's own OAuth token would still need the write scope, which the
 Playground likely does not grant to non-admin users.

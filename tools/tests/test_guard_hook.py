@@ -11,7 +11,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-HOOK = Path(__file__).parent.parent.parent / ".claude" / "hooks" / "guard-dtctl.py"
+HOOK = Path(__file__).parent.parent / "guard_dtctl.py"
 
 
 def run_hook(cmd: str):
@@ -20,7 +20,7 @@ def run_hook(cmd: str):
         [sys.executable, str(HOOK)],
         input=payload, capture_output=True, text=True, timeout=10
     )
-    return r.returncode, r.stdout.strip()
+    return r.returncode, r.stderr.strip()
 
 
 # (description, command, expect_blocked)

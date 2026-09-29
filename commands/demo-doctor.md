@@ -4,7 +4,7 @@ Run preflight checks for the Dynatrace Agentic Guides demo environment.
 
 1. Run the check — do this silently, no preamble text:
    ```bash
-   cd C:/public/dynatrace/agentic-usecase-guides && python tools/preflight.py check
+   python tools/preflight.py check
    ```
    `tools/preflight.py` auto-locates dtctl itself (checks common install dirs even when PATH
    doesn't have it) — don't run a pre-emptive PATH export before this, it's an unneeded extra

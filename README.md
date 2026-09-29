@@ -31,6 +31,28 @@ A Claude Code plugin for interactive, AI-guided incident investigations on the
 Clone the repo, open in VS Code, click **Reopen in Container**, then follow steps 2–4 above.
 `claude login` from the terminal works here — the callback reaches your local machine directly.
 
+### OpenCode (free-tier alternative)
+
+OpenCode lets you run the same demos with a hosted free-tier model instead of Claude Code.
+Zero per-demo cost, same skills and scenarios.
+
+1. **Install OpenCode:**
+   ```bash
+   npm install -g opencode-ai
+   ```
+2. **Authenticate against the Dynatrace Playground** (same as above):
+   ```bash
+   python tools/preflight.py login
+   ```
+3. **Configure your model** — edit `opencode.json` with your provider and API key.
+   See [docs/OPENCODE.md](docs/OPENCODE.md) for recommended free-tier options.
+4. **Run:**
+   ```bash
+   opencode
+   /demo-doctor   # verify everything is wired
+   /demo          # start an incident investigation
+   ```
+
 ---
 
 ## Something not working?
@@ -45,3 +67,4 @@ Reports exactly which piece is missing and how to fix it.
 
 - **Add a demo:** [docs/AUTHORING.md](docs/AUTHORING.md)
 - **Security model:** [docs/SECURITY.md](docs/SECURITY.md)
+- **OpenCode setup:** [docs/OPENCODE.md](docs/OPENCODE.md)

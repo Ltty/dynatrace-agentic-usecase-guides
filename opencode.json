@@ -1,0 +1,44 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": [
+    "AGENTS.md",
+    "skills/demo-engine/SKILL.md",
+    "skills/dynatrace-playground/SKILL.md"
+  ],
+  "model": "anthropic/claude-sonnet-4-5",
+  "permission": {
+    "bash": {
+      "dtctl doctor*": "allow",
+      "dtctl query *": "allow",
+      "dtctl get *": "allow",
+      "dtctl describe *": "allow",
+      "dtctl describe-context *": "allow",
+      "dtctl inventory*": "allow",
+      "dtctl exec copilot*": "allow",
+      "dtctl config current-context*": "allow",
+      "dtctl config describe-context*": "allow",
+      "dtctl config get-contexts*": "allow",
+      "dtctl version*": "allow",
+      "dtctl commands*": "allow",
+      "dtctl auth status*": "allow",
+      "dtctl auth whoami*": "allow",
+      "python tools/preflight.py*": "allow",
+      "python tools/validate_scenarios.py*": "allow",
+      "cat scenarios/*": "allow",
+      "cat .demo-state.json": "allow",
+      "python tools/render_waterfall.py*": "allow",
+      "dtctl apply*": "deny",
+      "dtctl create*": "deny",
+      "dtctl edit*": "deny",
+      "dtctl delete*": "deny",
+      "dtctl restore*": "deny",
+      "dtctl exec workflow*": "deny",
+      "dtctl exec analyzer*": "deny",
+      "curl *": "deny",
+      "*": "ask"
+    },
+    "edit": "deny",
+    "webfetch": "deny",
+    "websearch": "deny"
+  }
+}
