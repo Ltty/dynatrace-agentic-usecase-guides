@@ -21,6 +21,7 @@
     }
   },
   "remoteEnv": {
-    "DTCTL_CONTEXT": "playground"
+    "DTCTL_CONTEXT": "playground",
+    "DTCTL_TOKEN_STORAGE": "file"
   }
 }
