@@ -651,7 +651,7 @@ def codespace_login():
 
     sso_url_ready = threading.Event()
     auth_complete = threading.Event()
-    shared = {"sso_url": None, "redirect_base": None, "dtctl_lines": []}
+    shared = {"sso_url": None, "redirect_base": None, "dtctl_lines": [], "browser_opened": False}
 
     def _read_output():
         want_url = False
@@ -665,7 +665,12 @@ def codespace_login():
                 shared["redirect_base"] = _extract_redirect_base(line)
                 sso_url_ready.set()
                 want_url = False
-            # "Authentication successful!" is the exact string dtctl prints on success.
+            # When VS Code intercepts the browser open, dtctl prints this instead of
+            # a "please visit:" fallback. We won't get the URL from stdout, but we know
+            # auth has started and the user's browser is open.
+            if "opening browser" in line.lower():
+                shared["browser_opened"] = True
+                sso_url_ready.set()
             if line == "Authentication successful!":
                 auth_complete.set()
 
@@ -673,30 +678,27 @@ def codespace_login():
 
     sso_url_ready.wait(timeout=15)
 
-    if not shared["sso_url"]:
-        print("  (dtctl did not emit an authorization URL within 15 s)")
-        print("  dtctl output:")
-        for l in shared["dtctl_lines"]:
-            print(f"    {l}")
-        print()
-    else:
-        redirect_note = f"  (callback port: {urllib.parse.urlparse(shared['redirect_base']).port})" if shared["redirect_base"] else ""
+    if shared["sso_url"]:
         print("  Open this link and sign in:")
         print()
         print(f"  {shared['sso_url']}")
         print()
-        if redirect_note:
-            print(redirect_note)
-        print("  Your browser will then land on a page that cannot load")
-        print('  ("this site can\'t be reached"). That is expected in a container — the')
-        print("  sign-in redirects to a port inside this container, which your browser")
-        print("  can't see directly. Leave that tab open.")
+        print("  After sign-in the browser will land on a 'can't connect' page — that's expected.")
+        print("  Leave that tab open.")
+        print()
+        print("  No account? https://www.dynatrace.com/signup/playground/")
+        print()
+    elif shared["browser_opened"]:
+        # VS Code opened the browser on the user's local machine. The URL wasn't
+        # printed to stdout (dtctl only prints the fallback when browser-open fails).
+        print("  A browser window was opened for sign-in.")
+        print("  Sign in, then when the browser shows a 'can't connect' page,")
+        print("  copy the full URL from the address bar — we'll relay it to complete auth.")
         print()
         print("  No account? https://www.dynatrace.com/signup/playground/")
         print()
 
     # Wait up to 25 s for dtctl to complete on its own (VS Code Desktop / local).
-    # Only prompt if it doesn't — the user shouldn't have to decide in advance.
     print("  Waiting for sign-in to complete...", end="", flush=True)
     deadline = time.monotonic() + 25
     while time.monotonic() < deadline:
@@ -711,12 +713,11 @@ def codespace_login():
     if already_done:
         print()
         print("  Sign-in completed.")
-    elif shared["sso_url"]:
-        # Browser Codespace: callback didn't arrive, prompt for the paste.
+    elif shared["sso_url"] or shared["browser_opened"]:
+        # Callback didn't arrive automatically — prompt for the paste.
         print()
-        print("  Still waiting — your browser is showing the failed page.")
-        print()
-        print("  Copy the whole address from that tab's address bar and paste it here.")
+        print("  Sign-in is waiting. Copy the full URL from your browser's address bar")
+        print("  and paste it below (it starts with http://localhost:...).")
         if shared["redirect_base"]:
             port = urllib.parse.urlparse(shared["redirect_base"]).port
             print(f"  It looks like:  http://localhost:{port}/auth/login?state=...&code=...")
@@ -732,8 +733,6 @@ def codespace_login():
             return
 
         if pasted:
-            # Guard: if auth completed while we waited for input, skip the replay
-            # to avoid posting a spent code and getting a 403.
             if proc.poll() == 0 or auth_complete.is_set():
                 print()
                 print("  Auth completed while you were copying — skipping replay.")
@@ -754,9 +753,13 @@ def codespace_login():
                     proc.terminate()
                     sys.exit(1)
     else:
+        # dtctl didn't open a browser or print a URL — something failed at startup.
         print()
-        print("  Could not obtain an authorization URL from dtctl.")
-        print("  Run: dtctl auth login --context playground to try manually.")
+        print("  dtctl did not start the login flow. Output:")
+        for l in shared["dtctl_lines"]:
+            print(f"    {l}")
+        print()
+        print("  Try running manually: dtctl auth login --context playground")
         proc.terminate()
         sys.exit(1)
 
