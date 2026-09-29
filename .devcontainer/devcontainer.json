@@ -7,6 +7,10 @@
     },
     "ghcr.io/devcontainers/features/node:1": {
       "version": "20"
+    },
+    "ghcr.io/devcontainers/features/desktop-lite:1": {
+      "password": "changeme",
+      "webPort": "6080"
     }
   },
   "postCreateCommand": "bash .devcontainer/post-create.sh",
@@ -20,15 +24,15 @@
       }
     }
   },
-  "forwardPorts": [3232],
-  "portAttributes": {
-    "3232": {
-      "label": "dtctl OAuth callback",
+  "portsAttributes": {
+    "6080": {
+      "label": "Desktop (noVNC)",
       "onAutoForward": "silent"
     }
   },
   "remoteEnv": {
     "DTCTL_CONTEXT": "playground",
-    "DTCTL_TOKEN_STORAGE": "file"
+    "DTCTL_TOKEN_STORAGE": "file",
+    "BROWSER": "chromium-browser"
   }
 }

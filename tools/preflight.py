@@ -514,25 +514,23 @@ def load_queries(scenario_id: str) -> int:
 
 
 # ---------------------------------------------------------------------------
-# Codespace login helper
+# Login helper
 # ---------------------------------------------------------------------------
 
-def _in_container() -> bool:
-    return bool(
-        os.environ.get("CODESPACES")
-        or os.environ.get("REMOTE_CONTAINERS")
-        or os.path.exists("/.dockerenv")
-    )
+def _normalize_callback(pasted: str, derived_base: str | None = None) -> str:
+    """Accept any URL the browser shows after a failed callback and return a
+    loopback URL ready to replay into dtctl's callback server.
 
-
-def _normalize_callback(pasted: str) -> str:
-    """Accept any URL the browser shows after a failed callback; rebuild as
-    http://127.0.0.1:3232/auth/login?... Raises ValueError if 'code' is absent."""
+    Uses the port dtctl actually opened (carried in derived_base, extracted from
+    the authorization URL's redirect_uri param) rather than a hardcoded constant.
+    Raises ValueError if no 'code' parameter is present in the pasted URL.
+    """
     pasted = pasted.strip()
 
-    # Bare query string: ?state=...&code=...
+    fallback_base = derived_base or "http://127.0.0.1/auth/login"
+
     if pasted.startswith("?"):
-        pasted = "http://127.0.0.1:3232/auth/login" + pasted
+        pasted = fallback_base + pasted
 
     parsed = urllib.parse.urlparse(pasted)
     qs = urllib.parse.parse_qs(parsed.query, keep_blank_values=True)
@@ -540,24 +538,91 @@ def _normalize_callback(pasted: str) -> str:
     if "code" not in qs:
         raise ValueError("no 'code' parameter found in pasted URL — copy the full browser URL")
 
-    # Reconstruct against the local dtctl server regardless of what host was in the paste
-    path = parsed.path or "/auth/login"
-    rebuilt = urllib.parse.urlunparse(("http", "127.0.0.1:3232", path, "", parsed.query, ""))
-    return rebuilt
+    if derived_base:
+        # Use the host:port dtctl is actually listening on, keeping the path/query from the paste.
+        base_parsed = urllib.parse.urlparse(derived_base)
+        netloc = base_parsed.netloc
+        path = base_parsed.path or "/auth/login"
+    else:
+        # No derived base: keep whatever netloc/path was in the paste, but warn.
+        netloc = parsed.netloc or "127.0.0.1"
+        path = parsed.path or "/auth/login"
+
+    return urllib.parse.urlunparse(("http", netloc, path, "", parsed.query, ""))
 
 
 def _replay_callback(url: str):
-    """Deliver the callback URL to the dtctl server running on 127.0.0.1:3232.
+    """Deliver the callback URL to dtctl's local callback server.
     An HTTPError still means the request was received — treat it as success."""
     try:
         urllib.request.urlopen(url, timeout=10)
     except urllib.error.HTTPError:
         pass  # dtctl consumed the request; a non-2xx reply is expected
+    except urllib.error.URLError as e:
+        raise RuntimeError(
+            f"Could not reach dtctl's callback server at {url} — {e.reason}.\n"
+            "This usually means dtctl exited before the replay arrived."
+        ) from e
+
+
+def _extract_redirect_base(auth_url: str) -> str | None:
+    """Pull the loopback callback base (scheme://host:port/path) from the
+    redirect_uri query param inside dtctl's authorization URL."""
+    try:
+        qs = urllib.parse.parse_qs(urllib.parse.urlparse(auth_url).query)
+        raw = qs.get("redirect_uri", [None])[0]
+        if not raw:
+            return None
+        parsed = urllib.parse.urlparse(urllib.parse.unquote(raw))
+        if parsed.scheme != "http" or not parsed.netloc:
+            return None
+        return urllib.parse.urlunparse((parsed.scheme, parsed.netloc, parsed.path, "", "", ""))
+    except Exception:
+        return None
+
+
+def _run_client_credentials_login():
+    """Non-interactive login using the OAuth client-credentials grant.
+    Activated when DTCTL_CLIENT_ID and DTCTL_CLIENT_SECRET are both set.
+    Note: this grant issues no refresh token (RFC 6749 §4.4.3); re-run on expiry.
+    """
+    print()
+    print("  Dynatrace Playground Sign-In (client credentials — no browser)")
+    print("  " + "-" * 40)
+    print()
+    print("  DTCTL_CLIENT_ID and DTCTL_CLIENT_SECRET are set; using client credentials grant.")
+    print("  Note: no refresh token is issued — re-run this command when the token expires.")
+    print()
+
+    cmd = [
+        DTCTL,
+        "--no-agent",
+        "auth", "login",
+        "--context", "playground",
+        "--environment", "https://playground.apps.dynatrace.com",
+        "--safety-level", "readonly",
+        "--client-id", os.environ["DTCTL_CLIENT_ID"],
+        "--client-secret", os.environ["DTCTL_CLIENT_SECRET"],
+    ]
+    if os.environ.get("DTCTL_ACCOUNT_URN"):
+        cmd += ["--account-urn", os.environ["DTCTL_ACCOUNT_URN"]]
+
+    result = subprocess.run(cmd, text=True, encoding="utf-8")
+    print()
+    print("  " + "-" * 40)
+    print()
+    ok = check_connectivity()
+    sys.exit(0 if ok else 1)
 
 
 def codespace_login():
-    """Wizard-style dtctl auth login with paste-back relay for Codespace environments."""
+    """dtctl auth login with auto-completion detection and paste-back relay."""
     import threading
+    import time
+
+    if os.environ.get("DTCTL_CLIENT_ID") and os.environ.get("DTCTL_CLIENT_SECRET"):
+        _run_client_credentials_login()
+        return
 
     cmd = [
         DTCTL,
@@ -574,7 +639,6 @@ def codespace_login():
     print("  " + "-" * 40)
     print()
 
-    # Pipe stdout+stderr so we can extract the SSO URL in real time.
     proc = subprocess.Popen(
         cmd,
         stdin=subprocess.DEVNULL,
@@ -587,76 +651,115 @@ def codespace_login():
 
     sso_url_ready = threading.Event()
     auth_complete = threading.Event()
-    shared = {"sso_url": None}
+    shared = {"sso_url": None, "redirect_base": None, "dtctl_lines": []}
 
     def _read_output():
         want_url = False
         for raw in proc.stdout:
             line = raw.rstrip()
+            shared["dtctl_lines"].append(line)
             if "please visit:" in line.lower():
                 want_url = True
             elif want_url and line.startswith("https://"):
                 shared["sso_url"] = line
+                shared["redirect_base"] = _extract_redirect_base(line)
                 sso_url_ready.set()
                 want_url = False
-            # Detect auth success — dtctl prints this after a successful exchange
-            if "successful" in line.lower() or "authenticated" in line.lower():
+            # "Authentication successful!" is the exact string dtctl prints on success.
+            if line == "Authentication successful!":
                 auth_complete.set()
 
     threading.Thread(target=_read_output, daemon=True).start()
 
-    # Wait up to 15 s for dtctl to emit the SSO URL, then show it.
     sso_url_ready.wait(timeout=15)
 
-    print("Step 1 — Open this URL in your browser and sign in:")
-    print()
-    if shared["sso_url"]:
-        print(f"  {shared['sso_url']}")
+    if not shared["sso_url"]:
+        print("  (dtctl did not emit an authorization URL within 15 s)")
+        print("  dtctl output:")
+        for l in shared["dtctl_lines"]:
+            print(f"    {l}")
+        print()
     else:
-        print("  (copy the URL dtctl printed above)")
-    print()
-    print("  No account? https://www.dynatrace.com/signup/playground/")
-    print()
-    print("Step 2 — After sign-in, the browser redirects to localhost:3232.")
-    print("  • Connection error in browser → copy that URL and paste it below.")
-    print("  • Auth completed silently (VS Code forwarded the port) → press Enter.")
-    print()
-    sys.stdout.write("  Paste URL or press Enter → ")
-    sys.stdout.flush()
+        redirect_note = f"  (callback port: {urllib.parse.urlparse(shared['redirect_base']).port})" if shared["redirect_base"] else ""
+        print("  Open this link and sign in:")
+        print()
+        print(f"  {shared['sso_url']}")
+        print()
+        if redirect_note:
+            print(redirect_note)
+        print("  Your browser will then land on a page that cannot load")
+        print('  ("this site can\'t be reached"). That is expected in a container — the')
+        print("  sign-in redirects to a port inside this container, which your browser")
+        print("  can't see directly. Leave that tab open.")
+        print()
+        print("  No account? https://www.dynatrace.com/signup/playground/")
+        print()
 
-    try:
-        pasted = sys.stdin.readline().strip()
-    except (EOFError, KeyboardInterrupt):
+    # Wait up to 25 s for dtctl to complete on its own (VS Code Desktop / local).
+    # Only prompt if it doesn't — the user shouldn't have to decide in advance.
+    print("  Waiting for sign-in to complete...", end="", flush=True)
+    deadline = time.monotonic() + 25
+    while time.monotonic() < deadline:
+        if proc.poll() is not None or auth_complete.is_set():
+            break
+        time.sleep(0.5)
+        print(".", end="", flush=True)
+    print()
+
+    already_done = proc.poll() == 0 or auth_complete.is_set()
+
+    if already_done:
+        print()
+        print("  Sign-in completed.")
+    elif shared["sso_url"]:
+        # Browser Codespace: callback didn't arrive, prompt for the paste.
+        print()
+        print("  Still waiting — your browser is showing the failed page.")
+        print()
+        print("  Copy the whole address from that tab's address bar and paste it here.")
+        if shared["redirect_base"]:
+            port = urllib.parse.urlparse(shared["redirect_base"]).port
+            print(f"  It looks like:  http://localhost:{port}/auth/login?state=...&code=...")
+        print()
+        sys.stdout.write("  Paste → ")
+        sys.stdout.flush()
+
+        try:
+            pasted = sys.stdin.readline().strip()
+        except (EOFError, KeyboardInterrupt):
+            proc.terminate()
+            print("\nCancelled.")
+            return
+
+        if pasted:
+            # Guard: if auth completed while we waited for input, skip the replay
+            # to avoid posting a spent code and getting a 403.
+            if proc.poll() == 0 or auth_complete.is_set():
+                print()
+                print("  Auth completed while you were copying — skipping replay.")
+            else:
+                try:
+                    callback_url = _normalize_callback(pasted, shared["redirect_base"])
+                except ValueError as e:
+                    proc.terminate()
+                    print(f"\n  Error: {e}")
+                    sys.exit(1)
+                sys.stdout.write("\n  Completing authentication... ")
+                sys.stdout.flush()
+                try:
+                    _replay_callback(callback_url)
+                    print("done.")
+                except RuntimeError as e:
+                    print(f"failed.\n\n  {e}")
+                    proc.terminate()
+                    sys.exit(1)
+    else:
+        print()
+        print("  Could not obtain an authorization URL from dtctl.")
+        print("  Run: dtctl auth login --context playground to try manually.")
         proc.terminate()
-        print("\nCancelled.")
-        return
+        sys.exit(1)
 
-    if pasted:
-        # If dtctl already exited cleanly (exit 0) or signalled success, auth
-        # completed via VS Code port forwarding — replaying the URL would send
-        # an already-used OAuth code and cause a 403. Skip the replay.
-        already_done = proc.poll() == 0 or auth_complete.is_set()
-        if already_done:
-            print()
-            print("  Auth already completed via port forwarding — skipping replay.")
-        else:
-            try:
-                callback_url = _normalize_callback(pasted)
-            except ValueError as e:
-                proc.terminate()
-                print(f"\nError: {e}")
-                sys.exit(1)
-            sys.stdout.write("\n  Completing authentication... ")
-            sys.stdout.flush()
-            try:
-                _replay_callback(callback_url)
-                print("done.")
-            except Exception as e:
-                print(f"failed: {e}")
-                proc.terminate()
-                sys.exit(1)
-
-    # Give dtctl time to wrap up the token exchange; terminate if it hangs.
     try:
         proc.wait(timeout=15)
     except subprocess.TimeoutExpired:
@@ -669,7 +772,8 @@ def codespace_login():
     print()
     print("  " + "-" * 40)
     print()
-    check_connectivity()
+    ok = check_connectivity()
+    sys.exit(0 if ok else 1)
 
 def main():
     args = sys.argv[1:]
@@ -703,7 +807,7 @@ def main():
 
     if args[0] == "login":
         codespace_login()
-        sys.exit(0)
+        # codespace_login() always calls sys.exit() itself; this is unreachable.
 
     print(f"Usage: {sys.argv[0]} [check|resolve <scenario-id> [--write]|"
           f"run-query <scenario-id> <dql-path> [--var KEY=VALUE ...] [--render waterfall]|load-queries <scenario-id>|login]",

@@ -14,7 +14,7 @@ Run preflight checks for the Dynatrace Agentic Guides demo environment.
    directly below the failing check — copy-paste ready, not in a lookup table. Use this shape:
 
    > ❌ **dtctl not authenticated**
-   > Run this to authenticate (a browser tab will open for Dynatrace SSO):
+   > Run this to authenticate:
    > ```bash
    > python tools/preflight.py login
    > ```
@@ -24,8 +24,8 @@ Run preflight checks for the Dynatrace Agentic Guides demo environment.
 
    | Check | Fix command |
    |-------|-------------|
-   | dtctl not installed | Not found in any standard location. Use the devcontainer (zero-install), or download the binary from https://github.com/dynatrace-oss/dtctl/releases and add it to PATH. |
-   | dtctl doctor (auth) | `python tools/preflight.py login` — opens a browser for Dynatrace SSO. In a Codespace, paste the failed callback URL back when prompted. |
+   | dtctl not installed | Not found in any standard location. Use the devcontainer (zero-install), or download from https://github.com/dynatrace-oss/dtctl/releases and add to PATH. |
+   | dtctl doctor (auth) | `python tools/preflight.py login` — opens a browser for Dynatrace SSO. In VS Code Desktop or local Dev Containers, sign-in completes automatically. In a browser Codespace, sign in via the noVNC desktop (port 6080). |
    | safety level ≠ readonly | `dtctl config set-context playground --safety-level readonly` |
    | DQL not reachable | Auth is broken — fix dtctl doctor first, then re-run `/demo-doctor`. |
 

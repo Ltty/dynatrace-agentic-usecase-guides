@@ -12,10 +12,12 @@ python tools/preflight.py login
 ```
 
 This runs `dtctl auth login --safety-level readonly` under the hood.
-In a Codespace the browser's OAuth callback (`127.0.0.1:3232`) can't reach the container;
-the helper prompts the user to paste the failed redirect URL back into the terminal and
-replays it via Python's `urllib` into the still-running dtctl process — no shared token,
-no tunnel, no local tooling required.
+dtctl starts a local HTTP callback server on a port it picks at runtime and opens a browser.
+In a browser Codespace that browser runs inside the container (via the `desktop-lite` feature),
+so the OAuth redirect reaches dtctl directly and sign-in completes automatically.
+In VS Code Desktop the port is forwarded onto the laptop's localhost, which also works.
+As a last resort, the login wizard can accept a pasted callback URL — `tools/preflight.py`
+extracts the real port from the authorization URL and replays the callback there directly.
 
 The resulting token is stored per-user in `~/.local/share/dtctl/oauth-tokens/`
 (controlled by `DTCTL_TOKEN_STORAGE=file` in `devcontainer.json`). It never enters the repo.
@@ -25,6 +27,26 @@ Codespace (`echo $EXAMPLE_API_KEY` works by design). A shared token injected via
 org secrets gives every user full read access under one identity — no audit trail, no
 revocation per user, and no way to prevent the token being exfiltrated. Per-user OAuth gives
 each user their own session, tied to their Dynatrace account, with full audit trail.
+
+### Non-interactive auth (CI and automation)
+
+If `DTCTL_CLIENT_ID` and `DTCTL_CLIENT_SECRET` are set when `preflight.py login` is called,
+the wizard uses the OAuth client-credentials grant instead — no browser at all.
+This is opt-in, never committed, and intended for CI pipelines:
+
+```bash
+export DTCTL_CLIENT_ID=dt0s02.EXAMPLE
+export DTCTL_CLIENT_SECRET=dt0s02.EXAMPLE.SECRET
+export DTCTL_ACCOUNT_URN=urn:dtaccount:00000000-0000-0000-0000-000000000000
+export DTCTL_TOKEN_STORAGE=file
+python tools/preflight.py login
+```
+
+The client-credentials grant issues no refresh token (RFC 6749 §4.4.3).
+Re-run the command when the token expires.
+
+If you already have dtctl authenticated on another machine, you can also export and import
+a token with `dtctl config set-credentials`; see `dtctl config --help`.
 
 ## Read-only enforcement
 

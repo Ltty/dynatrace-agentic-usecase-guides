@@ -14,6 +14,8 @@
       "Bash(dtctl config get-contexts*)",
       "Bash(dtctl version*)",
       "Bash(dtctl commands*)",
+      "Bash(dtctl auth status*)",
+      "Bash(dtctl auth whoami*)",
       "Bash(python tools/preflight.py*)",
       "Bash(python tools/validate_scenarios.py*)",
       "Bash(cat scenarios/*)",

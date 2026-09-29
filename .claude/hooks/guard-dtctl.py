@@ -29,6 +29,7 @@ ALLOWED_VERBS = {
     "exec copilot",
     "config current-context", "config describe-context",
     "config get-contexts", "config view",
+    "auth status", "auth whoami",
 }
 
 # Mutating DQL constructs (ingest, write-side keywords)
