@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 # post-create.sh
 # Runs once when the Codespace/dev container provisions.
-# Installs the Claude Code CLI, dtctl, Chromium (for in-container OAuth), and
-# Python deps. One interactive step remains:
-#   python tools/preflight.py login  — sign in via the browser opened inside the container
+# Installs the Claude Code CLI, dtctl, and Python deps.
 
 set -uo pipefail  # deliberately not -e: one failed component shouldn't abort the rest;
                   # each step reports its own status and the summary at the end shows what's missing
@@ -15,7 +13,6 @@ echo ""
 STATUS_CLAUDE="not installed"
 STATUS_DTCTL="not installed"
 STATUS_PY="not installed"
-STATUS_BROWSER="not installed"
 
 # 1. Install the Claude Code CLI.
 # The VS Code extension (declared in devcontainer.json) installs itself when VS Code
@@ -60,16 +57,6 @@ if DTCTL_VERSION=$(curl -fsSL https://api.github.com/repos/dynatrace-oss/dtctl/r
     if ! grep -qF "/.local/bin" ~/.profile 2>/dev/null; then
       echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.profile
     fi
-    # Set BROWSER at the profile level so it wins over VS Code's terminal override.
-    # VS Code's integrated terminal injects its own BROWSER forwarder, which sends
-    # browser opens to the local machine. Writing it to the profile ensures it's
-    # set before VS Code's override in shells started from the noVNC desktop.
-    if ! grep -qF "BROWSER=" ~/.bashrc 2>/dev/null; then
-      echo 'export BROWSER="${BROWSER:-chromium-browser}"' >> ~/.bashrc
-    fi
-    if ! grep -qF "BROWSER=" ~/.profile 2>/dev/null; then
-      echo 'export BROWSER="${BROWSER:-chromium-browser}"' >> ~/.profile
-    fi
     STATUS_DTCTL="OK ($("${DTCTL_INSTALL_DIR}/dtctl" version 2>/dev/null | head -1))"
 
     echo ""
@@ -96,28 +83,11 @@ else
 fi
 echo "      $STATUS_PY"
 
-# 4. Chromium (for in-container OAuth — both Claude and dtctl sign in via the desktop browser)
-echo ""
-echo "[4/5] Installing Chromium..."
-if apt-get install -y -qq chromium-browser 2>/tmp/chromium-install.log \
-    || apt-get install -y -qq chromium 2>>/tmp/chromium-install.log; then
-  # Resolve whichever name was installed
-  CHROMIUM_BIN=$(command -v chromium-browser 2>/dev/null || command -v chromium 2>/dev/null || true)
-  if [ -n "$CHROMIUM_BIN" ]; then
-    STATUS_BROWSER="OK ($CHROMIUM_BIN)"
-  else
-    STATUS_BROWSER="installed but not found on PATH"
-  fi
-else
-  STATUS_BROWSER="FAILED — see /tmp/chromium-install.log (login wizard falls back to paste-back)"
-fi
-echo "      $STATUS_BROWSER"
-
-# 5. Plugin files are auto-discovered — no install step needed.
+# 4. Plugin files are auto-discovered — no install step needed.
 # .claude/commands/*.md, skills/*/SKILL.md and .claude/settings.json are picked up by
 # Claude Code just by being present in the project directory.
 echo ""
-echo "[5/5] Plugin files (.claude/commands, skills/) — auto-discovered, no install needed."
+echo "[4/4] Plugin files (.claude/commands, skills/) — auto-discovered, no install needed."
 
 echo ""
 echo "================================================================"
@@ -125,25 +95,18 @@ echo "  Setup summary:"
 echo "    Claude Code CLI : $STATUS_CLAUDE"
 echo "    dtctl           : $STATUS_DTCTL"
 echo "    Python deps     : $STATUS_PY"
-echo "    Chromium        : $STATUS_BROWSER"
 echo "================================================================"
 echo ""
-echo "  One sign-in step remains:"
+echo "  Two sign-in steps remain:"
 echo ""
-echo "  Sign in to Claude and the Dynatrace Playground via the in-container browser:"
+echo "    1. Sign in to Claude — click Sign in in the Claude Code sidebar panel."
 echo ""
-echo "    1. Forward port 6080 (the noVNC desktop) — look in VS Code's Ports panel."
-echo "       Open the forwarded URL in your local browser."
-echo "       Default VNC password: changeme  (set in devcontainer.json → desktop-lite.password)"
+echo "    2. Sign in to the Dynatrace Playground:"
+echo "         python tools/preflight.py login"
+echo "       A browser sign-in page opens. After signing in, the browser shows a"
+echo "       'can't connect' page — copy that URL and paste it into the terminal prompt."
 echo ""
-echo "    2. Inside the noVNC desktop, open a terminal and run:"
-echo "         bash tools/login-in-container.sh"
-echo "       This signs in to both Claude Code and the Dynatrace Playground."
-echo "       Run it from the noVNC desktop terminal, NOT from VS Code's integrated terminal."
-echo "       (VS Code's integrated terminal intercepts browser opens and forwards them to"
-echo "       your local machine, where the OAuth callback can't reach the container.)"
-echo ""
-echo "  Then, in Claude Code:"
+echo "  Then in Claude Code:"
 echo "    /demo-doctor   (verify everything is wired)"
 echo "    /demo          (start an incident investigation)"
 echo ""

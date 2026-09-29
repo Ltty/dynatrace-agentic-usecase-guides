@@ -7,10 +7,6 @@
     },
     "ghcr.io/devcontainers/features/node:1": {
       "version": "20"
-    },
-    "ghcr.io/devcontainers/features/desktop-lite:1": {
-      "password": "changeme",
-      "webPort": "6080"
     }
   },
   "postCreateCommand": "bash .devcontainer/post-create.sh",
@@ -22,12 +18,6 @@
       "settings": {
         "terminal.integrated.defaultProfile.linux": "bash"
       }
-    }
-  },
-  "portsAttributes": {
-    "6080": {
-      "label": "Desktop (noVNC)",
-      "onAutoForward": "silent"
     }
   },
   "remoteEnv": {

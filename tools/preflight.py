@@ -20,6 +20,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -755,7 +756,13 @@ def codespace_login():
                     proc.terminate()
                     print(f"\n  Error: {e}")
                     sys.exit(1)
-                sys.stdout.write("\n  Completing authentication... ")
+
+                port_info = ""
+                if shared["redirect_base"]:
+                    port = urllib.parse.urlparse(shared["redirect_base"]).port
+                    port_info = f" (port {port})"
+
+                sys.stdout.write(f"\n  Sending callback to dtctl{port_info}... ")
                 sys.stdout.flush()
                 try:
                     _replay_callback(callback_url)
@@ -765,8 +772,20 @@ def codespace_login():
                     proc.terminate()
                     sys.exit(1)
 
+                # Wait for dtctl to confirm the token exchange completed.
+                # Poll so we don't wait 60s if dtctl exits without printing confirmation.
+                deadline = time.monotonic() + 60
+                while not auth_complete.is_set() and proc.poll() is None and time.monotonic() < deadline:
+                    time.sleep(0.3)
+
+                if auth_complete.is_set():
+                    pass  # "Authentication successful!" already printed by the read thread
+                elif proc.poll() is not None and proc.returncode != 0:
+                    print(f"\n  Warning: dtctl exited with code {proc.returncode} — token may not have been saved.")
+
+    # Wait for dtctl to finish writing the token before running the connectivity check.
     try:
-        proc.wait(timeout=20)
+        proc.wait(timeout=60)
     except subprocess.TimeoutExpired:
         proc.terminate()
         try:
