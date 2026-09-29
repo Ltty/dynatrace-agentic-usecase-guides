@@ -60,6 +60,16 @@ if DTCTL_VERSION=$(curl -fsSL https://api.github.com/repos/dynatrace-oss/dtctl/r
     if ! grep -qF "/.local/bin" ~/.profile 2>/dev/null; then
       echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.profile
     fi
+    # Set BROWSER at the profile level so it wins over VS Code's terminal override.
+    # VS Code's integrated terminal injects its own BROWSER forwarder, which sends
+    # browser opens to the local machine. Writing it to the profile ensures it's
+    # set before VS Code's override in shells started from the noVNC desktop.
+    if ! grep -qF "BROWSER=" ~/.bashrc 2>/dev/null; then
+      echo 'export BROWSER="${BROWSER:-chromium-browser}"' >> ~/.bashrc
+    fi
+    if ! grep -qF "BROWSER=" ~/.profile 2>/dev/null; then
+      echo 'export BROWSER="${BROWSER:-chromium-browser}"' >> ~/.profile
+    fi
     STATUS_DTCTL="OK ($("${DTCTL_INSTALL_DIR}/dtctl" version 2>/dev/null | head -1))"
 
     echo ""
@@ -120,18 +130,18 @@ echo "================================================================"
 echo ""
 echo "  One sign-in step remains:"
 echo ""
-echo "  Sign in to Claude and to the Dynatrace Playground via the in-container browser:"
+echo "  Sign in to Claude and the Dynatrace Playground via the in-container browser:"
 echo ""
-echo "    1. Forward port 6080 (the desktop/noVNC port) and open it in your browser."
+echo "    1. Forward port 6080 (the noVNC desktop) — look in VS Code's Ports panel."
+echo "       Open the forwarded URL in your local browser."
 echo "       Default VNC password: changeme  (set in devcontainer.json → desktop-lite.password)"
 echo ""
-echo "    2. Inside the desktop, sign in to Claude Code:"
-echo "         BROWSER=chromium-browser claude login"
-echo "       The browser opens inside the container — the OAuth callback resolves normally."
-echo ""
-echo "    3. Authenticate against the Dynatrace Playground:"
-echo "         python tools/preflight.py login"
-echo "       The browser also opens inside the container; sign-in completes automatically."
+echo "    2. Inside the noVNC desktop, open a terminal and run:"
+echo "         bash tools/login-in-container.sh"
+echo "       This signs in to both Claude Code and the Dynatrace Playground."
+echo "       Run it from the noVNC desktop terminal, NOT from VS Code's integrated terminal."
+echo "       (VS Code's integrated terminal intercepts browser opens and forwards them to"
+echo "       your local machine, where the OAuth callback can't reach the container.)"
 echo ""
 echo "  Then, in Claude Code:"
 echo "    /demo-doctor   (verify everything is wired)"
