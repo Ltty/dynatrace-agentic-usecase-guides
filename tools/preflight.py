@@ -607,7 +607,11 @@ def _run_client_credentials_login():
     if os.environ.get("DTCTL_ACCOUNT_URN"):
         cmd += ["--account-urn", os.environ["DTCTL_ACCOUNT_URN"]]
 
-    result = subprocess.run(cmd, text=True, encoding="utf-8")
+    env = dict(os.environ)
+    env["DTCTL_TOKEN_STORAGE"] = "file"
+    env["DTCTL_DISABLE_KEYRING"] = "true"
+
+    subprocess.run(cmd, text=True, encoding="utf-8", env=env)
     print()
     print("  " + "-" * 40)
     print()
@@ -634,6 +638,13 @@ def codespace_login():
         "--timeout", "10m",
     ]
 
+    # Force file-backed token storage. Without this dtctl tries the OS keyring,
+    # which in a headless container blocks on a password prompt it can never get
+    # and the login flow never reaches the point of printing a URL.
+    env = dict(os.environ)
+    env["DTCTL_TOKEN_STORAGE"] = "file"
+    env["DTCTL_DISABLE_KEYRING"] = "true"
+
     print()
     print("  Dynatrace Playground Sign-In")
     print("  " + "-" * 40)
@@ -647,82 +658,83 @@ def codespace_login():
         text=True,
         encoding="utf-8",
         errors="replace",
+        env=env,
     )
 
     sso_url_ready = threading.Event()
     auth_complete = threading.Event()
-    shared = {"sso_url": None, "redirect_base": None, "dtctl_lines": [], "browser_opened": False}
+    shared = {"sso_url": None, "redirect_base": None, "dtctl_lines": []}
+
+    url_re = re.compile(r"https://\S+")
+
+    def _note_url(candidate: str):
+        if shared["sso_url"]:
+            return
+        # An OAuth authorization URL carries these params; ordinary links don't.
+        if "redirect_uri=" not in candidate and "client_id=" not in candidate:
+            return
+        shared["sso_url"] = candidate
+        shared["redirect_base"] = _extract_redirect_base(candidate)
+        sso_url_ready.set()
 
     def _read_output():
-        want_url = False
-        for raw in proc.stdout:
-            line = raw.rstrip()
-            shared["dtctl_lines"].append(line)
-            if "please visit:" in line.lower():
-                want_url = True
-            elif want_url and line.startswith("https://"):
-                shared["sso_url"] = line
-                shared["redirect_base"] = _extract_redirect_base(line)
-                sso_url_ready.set()
-                want_url = False
-            # When VS Code intercepts the browser open, dtctl prints this instead of
-            # a "please visit:" fallback. We won't get the URL from stdout, but we know
-            # auth has started and the user's browser is open.
-            if "opening browser" in line.lower():
-                shared["browser_opened"] = True
-                sso_url_ready.set()
-            if line == "Authentication successful!":
-                auth_complete.set()
+        """Echo dtctl's output live, char by char, so partial lines (prompts,
+        progress dots) appear immediately instead of being swallowed."""
+        buf = ""
+        while True:
+            ch = proc.stdout.read(1)
+            if ch == "":
+                break
+            sys.stdout.write(ch)
+            sys.stdout.flush()
+            if ch == "\n":
+                line = buf.strip()
+                if line:
+                    shared["dtctl_lines"].append(line)
+                    for m in url_re.finditer(line):
+                        _note_url(m.group(0))
+                    if line == "Authentication successful!":
+                        auth_complete.set()
+                buf = ""
+            else:
+                buf += ch
+        if buf.strip():
+            shared["dtctl_lines"].append(buf.strip())
+            for m in url_re.finditer(buf):
+                _note_url(m.group(0))
 
     threading.Thread(target=_read_output, daemon=True).start()
 
-    sso_url_ready.wait(timeout=15)
+    # Give dtctl a moment to emit the authorization URL, but don't block long —
+    # the prompt below works whether or not we managed to capture it.
+    sso_url_ready.wait(timeout=10)
 
-    if shared["sso_url"]:
-        print("  Open this link and sign in:")
-        print()
-        print(f"  {shared['sso_url']}")
-        print()
-        print("  After sign-in the browser will land on a 'can't connect' page — that's expected.")
-        print("  Leave that tab open.")
-        print()
-        print("  No account? https://www.dynatrace.com/signup/playground/")
-        print()
-    elif shared["browser_opened"]:
-        # VS Code opened the browser on the user's local machine. The URL wasn't
-        # printed to stdout (dtctl only prints the fallback when browser-open fails).
-        print("  A browser window was opened for sign-in.")
-        print("  Sign in, then when the browser shows a 'can't connect' page,")
-        print("  copy the full URL from the address bar — we'll relay it to complete auth.")
-        print()
-        print("  No account? https://www.dynatrace.com/signup/playground/")
-        print()
-
-    # Wait up to 25 s for dtctl to complete on its own (VS Code Desktop / local).
-    print("  Waiting for sign-in to complete...", end="", flush=True)
-    deadline = time.monotonic() + 25
-    while time.monotonic() < deadline:
-        if proc.poll() is not None or auth_complete.is_set():
-            break
-        time.sleep(0.5)
-        print(".", end="", flush=True)
-    print()
-
-    already_done = proc.poll() == 0 or auth_complete.is_set()
-
-    if already_done:
+    if auth_complete.is_set() or proc.poll() == 0:
         print()
         print("  Sign-in completed.")
-    elif shared["sso_url"] or shared["browser_opened"]:
-        # Callback didn't arrive automatically — prompt for the paste.
+    else:
         print()
-        print("  Sign-in is waiting. Copy the full URL from your browser's address bar")
-        print("  and paste it below (it starts with http://localhost:...).")
+        print("  " + "-" * 40)
+        if shared["sso_url"]:
+            print()
+            print("  Sign-in URL — open this in your browser:")
+            print()
+            print(f"    {shared['sso_url']}")
+        else:
+            print()
+            print("  If a sign-in URL appeared above, open it in your browser.")
+        print()
+        print("  After signing in, the browser lands on a page that can't load")
+        print("  (\"this site can't be reached\"). That is expected — the redirect points")
+        print("  at a port inside this container. Copy that page's full address and")
+        print("  paste it below to finish.")
         if shared["redirect_base"]:
             port = urllib.parse.urlparse(shared["redirect_base"]).port
             print(f"  It looks like:  http://localhost:{port}/auth/login?state=...&code=...")
         print()
-        sys.stdout.write("  Paste → ")
+        print("  No account? https://www.dynatrace.com/signup/playground/")
+        print()
+        sys.stdout.write("  Paste callback URL (or press Enter if already signed in) → ")
         sys.stdout.flush()
 
         try:
@@ -730,7 +742,7 @@ def codespace_login():
         except (EOFError, KeyboardInterrupt):
             proc.terminate()
             print("\nCancelled.")
-            return
+            sys.exit(1)
 
         if pasted:
             if proc.poll() == 0 or auth_complete.is_set():
@@ -752,19 +764,9 @@ def codespace_login():
                     print(f"failed.\n\n  {e}")
                     proc.terminate()
                     sys.exit(1)
-    else:
-        # dtctl didn't open a browser or print a URL — something failed at startup.
-        print()
-        print("  dtctl did not start the login flow. Output:")
-        for l in shared["dtctl_lines"]:
-            print(f"    {l}")
-        print()
-        print("  Try running manually: dtctl auth login --context playground")
-        proc.terminate()
-        sys.exit(1)
 
     try:
-        proc.wait(timeout=15)
+        proc.wait(timeout=20)
     except subprocess.TimeoutExpired:
         proc.terminate()
         try:

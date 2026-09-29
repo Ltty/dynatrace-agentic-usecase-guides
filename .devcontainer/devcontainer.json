@@ -33,6 +33,6 @@
   "remoteEnv": {
     "DTCTL_CONTEXT": "playground",
     "DTCTL_TOKEN_STORAGE": "file",
-    "BROWSER": "chromium-browser"
+    "DTCTL_DISABLE_KEYRING": "true"
   }
 }
