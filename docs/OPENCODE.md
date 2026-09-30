@@ -11,50 +11,49 @@ You bring your own model; the skills, scenarios, and tools work unchanged.
   ```bash
   python tools/preflight.py login
   ```
-- **OpenCode** installed:
-  ```bash
-  npm install -g opencode-ai
-  ```
 
-## Recommended: free-tier hosted model
+**In the devcontainer**, OpenCode and the global model config are set up automatically by
+`post-create.sh` — no manual steps needed. Skip to "Running a demo" below.
 
-OpenCode connects to any OpenAI-compatible provider. For this demo the requirements are:
+## Install (outside devcontainer)
 
-| Requirement | Why |
-|---|---|
-| Reliable tool calling | The beat loop makes 2–5 tool calls per turn; unreliable calling breaks the narrative flow |
-| ≥32k usable context | The always-on instruction payload is ~12k tokens; scenario.yaml adds ~2k more |
-| Free or cheap | The whole point of this path is zero per-demo cost |
+```bash
+npm install -g opencode-ai
+```
 
-**Google Gemini 1.5 Flash** (free tier, 1M context) or **Groq Llama 3.3 70B** (free tier, 128k
-context) both meet these requirements. Set your provider in `opencode.json`:
+Then write the global model config — the model must live in `~/.config/opencode/opencode.json`,
+not in the project-level `opencode.json` (which handles instructions and permissions only):
+
+```bash
+mkdir -p ~/.config/opencode
+cat > ~/.config/opencode/opencode.json <<'EOF'
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "opencode/nemotron-3-ultra-free"
+}
+EOF
+```
+
+`opencode/nemotron-3-ultra-free` is a free bundled model available on OpenCode's platform —
+no API key required, no external provider account needed. It has strong instruction following
+and reliable tool calling, which are the two properties this demo engine depends on most.
+
+### Alternative: bring your own API key
+
+If you prefer a different model, set it in the global config instead. Provider API keys go
+in the global config too — never in the project-level `opencode.json`, which is committed to
+the repo. Using environment variables is cleanest:
+
+```bash
+export GROQ_API_KEY="your-key"   # or GOOGLE_API_KEY, OPENAI_API_KEY, etc.
+```
 
 ```json
 {
-  "model": "google/gemini-1.5-flash",
-  "provider": {
-    "google": {
-      "apiKey": "YOUR_KEY"
-    }
-  }
+  "$schema": "https://opencode.ai/config.json",
+  "model": "groq/llama-3.3-70b-versatile"
 }
 ```
-
-Or for Groq:
-
-```json
-{
-  "model": "groq/llama-3.3-70b-versatile",
-  "provider": {
-    "groq": {
-      "apiKey": "YOUR_KEY"
-    }
-  }
-}
-```
-
-Do not commit your API key — add `opencode.json` to `.gitignore` if you store it there, or
-use environment variables (`GOOGLE_API_KEY`, `GROQ_API_KEY`) which OpenCode reads automatically.
 
 ## Experimental: Ollama (local, truly zero-cost)
 

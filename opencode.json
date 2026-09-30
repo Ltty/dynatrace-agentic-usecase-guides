@@ -5,7 +5,6 @@
     "skills/demo-engine/SKILL.md",
     "skills/dynatrace-playground/SKILL.md"
   ],
-  "model": "anthropic/claude-sonnet-4-5",
   "permission": {
     "bash": {
       "dtctl doctor*": "allow",

@@ -35,13 +35,23 @@ else
 fi
 echo "      $STATUS_CLAUDE"
 
-# 2. Install OpenCode (free-tier alternative harness)
+# 2. Install OpenCode (free-tier alternative harness) and configure global model
 echo ""
 echo "[2/5] Installing OpenCode..."
 if command -v npm &>/dev/null; then
   if npm install -g opencode-ai 2>/tmp/opencode-install.log; then
     if command -v opencode &>/dev/null; then
       STATUS_OPENCODE="OK ($(opencode --version 2>/dev/null | head -1))"
+      # Write global config with the free bundled model.
+      # Project-level opencode.json handles instructions and permissions;
+      # the model must live in the global config at ~/.config/opencode/opencode.json.
+      mkdir -p "$HOME/.config/opencode"
+      cat > "$HOME/.config/opencode/opencode.json" <<'EOCONFIG'
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "opencode/nemotron-3-ultra-free"
+}
+EOCONFIG
     else
       STATUS_OPENCODE="installed but not on PATH — check npm's global bin dir"
     fi
