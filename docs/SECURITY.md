@@ -117,3 +117,42 @@ creative user prompt, but not by accident):
 - Exfiltrate data by asking the engine to summarise and send it somewhere
 - Pull the engine out of the SRE persona (product comparisons, cost/billing, demo mechanics)
 - Get the engine to attempt or promise a remediation action (revert, code edit, restart, page)
+
+---
+
+## Dynatrace runtime (skill edition)
+
+The `dynatrace-skill/` folder ports the engine to Dynatrace's native agentic skill format.
+The security posture in that runtime differs from the Claude Code plugin.
+
+### What stays the same
+
+- **DQL has no write path.** The `fetch`-based DQL that all beat queries use cannot ingest,
+  insert, update, or delete data. Ingest is a separate API, not accessible through query
+  execution. This is a platform property — not asserted by the skill, and not bypassable by
+  prompt.
+- **Behavioural guardrails** (staying in role, declining remediation requests, refusing product
+  comparisons) are instruction-only in both runtimes. `docs/guardrail-probes.md` covers
+  manual verification.
+
+### What changes
+
+The Claude Code plugin enforces three independent layers:
+
+| Layer | Claude Code plugin | Dynatrace runtime |
+|---|---|---|
+| 1 | dtctl `safety-level: readonly` (client-side) | **Gone** — no dtctl |
+| 2 | `.claude/settings.json` verb allowlist (harness) | **Gone** — no harness hook |
+| 3 | `guard_dtctl.py` PreToolUse hook (per-call) | **Gone** — no hook mechanism |
+
+In the Dynatrace runtime, layer 1 is replaced by the platform's own execution constraint
+(DQL fetch → read-only). Layers 2–3 have no equivalent; the data-object scope list in
+`scenario-payment-failure.md` is instruction-only, not enforced.
+
+### Honest summary
+
+The Dynatrace runtime relies on one hard constraint (DQL read-only by design) and instruction-
+level guardrails for everything else. This is weaker than the Claude Code plugin's three-layer
+model. For a read-only, bounded investigation on Playground data, the platform constraint is
+the load-bearing layer; the harness layers in the plugin provided defence-in-depth against
+misuse of the dtctl CLI that doesn't apply here.
