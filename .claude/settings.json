@@ -19,7 +19,7 @@
       "Bash(python tools/preflight.py*)",
       "Bash(python tools/validate_scenarios.py*)",
       "Bash(cat scenarios/*)",
-      "Bash(cat .demo-state.json)",
+      "Bash(cat .demo-state*.json)",
       "Bash(python tools/render_waterfall.py*)"
     ],
     "deny": [

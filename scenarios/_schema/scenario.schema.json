@@ -75,6 +75,11 @@
             "query": {
               "type": "string",
               "description": "Path to the DQL file that finds the live problem. Relative to scenario dir."
+            },
+            "root_cause_service_id": {
+              "type": "string",
+              "pattern": "^SERVICE-",
+              "description": "Dynatrace service entity ID for the resolver's fallback query (broader search when the is_duplicate filter returns nothing)."
             }
           }
         }
@@ -133,13 +138,28 @@
             "type": "string",
             "description": "What user output signals they've grasped the beat (for engine to detect)."
           },
-          "nudges": {
+          "objections": {
             "type": "array",
+            "description": "Optional. Objections a skeptical audience member might raise at this beat, with in-character responses grounded in the live evidence. The engine deploys these situationally — only when the user actually raises a similar concern, not proactively.",
             "items": {
-              "type": "string",
-              "enum": ["invite", "narrate"]
-            },
-            "description": "Optional. The engine always narrates its own read of the evidence rather than withholding it (see skills/demo-engine/SKILL.md). 'invite' means it's worth an optional one-turn guess-invite first, on top of narrating regardless — it is never a gate the user must pass to advance. Omit entirely to just narrate directly, which is the default and normal case."
+              "type": "object",
+              "required": ["objection", "response"],
+              "additionalProperties": false,
+              "properties": {
+                "objection": { "type": "string", "description": "The concern a skeptic might raise ('that could just be a cold cache')." },
+                "response": { "type": "string", "description": "In-character SRE response grounded in what the evidence already shows, without inventing new data." }
+              }
+            }
+          },
+          "negative_evidence": {
+            "type": "object",
+            "description": "Optional. A query whose empty or boring result IS the finding — proves absence of a confounding signal. Requires framing prose or it reads as a broken query.",
+            "required": ["query", "framing"],
+            "additionalProperties": false,
+            "properties": {
+              "query": { "type": "string", "description": "Path to the DQL file. Expect a low-signal or empty result." },
+              "framing": { "type": "string", "description": "How to present the absence as meaningful — e.g. 'no rage-click signal means users aren't frustrated by the UI, they're hitting a hard server error'." }
+            }
           },
           "deep_link": {
             "type": "string",

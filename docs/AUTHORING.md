@@ -161,9 +161,11 @@ Fields:
   "The beat loop"). It's the engine's target content, not verbatim dialogue to paste.
 - `success` — an *engagement signal* worth watching for, not a gate the user must clear to
   advance. The engine narrates the reveal regardless of what the user says.
-- `nudges` (optional) — omit it. The default (narrate directly, no invite) is correct for
-  almost every beat; only add `[invite]` if this specific beat genuinely benefits from an
-  optional one-turn guess-invite before narrating anyway. See scenario.schema.json.
+- `objections` (optional) — array of `{objection, response}` pairs. Use for skeptic pushback
+  the engine should be ready for at this specific beat. The engine deploys these situationally
+  when the user actually raises a matching concern, not proactively.
+- `negative_evidence` (optional) — `{query, framing}`. A query whose empty or boring result
+  is the finding. Provide `framing` prose so the absence reads as meaningful, not as a failed query.
 - `deep_link` — the Dynatrace app URL from the source guide's `action.url`, with `{{PLACEHOLDER}}` variables
 - `peak_moment` (optional, bool) — mark your scenario's climax and emotional-payoff beats.
   See "Staging peak moments" below.

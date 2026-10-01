@@ -25,7 +25,15 @@ scope:
 resolve:
   problem:
     query: queries/find-problem.dql      # path relative to this scenario dir
-    fallback: fixtures/problem.json      # frozen evidence for when the problem isn't live
+
+business_context:
+  service_name: "your-service-name"
+  avg_order_value_usd: 0
+  user_action: "the action users were trying to perform"
+  urgency_phrase: "impacting users right now"
+  discovery_hook: >
+    {affected_users} users can't {user_action} — {service_name} is {urgency_phrase}.
+    ~${revenue_impact} in abandoned transactions.
 
 beats:
   - id: beat-01
@@ -46,9 +54,14 @@ beats:
       User names the failing service OR asks to drill into it — an engagement signal to
       watch for, not a gate. The engine narrates its own read regardless (see
       skills/demo-engine/SKILL.md → "The beat loop").
-    # nudges is optional and rarely needed — omit it to just narrate directly (the default
-    # and normal case). Only add [invite] if this specific beat benefits from an optional
-    # one-turn guess-invite before narrating anyway. See scenario.schema.json.
+    # objections and negative_evidence are optional — add only where the beat genuinely
+    # benefits from prepared objection responses or a "no signal = the signal" finding.
+    # objections:
+    #   - objection: "That spike could just be a noisy metric"
+    #     response: "The error rate held for 40 minutes and Davis correlated it to a deploy — not a blip."
+    # negative_evidence:
+    #   query: queries/beat-01-rage-clicks.dql
+    #   framing: "No rage-click signal — users aren't frustrated by the UI, they're hitting a hard server error."
     deep_link: >
       https://playground.apps.dynatrace.com/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TIMEFRAME_FROM}}&to={{TIMEFRAME_TO}}
 
