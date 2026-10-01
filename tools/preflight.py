@@ -3,16 +3,19 @@
 preflight.py — connectivity gate, live resolver, and query-substitution helper.
 
 Modes:
-  python tools/preflight.py                                   # connectivity + auth check
-  python tools/preflight.py resolve <scenario-id> [--write]    # resolve live problem, derive timeframe
+  python tools/preflight.py                                        # connectivity + auth check
+  python tools/preflight.py preflight [--deep]                     # per-scenario go/no-go report
+  python tools/preflight.py resolve <scenario-id> [--write]        # resolve live problem, derive timeframe
   python tools/preflight.py run-query <scenario-id> <dql-path> [--var KEY=VALUE ...] [--render waterfall]
+  python tools/preflight.py load-queries <scenario-id>             # pre-substitute all beat DQL
+  python tools/preflight.py login                                  # browser OAuth flow
 
 Exit codes:
-  0 = all checks passed / live problem found
-  1 = check failed / no live problem found (Playground is quiet)
-  2 = usage error
+  0 = all checks passed / live problem found / all scenarios live
+  1 = check failed / no live problem (Playground quiet) / at least one scenario not live
+  2 = usage error / cannot determine state
 
-resolve output: JSON to stdout — the .demo-state.json shape.
+resolve output: JSON to stdout — the .demo-state.<id>.json shape.
 """
 
 import json
@@ -28,7 +31,40 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).parent.parent
-STATE_PATH = REPO_ROOT / ".demo-state.json"
+REGISTRY_PATH = REPO_ROOT / "scenarios" / "registry.yaml"
+STATE_PATH = REPO_ROOT / ".demo-state.json"  # legacy mirror; per-scenario path preferred
+
+
+def state_path(scenario_id: str) -> Path:
+    return REPO_ROOT / f".demo-state.{scenario_id}.json"
+
+
+def _read_state(scenario_id: str):
+    """Return (state_dict, source_path). Prefers per-scenario file; falls back to
+    legacy .demo-state.json only when its scenario_id matches to avoid silent
+    cross-scenario substitution. Returns (None, None) when no valid state exists."""
+    per_scenario = state_path(scenario_id)
+    if per_scenario.exists():
+        with open(per_scenario) as f:
+            return json.load(f), per_scenario
+
+    if STATE_PATH.exists():
+        with open(STATE_PATH) as f:
+            state = json.load(f)
+        if state.get("scenario_id") == scenario_id:
+            return state, STATE_PATH
+
+    return None, None
+
+
+def published_scenarios(state: str = "published") -> list:
+    """Return registry entries whose state matches the given value, in registry order."""
+    import yaml  # lazy import — only needed when reading the registry
+    if not REGISTRY_PATH.exists():
+        return []
+    with open(REGISTRY_PATH) as f:
+        registry = yaml.safe_load(f)
+    return [s for s in (registry or {}).get("scenarios", []) if s.get("state") == state]
 
 # ---------------------------------------------------------------------------
 # Auto-locate dtctl (handles new sessions where PATH wasn't updated yet)
@@ -254,7 +290,14 @@ def resolve_scenario(scenario_id: str, write_state: bool = False, quiet: bool = 
             print(json.dumps(msg))
         return 2, None
 
-    query_rel = manifest["resolve"]["problem"]["query"]
+    resolve_block = (manifest.get("resolve") or {})
+    problem_block = (resolve_block.get("problem") or {})
+    query_rel = problem_block.get("query")
+    if not query_rel:
+        msg = {"error": f"scenario '{scenario_id}': resolve.problem.query is missing or null"}
+        if not quiet:
+            print(json.dumps(msg))
+        return 2, None
     query_path = scenario_dir / query_rel
 
     if not query_path.exists():
@@ -345,7 +388,8 @@ def _emit_state(scenario_id: str, rec: dict, write_state: bool = False, quiet: b
             "affected_users": affected_users,
         },
         "placeholders": {
-            "PAYMENT_FAILURE_PROBLEM": problem_id,
+            "PROBLEM_ID": problem_id,
+            "PAYMENT_FAILURE_PROBLEM": problem_id,  # legacy alias used in payment-failure deep links
             "TIMEFRAME_FROM": tf_from_ms,
             "TIMEFRAME_TO": tf_to_ms,
             "DQL_TIMEFRAME_FROM": dql_from,
@@ -360,10 +404,13 @@ def _emit_state(scenario_id: str, rec: dict, write_state: bool = False, quiet: b
         print(json.dumps(state, indent=2))
 
     if write_state:
+        per = state_path(scenario_id)
+        with open(per, "w") as f:
+            json.dump(state, f, indent=2)
         with open(STATE_PATH, "w") as f:
             json.dump(state, f, indent=2)
         if not quiet:
-            print(f"# state written to {STATE_PATH}", file=sys.stderr)
+            print(f"# state written to {per}", file=sys.stderr)
 
     return 0, state
 
@@ -372,10 +419,10 @@ def _emit_state(scenario_id: str, rec: dict, write_state: bool = False, quiet: b
 # Query runner — substitutes placeholders from .demo-state.json, executes
 # ---------------------------------------------------------------------------
 
-def run_query_with_state(dql_path: Path, state: dict, extra_vars: dict = None):
+def run_query_with_state(dql_path: Path, state: dict, extra_vars: dict = None, quiet: bool = False):
     """Substitute placeholders from state (plus any extra_vars, e.g. a chained-in
     TRACE_ID discovered from a prior query) and execute. Prints a DQL snippet +
-    liveness proof stamp to stderr after each successful call.
+    liveness proof stamp to stderr after each successful call unless quiet=True.
     Returns (ok, envelope_or_None, error_str).
     """
     dql_text = dql_path.read_text(encoding="utf-8")
@@ -398,7 +445,8 @@ def run_query_with_state(dql_path: Path, state: dict, extra_vars: dict = None):
         error_detail = envelope.get("error", {}) if envelope else {"message": "unparseable output"}
         return False, envelope, f"query returned ok=false: {error_detail}"
 
-    _print_proof_stamp(substituted, envelope)
+    if not quiet:
+        _print_proof_stamp(substituted, envelope)
 
     return True, envelope, ""
 
@@ -411,12 +459,10 @@ def run_query(scenario_id: str, dql_rel_path: str, extra_vars: dict = None,
         print(json.dumps({"error": f"query file not found: {dql_path}"}))
         return 2
 
-    if not STATE_PATH.exists():
-        print(json.dumps({"error": "no .demo-state.json — run resolve first"}))
+    state, _ = _read_state(scenario_id)
+    if state is None:
+        print(json.dumps({"error": f"no state for '{scenario_id}' — run resolve first"}))
         return 2
-
-    with open(STATE_PATH) as f:
-        state = json.load(f)
 
     ok, envelope, error_str = run_query_with_state(dql_path, state, extra_vars)
     if not ok:
@@ -487,12 +533,10 @@ def load_queries(scenario_id: str) -> int:
     if not scenario_dir.exists():
         print(json.dumps({"error": f"scenario '{scenario_id}' not found"}))
         return 2
-    if not STATE_PATH.exists():
-        print(json.dumps({"error": "no .demo-state.json — run resolve first"}))
+    state, _ = _read_state(scenario_id)
+    if state is None:
+        print(json.dumps({"error": f"no state for '{scenario_id}' — run resolve first"}))
         return 2
-
-    with open(STATE_PATH) as f:
-        state = json.load(f)
 
     placeholders = state.get("placeholders", {})
     queries_dir = scenario_dir / "queries"
@@ -787,12 +831,80 @@ def codespace_login():
     ok = check_connectivity()
     sys.exit(0 if ok else 1)
 
+def _dql_reachable() -> bool:
+    """Quick check: can we actually execute a DQL query? Extracted so preflight_report
+    can gate the per-scenario loop rather than misreporting quiet Playground as EMPTY."""
+    rc, out, _ = run_dtctl("query", "fetch dt.davis.problems | limit 1", "-o", "json")
+    env = parse_envelope(out) if rc == 0 else None
+    return rc == 0 and bool(env) and env.get("ok", False)
+
+
+def preflight_report(deep: bool = False) -> int:
+    """Print a go/no-go status line per published scenario and return an exit code.
+
+    Exit codes:
+      0 — all scenarios live
+      1 — at least one scenario empty or broken
+      2 — cannot determine (registry missing, DQL unreachable)
+    """
+    print("=== presenter preflight ===")
+    print()
+
+    if not REGISTRY_PATH.exists():
+        print("[FAIL] registry not found — expected scenarios/registry.yaml")
+        return 2
+
+    scenarios = published_scenarios()
+    if not scenarios:
+        print("[INFO] no published scenarios found in registry")
+        return 2
+
+    if not _dql_reachable():
+        print("[FAIL] DQL not reachable — run /demo-doctor to fix auth first")
+        return 2
+
+    all_live = True
+    live_ids = []
+    for s in scenarios:
+        scenario_id = s["id"]
+        try:
+            rc, state = resolve_scenario(scenario_id, write_state=False, quiet=True)
+            if rc == 0 and state:
+                mode = state.get("mode", "live_active")
+                prob = state.get("problem", {})
+                display = prob.get("display_id", "?")
+                status = prob.get("status", "?")
+                users = prob.get("affected_users", "?")
+                detail = f"{display} {status}, {users} users ({mode})"
+                check(scenario_id, True, detail)
+                live_ids.append(scenario_id)
+            elif rc == 1:
+                check(scenario_id, False, "EMPTY — no live problem in the last 48h")
+                all_live = False
+            else:
+                check(scenario_id, False, "BROKEN — manifest or resolver fault")
+                all_live = False
+        except Exception as e:
+            # One broken scenario must never abort the whole report.
+            check(scenario_id, False, f"BROKEN — {e}")
+            all_live = False
+
+    print()
+    live_str = ", ".join(live_ids) if live_ids else "none"
+    print(f"Result: {len(live_ids)} of {len(scenarios)} storylines live — presentable: {live_str}")
+
+    return 0 if all_live else 1
+
+
 def main():
     args = sys.argv[1:]
 
     if not args or args[0] == "check":
         ok = check_connectivity()
         sys.exit(0 if ok else 1)
+
+    if args[0] == "preflight":
+        sys.exit(preflight_report(deep="--deep" in args))
 
     if args[0] == "resolve" and len(args) >= 2:
         write_state = "--write" in args
@@ -821,8 +933,9 @@ def main():
         codespace_login()
         # codespace_login() always calls sys.exit() itself; this is unreachable.
 
-    print(f"Usage: {sys.argv[0]} [check|resolve <scenario-id> [--write]|"
-          f"run-query <scenario-id> <dql-path> [--var KEY=VALUE ...] [--render waterfall]|load-queries <scenario-id>|login]",
+    print(f"Usage: {sys.argv[0]} [check|preflight [--deep]|resolve <scenario-id> [--write]|"
+          f"run-query <scenario-id> <dql-path> [--var KEY=VALUE ...] [--render waterfall]|"
+          f"load-queries <scenario-id>|login]",
           file=sys.stderr)
     sys.exit(2)
 

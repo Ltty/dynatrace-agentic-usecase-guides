@@ -29,24 +29,26 @@ For ad-hoc exploration beyond the scripted beats:
 
 ## Liveness proof stamp
 
-Build the proof stamp from the envelope after each successful query:
+Build the proof stamp from the envelope after each successful agent query:
 
 ```
-queryId  = envelope.metadata.queryId[:8]      # server-generated; first 8 chars suffice
-ms       = envelope.metadata.executionTimeMilliseconds
-scanned  = f"{envelope.metadata.scannedBytes / 1_000_000:.0f}MB"
-total    = envelope.context.total
+canonical_dql    = envelope.metadata.canonicalQuery   # Grail's own reformatted echo of what ran
+queryId          = envelope.metadata.queryId[:8]
+ms               = envelope.metadata.executionTimeMilliseconds
+scanned_records  = envelope.metadata.scannedRecords
+total            = envelope.context.total
 ```
 
-**Include the proof in your chat narration** — a short DQL snippet (the `fetch` and key `| filter`
-clauses) plus the proof line. Example:
-*"Queried the failing payment spans — `filter request.is_failed == true` — 5 traces in 25ms
-(queryId 01a0e712, 167MB scanned)."*
+**Include canonicalQuery and proof in your narration.** Open with the canonicalQuery in a fenced
+`dql` block — it's Grail's echo, not your own paraphrase. Then show the evidence table, then:
+*"5 records in 25ms — queryId 01a0e712, 62,398 records scanned."*
 
-Always pass `-M=all` on beat queries so `envelope.metadata` is populated.
+Always pass `-M=all` on agent beat queries so `envelope.metadata` is populated.
 
-Always pass `-o json --plain --max-field-chars 0` for exact field names and untruncated values
-(agent-mode defaults to `-o auto`, which may emit YAML, and clips fields at 500 chars).
+For agent queries, always pass `-o json --plain --max-field-chars 0` — agent mode ignores `-o table`
+and `-o json` forces exact field names with untruncated values. For the verbatim-table call on
+peak-moment beats, use `-o table --plain` without `--agent` — that is the only call in the
+session that intentionally bypasses the JSON envelope. See `skills/demo-engine/SKILL.md` step 3b.
 
 ## Chained queries — a value discovered by one query, fed into a second
 
@@ -90,7 +92,7 @@ it finds the smallest containing span by `[start, end]` interval rather than exa
     "records": [ ... ]     // per-row delta; absent key means use constant
   },
   "context": { "total": 5, "suggestions": [ ... ], "truncated": true },
-  "metadata": { "executionTimeMilliseconds": 46, "scannedBytes": 10064354, "queryId": "01a0e712-..." }
+  "metadata": { "executionTimeMilliseconds": 46, "scannedBytes": 10064354, "scannedRecords": 62398, "queryId": "01a0e712-...", "canonicalQuery": "fetch spans ..." }
 }
 ```
 
@@ -108,32 +110,28 @@ it finds the smallest containing span by `[start, end]` interval rather than exa
 
 ## Presenting evidence to the user
 
-Never dump raw JSON. Always:
+Never dump raw JSON as evidence. Always:
 1. Extract 3–5 key fields.
 2. Present as a short table or 2–4 bullet points.
 3. Follow immediately with the "so what" — one or two sentences of interpretation.
 4. Offer the deep link for the equivalent Dynatrace app view.
+
+A verbatim CLI table from a non-agent `-o table --plain` call on a peak-moment beat is not
+raw JSON — paste it in a fenced block as intended. See `skills/demo-engine/SKILL.md` step 3b.
 
 See `skills/demo-engine/SKILL.md` → "The beat loop" for the full pattern: state your own read
 as confident SRE narration in the same turn as the evidence, then attach it to a forward-looking
 option rather than a bare question. Don't withhold the interpretation waiting for the user to
 guess it first — that reads as a quiz, not an investigation.
 
-## Key entity IDs for the payment-failure scenario
+## Scenario-specific entity IDs
 
-Stable across problem cycles — safe to hardcode:
+Entity IDs and stable constants for each scenario are kept in `scenarios/<id>/dev-notes.md`
+(if present) and in the scenario's own `scenario.yaml → scope.services`.
+Never hardcode them here — this skill is shared across all scenarios.
 
-| Name | Entity ID | Type |
-|------|-----------|------|
-| astroshop-payment | SERVICE-531CE26849E95EC1 | Service (root cause) |
-| astroshop-checkout | SERVICE-5ACC60E0079F8E6D | Service (downstream) |
-| Charge endpoint | (filter `endpoint.name == "Charge"`) | The failing endpoint |
-| segment | Apy24Rcu0cO | Filter segment used in deep links |
-
-Rotates every problem cycle — never hardcode, always read from the live query result:
-problem id / display id, affected-user count, exception message text, exception line number,
-deployment commit SHA, incident timestamps. The exact numbers in this file (e.g. "431 users",
-"commit b35672") are illustrative of the *shape* of the data, not values to repeat verbatim.
+What always rotates and must be read live: problem id, affected-user count, exception text,
+exception line numbers, deployment commit SHA, incident timestamps.
 
 ## Verified DQL field names and gotchas
 
@@ -220,11 +218,12 @@ that in via `--context`; that's what turns a vague answer into a sharp, specific
 
 ## Placeholder resolution
 
-`.demo-state.json` → `placeholders` holds both representations:
+`.demo-state.<id>.json` → `placeholders` holds both representations:
+- `PROBLEM_ID` — the resolved problem's event id (primary; use this in DQL and deep links)
+- `PAYMENT_FAILURE_PROBLEM` — legacy alias for `PROBLEM_ID` used in payment-failure deep links
 - `TIMEFRAME_FROM` / `TIMEFRAME_TO` — epoch milliseconds, for Dynatrace app deep-link URLs
 - `DQL_TIMEFRAME_FROM` / `DQL_TIMEFRAME_TO` — ISO8601 strings, for use inside DQL `from:`/`to:`
-- `PAYMENT_FAILURE_PROBLEM` — the resolved problem's event id
 
 `python tools/preflight.py load-queries <id>` substitutes all of these at session start and
 returns pre-built DQL strings in the `queries` dict. When building a deep link by hand, read
-`.demo-state.json` yourself and substitute the epoch-ms pair.
+`.demo-state.<id>.json` yourself and substitute the epoch-ms pair.

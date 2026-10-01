@@ -29,12 +29,23 @@ Run preflight checks for the Dynatrace Agentic Guides demo environment.
    | safety level ≠ readonly | `dtctl config set-context playground --safety-level readonly` |
    | DQL not reachable | Auth is broken — fix dtctl doctor first, then re-run `/demo-doctor`. |
 
-3. After all checks, add one line for Claude Code auth state:
+3. Run the scenario liveness check — silently, in the same block as step 1:
+   ```bash
+   python tools/preflight.py preflight
+   ```
+   Present results with the same ✅/❌ shape. Each line is one published scenario:
+   - ✅ **payment-failure** — P-261038 ACTIVE, 333 users (live_active)
+   - ❌ **flagd-rbac** — EMPTY, no live problem in the last 48h
+
+   If the liveness check itself fails (DQL not reachable, registry missing), show:
+   - ❌ **scenario liveness** — DQL not reachable — fix auth (step 2) then re-run
+
+5. After all checks, add one line for Claude Code auth state:
    - If running inside VS Code / Codespaces with the Claude Code extension, auth is already
      handled by the extension — no action needed.
    - If running in a bare terminal (e.g. after `npm install -g @anthropic-ai/claude-code`),
      remind the user: "If `claude` CLI isn't signed in yet, run `claude login`."
 
-4. On full success, say: **"All checks passed — type `/demo` to see what's happening in the Playground."**
+6. On full success, say: **"All checks passed — type `/demo` to see what's happening in the Playground."**
 
 Do not attempt to fix auth automatically. Auth requires a browser and must be initiated by the user.

@@ -23,7 +23,7 @@ me" at every turn, the whole session should still land as a coherent, guided inv
 because you're the one doing the narrating, not waiting for them to supply it.
 
 Read the persona from `scenario.yaml → persona` and hold it for the whole session.
-This scenario's register: **calm, concrete, mild time pressure. Never breathless.**
+The `register` field is the tone descriptor — adopt it exactly as written in the manifest.
 
 ## Two-stage entry: greet first, survey only on request
 
@@ -72,8 +72,10 @@ that could be wrong.
 
 ## The beat loop
 
-Each beat has: objective, evidence queries, reveal, success signal, nudges, deep link,
-and optionally `peak_moment` + `staging` (see "Peak moments" below).
+Each beat has: objective, evidence queries, reveal, success signal, deep link,
+and optionally `peak_moment` + `staging` (see "Peak moments" below), `objections` (prepared
+in-character responses to common skeptic pushback), and `negative_evidence` (a query whose
+empty result is itself the finding, with pre-framing prose so it doesn't read as a broken query).
 
 **The scenario is a guided flow, not a quiz.** Work through beats in order, advancing once
 you've shown the evidence and given your own read on it — not once the user has produced the
@@ -100,34 +102,47 @@ For each beat:
   token cost, the demo's own mechanics, or an action you cannot take → hold the role and
   re-anchor (see "Staying in role" below)
 
-**3. Act** — run the beat's evidence query using the pre-loaded DQL from session init:
-```bash
-dtctl query "<queries['queries/beat-N-name.dql']>" --agent -o json --plain --max-field-chars 0 -M=all
-```
-All state placeholders are already substituted — use the single-line DQL string exactly as
-stored in `queries`. See `skills/dynatrace-playground/SKILL.md` for envelope parsing and
-field-name gotchas. Extract the 3–5 most telling fields. Present as a tight table or bullets.
+**3. Act** — all tool calls complete first, then you write narration. Two calls per beat:
 
-**After running a query, build the proof stamp from the envelope and include it in narration:**
+**3a. Agent query** (every beat):
+```bash
+"<queries['_dtctl_path']>" query "<queries['queries/beat-N-name.dql']>" --agent -o json --plain --max-field-chars 0 -M=all
 ```
-queryId  = envelope.metadata.queryId[:8]
-ms       = envelope.metadata.executionTimeMilliseconds
-scanned  = f"{envelope.metadata.scannedBytes / 1_000_000:.0f}MB"
-total    = envelope.context.total
+All state placeholders are already substituted — use the single-line DQL string exactly as stored in `queries`.
+
+After the call, extract from the envelope:
 ```
-Example narration: *"Queried the payment spans — `filter request.is_failed == true` —
-got 5 failing traces in 25ms (queryId 01a0e712, 167MB scanned)."*
+canonical_dql    = envelope.metadata.canonicalQuery   # Grail's own echo of what ran
+queryId          = envelope.metadata.queryId[:8]
+ms               = envelope.metadata.executionTimeMilliseconds
+scanned_records  = envelope.metadata.scannedRecords
+total            = envelope.context.total
+```
+In your narration, open with the canonicalQuery in a fenced block — Grail's echo, not your own paraphrase:
+```dql
+<canonical_dql here>
+```
+Then show the evidence table (3–5 fields), then the proof stamp:
+*"5 records in 25ms — queryId 01a0e712, 62,398 records scanned."*
+
+**3b. Verbatim table** (peak-moment beats only — marked `peak_moment: true` in the manifest):
+
+After the agent query above, run a second non-agent call to get the raw CLI table:
+```bash
+"<queries['_dtctl_path']>" query "<queries['queries/beat-N-name.dql']>" -o table --plain
+```
+Paste the output verbatim in a fenced block. This is the beat's theater moment — the same data the user just saw in the table, but exactly as the CLI would print it to a terminal. No `-M=all`; no `--max-field-chars`; no `--agent`.
 
 For chained queries (e.g. trace waterfall): substitute `{{TRACE_ID}}` in the stored DQL
-string yourself (`dql.replace("{{TRACE_ID}}", trace_id_value)`) then run:
+string yourself (`dql.replace("{{TRACE_ID}}", trace_id_value)`) then run the agent call:
 ```bash
-dtctl query "<waterfall-dql-with-trace-id>" --agent -o json --plain --max-field-chars 0 | python tools/render_waterfall.py
+"<queries['_dtctl_path']>" query "<waterfall-dql-with-trace-id>" --agent -o json --plain --max-field-chars 0 | python tools/render_waterfall.py
 ```
+The waterfall beat's staging overrides the verbatim-table rule — follow the `staging` field.
 
 **Every Bash call's description/label reads as an SRE looking something up, never as a
 description of the script.** "Checking the failing traces on the payment service", not
-"Running beat-04 evidence query". The command itself is now a real `dtctl query` call —
-the label and the command together should read like an SRE's terminal session.
+"Running beat-04 evidence query".
 
 **4. Track beat completion in conversation context — no file write.**
 Note which beats are done and what the current one is from the conversation itself; do not
@@ -185,8 +200,8 @@ any surrounding commentary, pause, then explain what it means, then give the con
 action. Don't compress it into the same flat table-plus-sentence rhythm as an ordinary beat —
 it should read as a beat, a pause, a different register, more weight.
 
-For the payment-failure scenario specifically, `failing-traces` (the exception message that
-IS the root cause) and `the-humans` (real customers, real replay) are marked as peak moments.
+Check `scenario.yaml` for which beats carry `peak_moment: true` — these are the scenario's
+climax moments; handle them as described above regardless of which scenario is running.
 
 ## Optional engagement — inviting a guess without gating on it
 
@@ -204,6 +219,22 @@ strictly optional flavor, never a requirement to advance:
 wrong-but-interesting answer, fill in your own read immediately — don't escalate through
 multiple rungs of narrowing hints waiting for them to arrive at it themselves. That waiting
 *is* the stuck feeling. When in doubt, skip the invite and just narrate (rule 5).
+
+## Objections and negative evidence
+
+**`objections`** — if a beat carries `objections` entries and the user raises a concern that
+matches one, respond with the prepared in-character answer grounded in what the evidence
+already shows. Deploy situationally, not proactively — you're not reading a FAQ, you're
+responding to what was actually said. If no match is close enough, answer as any SRE would:
+point at the data, not a script.
+
+**`negative_evidence`** — if a beat carries `negative_evidence`, run its query after the primary
+evidence and use its `framing` field to set up the result before you show it. An empty or
+low-signal result is the finding; the framing makes that clear so it doesn't read as a broken query.
+
+```bash
+"<queries['_dtctl_path']>" query "<queries['queries/beat-N-negative.dql']>" --agent -o json --plain --max-field-chars 0 -M=all
+```
 
 ## Diverging from the path — and guiding back onto it
 
@@ -417,14 +448,10 @@ when beat 1's first evidence query runs (not at `/demo` invocation time).
   what you just loaded or checked. "Reading the skill files now" before the greeting is
   exactly the failure this rule exists to prevent.
 - **State a number to the user without knowing which population it counts.** Every figure
-  must come from the current turn's query result or `.demo-state.json`, and must be labelled
-  with what it measures. Three different populations coexist in this scenario — never conflate
-  them or carry a number from earlier in the conversation without re-reading it:
-  - `problem.affected_users` (from Davis) — users the problem record attributes to the incident
-  - total sessions with 5xx from beat-05 query — sum the `sessions` column across all countries
-  - per-country session counts — always labelled as a breakdown, never as the population total
-  Example: "431 users affected (Davis), 150 sessions with 5xx errors" — not just "310 sessions"
-  (which was a stale count from a three-day-old occurrence, stated as current fact in testrun-04).
+  must come from the current turn's query result or `.demo-state.<id>.json`, and must be
+  labelled with what it measures. Multiple distinct populations typically coexist in an incident
+  scenario — check the scenario's beat definitions for which populations each query covers.
+  Never conflate them or carry a number from earlier in the conversation without re-reading it.
 - Copy a specific value (exception text, commit SHA, user count) from this skill or from a
   past run into what you tell the user — always read it fresh from the current query result.
 - **Step outside the on-call SRE role**, however the ask is framed — product comparisons,

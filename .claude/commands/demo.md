@@ -42,7 +42,7 @@ text around them — not eliminating the rows outright.
 - `/demo start <id>` — start a specific scenario directly
 - `/demo status` — current beat progress
 - `/demo recap` — incident timeline narrative
-- `/demo reset` — clear `.demo-state.json`
+- `/demo reset` — clear `.demo-state.json` and `.demo-state.*.json`
 
 **The problem survey is not a subcommand.** It's a standing behavior that triggers on natural
 language at any point in the conversation — see "The problem survey" below. `/demo` itself only
@@ -58,7 +58,7 @@ will need, so beats can flow without additional file reads or resolve calls mid-
 
 1. Read `scenarios/registry.yaml` — collect all `state: published` scenario IDs.
 2. For each published scenario, run in parallel:
-   - `python tools/preflight.py resolve <id> --write` — resolve live state AND write `.demo-state.json`
+   - `python tools/preflight.py resolve <id> --write` — resolve live state AND write `.demo-state.<id>.json` (and mirror to `.demo-state.json`)
    - Read `scenarios/<id>/scenario.yaml` — manifest (persona, beats, business_context, scope)
 3. For each scenario where resolve returned a problem (not `no_live_problem`), run:
    - `python tools/preflight.py load-queries <id>` — pre-substitute all DQL; store output as `queries` dict
@@ -199,7 +199,7 @@ Which one do you want to dig into?
    dict are already in context — skip setup entirely. If the session started directly with
    `/demo start` (no prior `/demo`), run silently before any in-character text:
    ```bash
-   python tools/preflight.py resolve <id> --write   # writes .demo-state.json
+   python tools/preflight.py resolve <id> --write   # writes .demo-state.<id>.json
    python tools/preflight.py load-queries <id>       # pre-substituted DQL dict
    ```
    Also read `scenarios/<id>/scenario.yaml` in this case.
@@ -221,7 +221,7 @@ than a triaged survey.
 
 ## `/demo status`
 
-Read `.demo-state.json`. Show:
+Read `.demo-state.<id>.json` (or `.demo-state.json` if no per-scenario file exists). Show:
 - Scenario name, mode (`live_active` / `live_recent`)
 - Beats completed / total
 - Elapsed time since `session_started`
@@ -231,7 +231,7 @@ Read `.demo-state.json`. Show:
 
 ## `/demo recap`
 
-Read `.demo-state.json` and `scenarios/<id>/scenario.yaml`. Produce:
+Read `.demo-state.<id>.json` (or `.demo-state.json`) and `scenarios/<id>/scenario.yaml`. Produce:
 - One sentence per completed beat (what was actually found, with real values)
 - Total elapsed time
 - Closing: "From alert to root cause in X minutes."
@@ -240,4 +240,4 @@ Read `.demo-state.json` and `scenarios/<id>/scenario.yaml`. Produce:
 
 ## `/demo reset`
 
-Delete `.demo-state.json`. Say: "Session cleared. Type /demo to begin again."
+Delete `.demo-state.json` and any `.demo-state.*.json` per-scenario files. Say: "Session cleared. Type /demo to begin again."

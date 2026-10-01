@@ -44,14 +44,15 @@ feels like pair-debugging on a real incident.
 - **Safety level:** `readonly` — hard-enforced at the dtctl context layer
 - **Agent mode:** auto-activates (`CLAUDECODE` env var present); output is JSON envelope
 - **Auth:** per-user browser OAuth; no shared tokens exist in this repo
-- **Resolved state:** `tools/preflight.py resolve <id> --write` → `.demo-state.json`, mode is
-  one of `live_active` / `live_recent` (no fixture fallback — the pattern fires twice daily,
-  a 48h lookback always finds an occurrence; if the Playground is quiet, the engine says so)
+- **Resolved state:** `tools/preflight.py resolve <id> --write` → `.demo-state.<id>.json`
+  (mirrored to `.demo-state.json` for backward compat). Mode is one of `live_active` /
+  `live_recent` (no fixture fallback — the pattern fires twice daily, a 48h lookback always
+  finds an occurrence; if the Playground is quiet, the engine says so)
 - **Beat queries:** DQL is pre-substituted at session start via `python tools/preflight.py
   load-queries <id>` → `{relative_path: single_line_dql}` dict. Beats run
   `dtctl query "<pre-loaded-dql>" --agent -o json --plain --max-field-chars 0 -M=all` directly.
-  Proof stamp parsed from `envelope.metadata` (queryId, executionTimeMilliseconds, scannedBytes).
-  For the trace waterfall, pipe to `python tools/render_waterfall.py`.
+  Proof stamp: `canonicalQuery` (Grail's echo), `queryId`, `executionTimeMilliseconds`,
+  `scannedRecords`. For the trace waterfall, pipe to `python tools/render_waterfall.py`.
 
 ## Directory map
 
@@ -94,8 +95,9 @@ query against the Playground, not just static checks. Zero changes to `skills/` 
 ## Tooling reference
 
 - `python tools/preflight.py check` — connectivity/auth/safety-level gate (what `/demo-doctor` runs)
+- `python tools/preflight.py preflight [--deep]` — go/no-go per published scenario (liveness check)
 - `python tools/preflight.py resolve <id> [--write]` — find the live problem, derive the incident
-  window, optionally write `.demo-state.json`
+  window, optionally write `.demo-state.<id>.json`
 - `python tools/preflight.py load-queries <id>` — pre-substitute all `{{PLACEHOLDER}}` tokens
   in every beat query and return `{relative_path: single_line_dql}`; called once at session start
 - `python tools/preflight.py run-query <id> <dql-path> [--var KEY=VAL] [--render waterfall]`
