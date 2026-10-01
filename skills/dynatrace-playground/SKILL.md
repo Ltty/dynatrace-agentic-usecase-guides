@@ -169,12 +169,21 @@ toDouble(duration) / 1000000      // NOT span.duration; duration is a numeric ST
 // same endpoint (e.g. two different validation regressions in one deploy).
 // Don't assume the first failing span tells the whole story — skim all rows.
 
-// Deployment events (CUSTOM_DEPLOYMENT, ArgoCD) carry the git commit directly:
+// Deployment events: commit/gitUrl field availability depends on the pipeline.
+// ArgoCD events populate commit and gitUrl directly:
 fetch events | filter event.type == "CUSTOM_DEPLOYMENT"
 | fields commit, gitUrl, stage, app, owner, service = dt.entity.service.name
 // NOT dt.release_version / dt.release_build_version — those fields don't exist
 // on this event shape. `commit` is the short git SHA; `gitUrl` links straight
 // to the GitHub commit.
+//
+// GitHub Actions events leave commit and gitUrl NULL. The commit SHA is embedded
+// in event.description as a markdown URL — always include it in the projection:
+// | fields timestamp, description = event.description, commit, git_url = gitUrl
+// Parse the SHA from the URL in description before declaring the trail cold.
+// A single regression deploy may appear multiple times (once per affected resource).
+// A fix deploy landing during the incident window appears as a second distinct
+// description URL — recognise it as the remediation, not a second regression.
 
 // User sessions: start_time (not startTime), geo.country.iso_code for geo,
 // characteristics.has_replay (not session.hasSessionReplay),

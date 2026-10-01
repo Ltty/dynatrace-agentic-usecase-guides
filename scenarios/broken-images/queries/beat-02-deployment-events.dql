@@ -1,0 +1,24 @@
+// Beat 2 — deployment events on the image-provider Lambda during the incident window.
+//
+// GitHub Actions deployment events do NOT populate commit/gitUrl fields — those are
+// null on every record. The commit SHA lives in event.description as a markdown URL:
+//   "Image processing problem trigger from [PR](https://github.com/.../commit/<sha>)"
+// Parse the SHA from the URL in description; do not declare the trail cold because
+// commit/gitUrl came back null.
+//
+// Expect 2 distinct commits in this window:
+//   - The regression deploy (fires 2 minutes before Davis detects the problem)
+//   - A fix deploy ~30 minutes later (fires 8 minutes before Davis closes the problem)
+
+fetch events, from: "{{DQL_TIMEFRAME_FROM}}", to: "{{DQL_TIMEFRAME_TO}}"
+| filter event.type == "CUSTOM_DEPLOYMENT"
+| filter dt.entity.service == "SERVICE-5A0CD2879D2F37BE"
+| fields
+    timestamp,
+    app,
+    owner,
+    stage,
+    description = event.description,
+    commit,
+    git_url     = gitUrl
+| sort timestamp asc

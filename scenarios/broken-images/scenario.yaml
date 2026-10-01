@@ -57,13 +57,49 @@ beats:
     deep_link: >
       https://playground.apps.dynatrace.com/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TIMEFRAME_FROM}}&to={{TIMEFRAME_TO}}
 
+  - id: the-deploy
+    objective: >
+      User connects the degradation to a specific code change: a GitHub Actions deployment
+      landed 2 minutes before Davis fired. The commit is embedded in event.description
+      (GitHub Actions doesn't populate commit/gitUrl fields). Two distinct commits appear —
+      the regression and, ~30 minutes later, its fix — so the timeline is fully visible.
+    evidence:
+      - queries/beat-02-deployment-events.dql
+    reveal: >
+      Seven CUSTOM_DEPLOYMENT events on the image-provider Lambda, all within the incident
+      window. Two distinct commits appear in event.description as GitHub URLs:
+      (1) The regression commit, first deployed at 03:02 UTC — 2 minutes before Davis fired.
+      It appears 6 times because GitHub Actions re-triggers on each affected resource. The
+      description reads "Image processing problem trigger from [PR](...)" — the SHA is inside
+      the URL. Extract and state it explicitly.
+      (2) A second distinct commit deployed at 03:31 UTC — 8 minutes before Davis closed the
+      problem at 03:39 UTC. This is the fix landing while the incident was still open.
+
+      The commit/gitUrl fields are null on all records — this is normal for GitHub Actions
+      deployments in this environment. Always read event.description before declaring the
+      commit trail cold. Connect the first deploy timestamp (03:02 UTC) to the problem start
+      (03:04 UTC): that 2-minute gap is the smoking gun.
+    success: >
+      User identifies the deployment as the trigger, extracts the commit SHA from
+      event.description, or asks what changed in that commit.
+    objections:
+      - objection: "couldn't the 2-minute gap mean the deployment wasn't the cause?"
+        response: >
+          Two minutes is exactly how long it takes for the Lambda to warm up and start
+          fielding live traffic after a cold deploy. The first failing span is at 03:18 UTC —
+          that's the first user request that hit the bug after the Lambda scaled out. Davis
+          caught the aggregate response time at 03:04, when enough Lambdas had warmed up
+          to move the metric.
+    deep_link: >
+      https://playground.apps.dynatrace.com/ui/apps/dynatrace.deployment.management/deployments?filter=dt.entity.service%3DSERVICE-5A0CD2879D2F37BE&tf={{TIMEFRAME_FROM}}%3B{{TIMEFRAME_TO}}
+
   - id: the-failing-calls
     peak_moment: true
     objective: >
       User sees the specific exception that explains the 7-second response time — a
-      DynamoDB rate-throttle, not an infrastructure outage — and the full distributed
-      trace showing that the frontend page itself loaded successfully while the image
-      fetch leg spent its entire execution retrying DynamoDB before failing.
+      DynamoDB rate-throttle caused by the regression running the full image resize
+      pipeline on every request instead of returning cached results — and the full
+      distributed trace confirming the frontend loaded fine while the image fetch failed.
     evidence:
       - queries/beat-02-failing-spans.dql
     chained_evidence:
@@ -73,20 +109,24 @@ beats:
         var_name: TRACE_ID
     reveal: >
       The failing span on the image-provider's `invoke` endpoint shows a SlowDown
-      exception from the AWS SDK DynamoDB protocols module — DynamoDB is rate-throttling
-      the Lambda's read requests. Duration is ~7 seconds because the SDK retries before
-      giving up. Read the exception message verbatim from the query result; do not
-      paraphrase it.
+      exception from the AWS SDK DynamoDB protocols module. Duration is ~7 seconds because
+      the SDK retries before giving up. Read the exception message verbatim from the query
+      result; do not paraphrase it.
 
       Then the trace waterfall (~22 spans) makes the causality visible: the top-level
       page request completed OK in ~3 seconds — the frontend loaded. But the image fetch
       sub-request took 7+ seconds and failed. Inside that sub-request, image-provider
       spent its entire duration making DynamoDB calls that eventually hit the throttle.
-      State which hops succeeded and which failed. The Lambda is not broken — DynamoDB
-      is telling it to slow down, and it can't.
+      State which hops succeeded and which failed.
+
+      Connect this back to the deployment beat: the regression (`true !== 'true'` strict
+      equality bug) caused the Lambda to skip its cache check and run the full DynamoDB
+      image-resize pipeline on every single request. The burst of DynamoDB reads exceeded
+      the table's provisioned throughput, triggering the SlowDown throttle. Reverting the
+      commit fixes both the excess DynamoDB reads and the throttle simultaneously.
     success: >
-      User identifies DynamoDB throttling (SlowDown) as the mechanism, or asks what
-      would cause DynamoDB to rate-limit a Lambda and how to fix the capacity.
+      User connects the SlowDown throttle to the regression's excessive DynamoDB reads,
+      or asks what the commit changed that caused more reads than normal.
     staging: >
       Two findings, two moments: (1) land the SlowDown exception verbatim on its own
       line before any commentary — "Please reduce your request rate." from the DynamoDB
