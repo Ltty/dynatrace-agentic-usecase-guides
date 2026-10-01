@@ -1,0 +1,19 @@
+// Beat 4 — user sessions impacted during the incident window, broken down
+// by country, with session replay availability.
+//
+// No limit — returns all countries. Sum the `sessions` column for the true total.
+//
+// Field notes (verified live for payment-failure scenario, same schema):
+// - error.http_5xx_count > 0 captures sessions where image requests returned HTTP errors
+// - characteristics.has_replay (not session.hasSessionReplay)
+// - geo.country.iso_code for the geo breakdown
+// - user.sessions is NOT tagged with a service entity ID — scoping to the
+//   incident timeframe is sufficient
+
+fetch user.sessions, from: "{{DQL_TIMEFRAME_FROM}}", to: "{{DQL_TIMEFRAME_TO}}"
+| filter error.http_5xx_count > 0
+| summarize
+    sessions    = count(),
+    with_replay = countIf(characteristics.has_replay == true),
+    by: { country = geo.country.iso_code }
+| sort sessions desc

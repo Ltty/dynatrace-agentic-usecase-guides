@@ -1,0 +1,22 @@
+// Resolver query: find the most recent broken-images problem instance.
+// Returns both ACTIVE and very-recent CLOSED instances (pattern fires daily ~03:00 UTC).
+// The engine uses the result to derive PROBLEM_ID, TIMEFRAME_FROM, TIMEFRAME_TO.
+//
+// The pattern fires as a cluster of near-duplicate Davis problems (response time degradation,
+// LCP increase, user action duration increase) all rooted at the image-provider Lambda.
+// is_duplicate == false selects Davis's own merged umbrella problem.
+
+fetch dt.davis.problems, from: now()-48h, to: now()
+| filter root_cause_entity_id == "SERVICE-5A0CD2879D2F37BE"
+| filter dt.davis.is_duplicate == false
+| sort timestamp desc
+| limit 1
+| fields
+    problem_id     = event.id,
+    display_id     = display_id,
+    status         = event.status,
+    started        = event.start,
+    ended          = event.end,
+    affected_users = dt.davis.affected_users_count,
+    root_cause     = root_cause_entity_name,
+    description    = event.description

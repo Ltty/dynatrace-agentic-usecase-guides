@@ -1,0 +1,21 @@
+// Beat 3 (part 2, chained) — full distributed trace for one representative failing
+// image request: shows exactly which service hop failed and where in the call chain
+// DynamoDB throttling occurs.
+//
+// {{TRACE_ID}} is passed in from beat-02-failing-spans.dql's trace_id field.
+// trace.id is uid-typed — filter with toUid() or it silently matches nothing.
+// Fetches ALL spans (no span.kind filter) so render_waterfall.py has the full
+// parent-chain to nest correctly.
+
+fetch spans, from: "{{DQL_TIMEFRAME_FROM}}", to: "{{DQL_TIMEFRAME_TO}}"
+| filter trace.id == toUid("{{TRACE_ID}}")
+| sort start_time asc
+| fields
+    span.id,
+    span.parent_id,
+    start_time,
+    service     = dt.service.name,
+    span_name   = span.name,
+    duration_ms = round(toDouble(duration) / 1000000, decimals: 2),
+    failed      = request.is_failed,
+    status      = span.status_code

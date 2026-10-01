@@ -1,0 +1,129 @@
+id: broken-images
+title: "Resolve production incidents faster: Broken product images"
+source_guide: "tbd-dem-act-3"
+duration_minutes: [8, 15]
+
+business_context:
+  service_name: "image service"
+  user_action: "browse products"
+  urgency_phrase: "If customers can't see what they're buying, they don't buy."
+  discovery_hook: >
+    The image service is degraded — product images are failing to load for {affected_users}
+    users. Response time on the image provider spiked from milliseconds to 6+ seconds
+    {duration_min} minutes ago. Shoppers hitting broken images don't finish their purchase.
+
+persona:
+  role: "On-call SRE pairing with the user"
+  register: >
+    Calm, concrete, mild time pressure. Speaks in facts and next steps.
+    Never breathless or panicked. Uses 'we' — this is a pair exercise.
+    Keeps responses tight: 2–4 sentences to set a scene, one open question.
+
+scope:
+  services:
+    - SERVICE-5A0CD2879D2F37BE   # image-provider-playground in us-east-1 (root cause Lambda)
+  data_objects:
+    - dt.davis.problems
+    - spans
+    - events
+    - user.sessions
+  timeframe: derived_from_problem
+
+resolve:
+  problem:
+    query: queries/find-problem.dql
+    root_cause_service_id: SERVICE-5A0CD2879D2F37BE
+
+beats:
+  - id: the-page
+    objective: >
+      User grasps the blast radius: which service Davis pinned as root cause, how many
+      users are impacted, when it started, which team owns it, and that Davis classified
+      this as response time degradation (not a clean binary outage — the service is
+      responding, just at 6+ seconds instead of 24 milliseconds).
+    evidence:
+      - queries/beat-01-problem-summary.dql
+    reveal: >
+      A massive response time degradation on the image-provider service — a Lambda that
+      fetches product images from DynamoDB. Davis reports the current response time is
+      roughly 6 seconds against a 24ms baseline, a 25,000% increase. Also affected:
+      the Astroshop frontend, the ingress, and a dedicated synthetic browser check for
+      image loading (which fired independently). State the actual affected-user count,
+      start time, and owning team from the query result — the owning-team field is live,
+      don't say "the team," name them.
+    success: >
+      User identifies image-provider or the Lambda as the failing service, or asks
+      what's calling it and why it's so slow.
+    deep_link: >
+      https://playground.apps.dynatrace.com/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TIMEFRAME_FROM}}&to={{TIMEFRAME_TO}}
+
+  - id: the-failing-calls
+    peak_moment: true
+    objective: >
+      User sees the specific exception that explains the 7-second response time — a
+      DynamoDB rate-throttle, not an infrastructure outage — and the full distributed
+      trace showing that the frontend page itself loaded successfully while the image
+      fetch leg spent its entire execution retrying DynamoDB before failing.
+    evidence:
+      - queries/beat-02-failing-spans.dql
+    chained_evidence:
+      - query: queries/beat-03-trace-waterfall.dql
+        depends_on: queries/beat-02-failing-spans.dql
+        extract_field: trace_id
+        var_name: TRACE_ID
+    reveal: >
+      The failing span on the image-provider's `invoke` endpoint shows a SlowDown
+      exception from the AWS SDK DynamoDB protocols module — DynamoDB is rate-throttling
+      the Lambda's read requests. Duration is ~7 seconds because the SDK retries before
+      giving up. Read the exception message verbatim from the query result; do not
+      paraphrase it.
+
+      Then the trace waterfall (~22 spans) makes the causality visible: the top-level
+      page request completed OK in ~3 seconds — the frontend loaded. But the image fetch
+      sub-request took 7+ seconds and failed. Inside that sub-request, image-provider
+      spent its entire duration making DynamoDB calls that eventually hit the throttle.
+      State which hops succeeded and which failed. The Lambda is not broken — DynamoDB
+      is telling it to slow down, and it can't.
+    success: >
+      User identifies DynamoDB throttling (SlowDown) as the mechanism, or asks what
+      would cause DynamoDB to rate-limit a Lambda and how to fix the capacity.
+    staging: >
+      Two findings, two moments: (1) land the SlowDown exception verbatim on its own
+      line before any commentary — "Please reduce your request rate." from the DynamoDB
+      SDK is the answer to "why is the Lambda slow?"; (2) then show the waterfall,
+      condensed to 4–5 key rows: the page request (OK, ~3s), the image fetch sub-request
+      (FAIL, ~7s), image-provider Lambda (FAIL, 7019ms), and a line about the internal
+      DynamoDB retry sub-calls. Don't dump all 22 rows. The point isn't the row count —
+      it's that the frontend completed fine, only the image path is broken, and the
+      Lambda was retrying DynamoDB the whole time.
+    deep_link: >
+      https://playground.apps.dynatrace.com/ui/apps/dynatrace.distributedtracing/explorer?filter=request.is_failed+%3D+Failure+AND+dt.smartscape.service+%3D+SERVICE-5A0CD2879D2F37BE&tf={{TIMEFRAME_FROM}}%3B{{TIMEFRAME_TO}}
+
+  - id: the-humans
+    peak_moment: true
+    objective: >
+      User understands who was actually affected: real users from multiple countries,
+      every one of them with a session replay showing exactly what they saw when the
+      images failed to load.
+    evidence:
+      - queries/beat-04-affected-sessions.dql
+    reveal: >
+      A handful of sessions spread across multiple countries — CZ, IE, JP, KR, MX, US
+      (read the live result; countries rotate). Every single affected session has a
+      replay available (100% replay rate for this incident). State the actual session
+      count and countries from the query result. The point isn't the number — it's that
+      every broken-image experience is replayable: which images loaded, which ones showed
+      a broken placeholder, whether the user gave up or tried again.
+    success: >
+      User asks about the user experience, what customers would have seen, or asks
+      to open a session replay.
+    staging: >
+      Same emotional payoff as the payment-failure session beat, but smaller scale
+      (one incident cycle = a handful of users). The 100% replay rate is the hook:
+      every single person who hit a broken image has a recording. Frame it as
+      "we can open any of these and see exactly what they saw — which images loaded,
+      which ones were missing, whether they gave up or kept shopping." Then offer the
+      deep link. That's the question the DEM source guide poses explicitly: "what did
+      the user actually see?" Make the replay feel like the answer, not a footnote.
+    deep_link: >
+      https://playground.apps.dynatrace.com/ui/apps/dynatrace.error.inspector/error-explorer?tf={{TIMEFRAME_FROM}}%3B{{TIMEFRAME_TO}}&problemId={{PROBLEM_ID}}&perspective=impact&sort=affected_users%3Adescending

@@ -3,6 +3,17 @@
 # 'state: draft' hides a scenario from /demo list until it's ready.
 
 scenarios:
+  - id: broken-images
+    path: scenarios/broken-images
+    title: "Resolve production incidents faster: Broken product images"
+    description: >
+      Product images are failing to load for hundreds of users. The image-provider Lambda
+      is being throttled by DynamoDB — trace the degradation from the Davis alert through
+      the failing spans to the root cause in the AWS SDK.
+    duration_minutes: [8, 15]
+    state: draft
+    tags: [incident-response, images, lambda, dynamodb, astroshop, tracing]
+
   - id: payment-failure
     path: scenarios/payment-failure
     title: "Resolve production incidents faster: Payment failure"

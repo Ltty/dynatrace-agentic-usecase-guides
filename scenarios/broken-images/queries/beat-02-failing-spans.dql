@@ -1,0 +1,26 @@
+// Beat 2 — failing spans on the image-provider Lambda.
+// Returns the exception type, message, file and line so the DynamoDB throttle is
+// identifiable from the stack trace.
+//
+// Field notes (verified for payment-failure, same schema applies here):
+// - request.is_failed == true — direct flag; span.status_code is lowercase 'error', less reliable
+// - trace.id (not dt.trace_id); duration is a numeric-string, must wrap in toDouble()
+// - expand span.events does NOT flatten exception.* — project with bracket access
+// - round() requires named second argument: round(x, decimals: N)
+// - limit 5 BEFORE expand so we get the 5 most recent failing spans, each with their events
+
+fetch spans, from: "{{DQL_TIMEFRAME_FROM}}", to: "{{DQL_TIMEFRAME_TO}}"
+| filter dt.entity.service == "SERVICE-5A0CD2879D2F37BE"
+| filter request.is_failed == true
+| sort start_time desc
+| limit 5
+| expand span.events
+| fields
+    start_time,
+    trace_id       = trace.id,
+    endpoint       = endpoint.name,
+    exception_type = span.events[exception.type],
+    exception_msg  = span.events[exception.message],
+    exception_file = span.events[exception.file.full],
+    exception_line = span.events[exception.line_number],
+    duration_ms    = round(toDouble(duration) / 1000000, decimals: 0)

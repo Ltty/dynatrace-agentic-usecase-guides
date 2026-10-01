@@ -1,0 +1,15 @@
+// Beat 1 — blast radius summary.
+// Pins to the exact problem ID resolved at session start — no re-sort ambiguity.
+
+fetch dt.davis.problems, from: now()-48h, to: now()
+| filter event.id == "{{PROBLEM_ID}}"
+| fields
+    display_id,
+    status         = event.status,
+    started        = event.start,
+    affected_users = dt.davis.affected_users_count,
+    root_cause     = root_cause_entity_name,
+    owning_team    = team,
+    also_affected  = affected_entity_names,
+    impact_level   = dt.davis.impact_level,
+    description    = event.description
