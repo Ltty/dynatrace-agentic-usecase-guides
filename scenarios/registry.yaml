@@ -11,7 +11,7 @@ scenarios:
       is being throttled by DynamoDB — trace the degradation from the Davis alert through
       the failing spans to the root cause in the AWS SDK.
     duration_minutes: [8, 15]
-    state: draft
+    state: published
     tags: [incident-response, images, lambda, dynamodb, astroshop, tracing]
 
   - id: payment-failure
