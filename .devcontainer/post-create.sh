@@ -11,6 +11,7 @@ echo "=== Dynatrace Agentic Guides — dev container setup ==="
 echo ""
 
 STATUS_CLAUDE="not installed"
+STATUS_OPENCODE="not installed"
 STATUS_DTCTL="not installed"
 STATUS_PY="not installed"
 
@@ -34,9 +35,37 @@ else
 fi
 echo "      $STATUS_CLAUDE"
 
-# 2. Install dtctl (downloads binary from GitHub releases, no curl | bash)
+# 2. Install OpenCode (free-tier alternative harness) and configure global model
 echo ""
-echo "[2/5] Installing dtctl..."
+echo "[2/5] Installing OpenCode..."
+if command -v npm &>/dev/null; then
+  if npm install -g opencode-ai 2>/tmp/opencode-install.log; then
+    if command -v opencode &>/dev/null; then
+      STATUS_OPENCODE="OK ($(opencode --version 2>/dev/null | head -1))"
+      # Write global config with the free bundled model.
+      # Project-level opencode.json handles instructions and permissions;
+      # the model must live in the global config at ~/.config/opencode/opencode.json.
+      mkdir -p "$HOME/.config/opencode"
+      cat > "$HOME/.config/opencode/opencode.json" <<'EOCONFIG'
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "opencode/nemotron-3-ultra-free"
+}
+EOCONFIG
+    else
+      STATUS_OPENCODE="installed but not on PATH — check npm's global bin dir"
+    fi
+  else
+    STATUS_OPENCODE="FAILED — see /tmp/opencode-install.log"
+  fi
+else
+  STATUS_OPENCODE="SKIPPED — npm not found"
+fi
+echo "      $STATUS_OPENCODE"
+
+# 4. Install dtctl (downloads binary from GitHub releases, no curl | bash)
+echo ""
+echo "[3/5] Installing dtctl..."
 DTCTL_INSTALL_DIR="$HOME/.local/bin"
 mkdir -p "$DTCTL_INSTALL_DIR"
 
@@ -75,7 +104,7 @@ echo "      $STATUS_DTCTL"
 
 # 3. Python dependencies (validator, preflight, fixture capture)
 echo ""
-echo "[3/5] Installing Python dependencies..."
+echo "[4/5] Installing Python dependencies..."
 if pip3 install --quiet pyyaml jsonschema 2>/tmp/pip-install.log; then
   STATUS_PY="OK"
 else
@@ -87,12 +116,13 @@ echo "      $STATUS_PY"
 # .claude/commands/*.md, skills/*/SKILL.md and .claude/settings.json are picked up by
 # Claude Code just by being present in the project directory.
 echo ""
-echo "[4/4] Plugin files (.claude/commands, skills/) — auto-discovered, no install needed."
+echo "[5/5] Plugin files (.claude/commands, .opencode/, skills/) — auto-discovered, no install needed."
 
 echo ""
 echo "================================================================"
 echo "  Setup summary:"
 echo "    Claude Code CLI : $STATUS_CLAUDE"
+echo "    OpenCode        : $STATUS_OPENCODE"
 echo "    dtctl           : $STATUS_DTCTL"
 echo "    Python deps     : $STATUS_PY"
 echo "================================================================"

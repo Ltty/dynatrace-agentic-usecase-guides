@@ -11,6 +11,6 @@
     "commands/demo-doctor.md"
   ],
   "hooks": [
-    ".claude/hooks/guard-dtctl.py"
+    "tools/guard_dtctl.py"
   ]
 }
