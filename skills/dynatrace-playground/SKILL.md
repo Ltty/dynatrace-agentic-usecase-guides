@@ -92,7 +92,7 @@ it finds the smallest containing span by `[start, end]` interval rather than exa
     "records": [ ... ]     // per-row delta; absent key means use constant
   },
   "context": { "total": 5, "suggestions": [ ... ], "truncated": true },
-  "metadata": { "executionTimeMilliseconds": 46, "scannedBytes": 10064354, "queryId": "01a0e712-..." }
+  "metadata": { "executionTimeMilliseconds": 46, "scannedBytes": 10064354, "scannedRecords": 62398, "queryId": "01a0e712-...", "canonicalQuery": "fetch spans ..." }
 }
 ```
 
@@ -218,11 +218,12 @@ that in via `--context`; that's what turns a vague answer into a sharp, specific
 
 ## Placeholder resolution
 
-`.demo-state.json` → `placeholders` holds both representations:
+`.demo-state.<id>.json` → `placeholders` holds both representations:
+- `PROBLEM_ID` — the resolved problem's event id (primary; use this in DQL and deep links)
+- `PAYMENT_FAILURE_PROBLEM` — legacy alias for `PROBLEM_ID` used in payment-failure deep links
 - `TIMEFRAME_FROM` / `TIMEFRAME_TO` — epoch milliseconds, for Dynatrace app deep-link URLs
 - `DQL_TIMEFRAME_FROM` / `DQL_TIMEFRAME_TO` — ISO8601 strings, for use inside DQL `from:`/`to:`
-- `PAYMENT_FAILURE_PROBLEM` — the resolved problem's event id
 
 `python tools/preflight.py load-queries <id>` substitutes all of these at session start and
 returns pre-built DQL strings in the `queries` dict. When building a deep link by hand, read
-`.demo-state.json` yourself and substitute the epoch-ms pair.
+`.demo-state.<id>.json` yourself and substitute the epoch-ms pair.
