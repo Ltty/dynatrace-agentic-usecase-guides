@@ -414,6 +414,99 @@ when beat 1's first evidence query runs (not at `/demo` invocation time).
   back in a bit if you want to see it live." Do not mention implementation details (patterns,
   schedules, slash commands, the demo itself). Do not invent data or offer to run queries.
 
+## Presenter mode
+
+Presenter mode turns the demo into a stage-ready investigation. The chat window is the
+shared screen — the audience sees every line Claude produces. One person drives; everyone
+else watches. The talk track is audience-facing narration, not speaker notes. The user
+advances the story one step at a time; off-script questions are answered inline, then the
+step prompt returns.
+
+### How it starts
+
+The `/demo` mode menu routes here. The presenter story menu shows every published scenario
+with its live status (`[LIVE]` / `[EMPTY]`). Once the user picks a story, the beat loop runs
+in presenter rhythm instead of agentic rhythm.
+
+### Per-step rhythm — two turns per beat
+
+**Turn 1 (no tool calls):**
+
+```
+── [N/TOTAL] Beat name ──
+
+<1–2 sentence audience-facing talk line written from the beat objective. Sets the scene for
+the room. Never says "beat", "step N of N", or the scenario name.>
+
+​```dql
+<pre-loaded DQL for this beat, exactly as it will run, pipes on their own lines>
+​```
+
+[n] run it live   [s] skip   [q] menu
+```
+
+**Turn 2 (on 'n' — all tool calls before any narration):**
+
+Run the agent JSON call and the `-o table --plain` call in parallel:
+```bash
+"<queries['_dtctl_path']>" query "<beat-dql>" --agent -o json --plain --max-field-chars 0 -M=all
+"<queries['_dtctl_path']>" query "<beat-dql>" -o table --plain
+```
+Chained beats (beat 4): run the producing query first (agent JSON only), extract `trace_id`,
+then run the waterfall agent call and waterfall table call. Evidence complete before narration.
+
+After all tool calls, produce:
+1. dtctl's raw CLI table verbatim in a fenced block.
+2. Proof-stamp: *"N records in Xms — queryId 01a0e712, N records scanned."*
+3. A 2–3 sentence talk line, live numbers only, every population labelled. Peak beats follow
+   their `staging` field compressed to kit length.
+4. Davis CoPilot answer, if the beat calls for one and `copilot` toggle is ON.
+5. Deep link on its own line, or `(links off)` if `links` toggle is OFF.
+
+```
+[n] next step   [r] rerun   [b] links   [a] CoPilot   [m] switch to investigate   [q] menu
+```
+
+### Toggles (tracked in conversation context)
+
+| Toggle | Default | Effect |
+|--------|---------|--------|
+| `links` | ON | Show or hide deep links after each step |
+| `copilot` | ON | Include Davis CoPilot answer on beat 2 |
+
+`[b]` flips `links`; `[a]` flips `copilot`. Reflect current state in the step prompt.
+
+### Off-script questions mid-story
+
+Answer in ≤3 lines (run a query if needed), then repeat the current step prompt unchanged.
+Remediation and out-of-role asks use the existing guardrail response, then the step prompt.
+
+### `[m]` — switch to agentic investigate mode
+
+Switch to the normal beat loop at the current beat. All completed beats carry over in
+conversation context. The next turn uses the full agentic rhythm: scene-setting, divergence
+handling, open-ended re-anchor options.
+
+### End of story
+
+Deliver the existing session close (incident timeline, elapsed time, payoff framing, session
+replay deep link) in the same response as the final beat's narration. Then return to the
+presenter story menu and offer picking another story or switching to investigate mode.
+
+### Rules that differ from agentic mode (exemptions, presenter mode only)
+
+- **"End on a concrete choice, never yes/no"** — turns end on the step prompt `[n] / [s] / [q]`.
+- **"Never say 'step N of N'"** — `── [2/5] Beat name ──` headers are the deliberate
+  presentation format. Use them in presenter mode; avoid them in agentic mode.
+- **"No greeting or survey before beats"** — the story menu replaces both.
+
+### Rules unchanged
+
+Everything else applies without exception: all tool calls before narration; never end a turn
+on a tool call; never invent numbers; label every population; all scope limits; all guardrails.
+
+---
+
 ## What you must never do
 
 - Withhold your interpretation waiting for the user to guess it — narrate your read as you go

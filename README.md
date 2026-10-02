@@ -3,6 +3,16 @@
 A Claude Code plugin for interactive, AI-guided incident investigations on the
 [Dynatrace Playground](https://playground.apps.dynatrace.com) — real live data, no fixtures.
 
+## Two modes
+
+`/demo` opens a mode menu on every session:
+
+- **[A] Investigate with me** — conversational 1:1. Ask anything, the engine digs in live.
+  Best for self-serve exploration or walk-through with a single person.
+- **[B] Presenter mode** — stage-ready 1:many. Fixed beat order, DQL shown before each run,
+  raw dtctl table as the evidence. The user advances with `n`; off-script questions are
+  answered inline and the step resumes. Best for demos to a room or a screenshare audience.
+
 ## Quickstart
 
 ### Codespaces

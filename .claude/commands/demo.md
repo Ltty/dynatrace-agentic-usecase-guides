@@ -37,16 +37,18 @@ text around them — not eliminating the rows outright.
 
 ## Subcommands
 
-- `/demo` (no args) — greet, load silently. Does NOT surface any incident yet.
+- `/demo` (no args) — load silently, then show the mode menu (A or B).
+- `/demo investigate` — skip the mode menu; go straight to the SRE greeting (mode A).
+- `/demo present [id]` — skip the mode menu; go straight to the presenter story menu (mode B).
+  If `[id]` is given and published, skip the story menu too and start that scenario immediately.
 - `/demo list` — plain table of published scenarios (explicit fallback, bypasses the survey)
-- `/demo start <id>` — start a specific scenario directly
+- `/demo start <id>` — start a specific scenario in agentic mode directly
 - `/demo status` — current beat progress
 - `/demo recap` — incident timeline narrative
 - `/demo reset` — clear `.demo-state.json` and `.demo-state.*.json`
 
 **The problem survey is not a subcommand.** It's a standing behavior that triggers on natural
-language at any point in the conversation — see "The problem survey" below. `/demo` itself only
-loads and greets.
+language at any point in an agentic session — see "The problem survey" below.
 
 ---
 
@@ -65,10 +67,31 @@ will need, so beats can flow without additional file reads or resolve calls mid-
 4. Store all resolved states, manifests, and `queries` dicts in conversation context. The survey,
    beat loop, and `/demo start` all draw from this cached data — no additional tool calls needed.
 
-Then greet the user **in character**, as the on-call SRE persona, generically — not tied to
-any specific scenario or incident. Include 3 concrete example prompts so the user has
-something exact to try rather than guessing what phrasing works — every one of them (and any
-equivalent phrasing) triggers the same problem survey below:
+Then show the **mode menu** — the first visible output of the session, no text before it:
+
+```
+Dynatrace Playground — Astroshop
+
+  [A] Investigate with me  — ask anything, we dig in live together
+  [B] Presenter mode       — fixed run order, one step at a time, you drive with 'n'
+
+Pick A or B.
+```
+
+**Routing:**
+- `A` (or typing any survey-style question instead — "any problems?", "what's wrong?", etc.)
+  → greet in character and run the problem survey below, exactly as the existing agentic flow.
+- `B` → go to the **Presenter story menu** section below.
+- `/demo investigate` skips this menu and goes directly to the agentic greeting.
+- `/demo present [id]` skips this menu and goes directly to the presenter story menu (or
+  directly to the named scenario if `[id]` is valid and published).
+
+### Agentic greeting (mode A)
+
+After routing to A, greet **in character** as the on-call SRE persona, generically — not
+tied to any specific scenario or incident. Include 3 concrete example prompts so the user
+has something exact to try — every one of them (and any equivalent phrasing) triggers the
+problem survey:
 
 ```
 Hey — I'm your on-call SRE for the Astroshop environment on the Dynatrace Playground.
@@ -81,9 +104,8 @@ Ask me things like:
 Or tell me what you're actually looking for.
 ```
 
-Keep it short, in character, and end open. This is deliberately generic: today there's one
-scenario, but this same greeting still makes sense once there are ten — the starters are
-examples of a *kind* of question, not a fixed menu, and none of them name a specific scenario.
+This is deliberately generic — the starters are examples of a *kind* of question, not a
+fixed menu, and none of them name a specific scenario.
 
 ---
 
@@ -189,6 +211,36 @@ Which one do you want to dig into?
 - "what else" / "anything else" → re-survey or list remaining scenarios
 - Generic "yes" / "let's go" / "show me" (only makes sense after a survey already ran and
   named exactly one scenario) → `/demo start <that-scenario-id>`, starting at beat 1
+
+---
+
+## Presenter story menu (mode B)
+
+Shown when the user picks `[B]` at the mode menu, or runs `/demo present`. The resolve data
+from silent setup is already in context — derive `[LIVE]`/`[EMPTY]` from `mode`, step count
+from the beats list, and duration from `duration_minutes`.
+
+```
+Presenter mode — pick a story
+
+  1) Payment failure   5 steps  ~8–15 min  [LIVE]   [N] users, ended [N] min ago
+  2) Broken images     4 steps  ~8 min     [EMPTY]  no occurrence in 48h — skip
+
+  [b] links: ON   [a] Davis CoPilot: ON   [q] back
+```
+
+- `[LIVE]` — resolver returned `live_active` or `live_recent`; show users and recency.
+- `[EMPTY]` — resolver returned `no_live_problem`; note it but allow selection anyway (the
+  user may still want to walk through it for training).
+- Selecting a story runs the beat loop in presenter mode (see "Presenter mode" in SKILL.md).
+- `[b]` and `[a]` flip the `links` and `copilot` toggles; reflect the new state immediately.
+- `[q]` returns to the mode menu.
+
+### Presenter beat flow
+
+Each story runs the two-turn per-step rhythm documented in `skills/demo-engine/SKILL.md →
+"Presenter mode"`. At end of story, return here and offer picking another story or `[m]`
+switching to investigate mode.
 
 ---
 
