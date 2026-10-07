@@ -168,12 +168,14 @@ fetch spans, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 One row per operation in call order; sub-50 ms noise is dropped except DynamoDB, which is kept
 deliberately to show it's fast.
 
-**Reveal:** No exception and no failed span — `failed` is never true. This is pure latency. Inside the
+**Reveal:** The Lambda invocations themselves are not marked failed — this is latency, not an error. Inside the
 Lambda, the DynamoDB lookup and the S3 "check if image for screen size exists" take
 milliseconds; then "Resize original product image" takes almost the whole request — the
 resizing itself plus writing the result back to S3. The S3 check runs, and the resize happens
 anyway: the cache stopped short-circuiting. Say that as the read, and point at beat 2's commit
 for the code-level confirmation — don't state what the diff contains.
+
+Don't claim there are no errors anywhere. On some days the service also shows a single sampled failed `GET` span whose exception is a throttle ("SlowDown: Please reduce your request rate.") after about 7 seconds of retries. If the user asks about errors, query the failing spans for the window and quote the exception verbatim; it is a symptom of the resizes, not a separate cause.
 
 **Success signal:** User names the resize step as where the time goes, or asks why the cache
 check doesn't skip it.

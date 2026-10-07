@@ -99,9 +99,10 @@ Also open one deep link with substituted values and confirm the Dynatrace app lo
 - **Engine:** complete — session protocol, beat loop, divergence, persona, pacing.
 - **payment-failure scenario:** complete — resolver DQLs and all 5 beats with DQL inline.
 - **broken-images scenario:** complete — ported as a latency investigation, rebuilt against
-  live data. The plugin edition's reveals (DynamoDB `SlowDown` throttle, failing spans) no
-  longer match the Playground: current cycles have no exceptions and no failed spans, and the
-  time goes into an image resize that runs on every request after the deploy.
+  live data. The incident repeats every day: after a deploy around 03:00 UTC the Lambda resizes
+  every image on every request until a fix lands about 30 minutes later. A single sampled failed
+  `GET` span with a `SlowDown` throttle exists on some days only, so the beats do not depend on
+  it. The plugin edition tells the same story.
 
 ## Resolver notes (maintainers only)
 

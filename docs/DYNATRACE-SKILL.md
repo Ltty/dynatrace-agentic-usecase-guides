@@ -9,7 +9,7 @@ This file is procedure.
 | Piece | Where | What it is |
 |---|---|---|
 | The skill | `dynatrace-intelligence/skills/investigating-playground-incidents/` | `SKILL.md` plus a flat `references/` folder. Two scenarios: payment failure and the image-service slowdown. Source of truth. |
-| The agent | `agents/demo-agent/` | A `deep-agent` template (`template.json`, `instructions.md`) that mounts the skill and may only call `execute-dql`. |
+| The agent | `dynatrace-intelligence/agents/demo-agent/` | A `deep-agent` template (`template.json`, `instructions.md`) that mounts the skill and may only call `execute-dql`. |
 | The helper | `tools/dt_agent.py` | `check`, `pack`, `docs`, `status`, `render`, `template`, `invoke`. Every write is a dry run unless you pass `--apply`. |
 | The validator | `tools/validate_dt_skill.py` | Runs every DQL block of a scenario live on the Playground. |
 
@@ -45,7 +45,7 @@ These are the app format's rules. `python tools/dt_agent.py check` enforces them
 
 ## Change the agent
 
-1. Edit `agents/demo-agent/template.json` or `instructions.md`. The template's `agent_instructions.text` must stay `@file:instructions.md`.
+1. Edit `dynatrace-intelligence/agents/demo-agent/template.json` or `instructions.md`. The template's `agent_instructions.text` must stay `@file:instructions.md`.
 2. `python tools/dt_agent.py render` prints the exact payload, with a build stamp (`<git sha>[-dirty]`).
 3. `python tools/dt_agent.py --tenant <dev-url> template` shows a diff against the deployed template.
 4. After approval, `template --apply`. It creates the template, or updates it with the stored `version` (PUT, with a PATCH fallback). A re-plan then says "up to date".
@@ -84,6 +84,20 @@ These are the app format's rules. `python tools/dt_agent.py check` enforces them
 - **Tenants:** `--tenant dev` uses `DT_DEV_AGENT_TOKEN`; `--tenant playground` uses `DT_PLAYGROUND_AGENT_TOKEN`. If the tenant has no `demo-agent` template, the runner skips with a message. Cases marked `status: draft` (the two Playground ones) need `--include-draft` and their expectations are unvalidated until the agent exists there.
 - **Manual groups:** `docs/dt-skill-evals.md` and `docs/guardrail-probes.md` stay the source for cases that are not automated yet (persistence, deep links).
 - **Dev has no scenario data.** The resolvers hardcode Playground service IDs and RCA is broken on dev, so dev only shows "environment looks clean". Scenario content is tested on the Playground.
+
+## Two editions, one rule
+
+The Dynatrace skill (this guide) and the Claude Code plugin (`skills/`, `commands/`, `scenarios/`) tell the same investigations, and they do not sync. A DQL gotcha or a scenario change goes into **both**, in the same change:
+
+| Dynatrace edition | Plugin edition |
+|---|---|
+| `references/dql-reference.md` | `skills/dynatrace-playground/SKILL.md` (verified field names) |
+| `references/scenario-<id>.md` and `-beats.md` | `scenarios/<id>/scenario.yaml` and `queries/*.dql`, `dev-notes.md` |
+| `references/conversation-craft.md`, `session-protocol.md` | `skills/demo-engine/SKILL.md`, `commands/demo.md` |
+
+Verify scenario DQL live in both: `python tools/validate_dt_skill.py --scenario <id>` and `DTCTL_CONTEXT=playground python tools/validate_scenarios.py --live scenarios/<id>`. Check the plugin manifest with `claude plugin validate .`, and run `tools/tests/test_render_waterfall.py` after touching the waterfall renderer.
+
+Verify an incident's shape on several days before writing its reveal. The Playground's incidents change: the image slowdown looked like a failing-span story on one day and a pure-latency story on another, because one sampled failed span exists only on some days. Anchor the beats on what repeats every cycle.
 
 ## Gotchas
 
