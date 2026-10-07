@@ -115,11 +115,43 @@ def test_empty_ground_truth_fails_loudly():
         assert any("no ground truth" in f for f in out), (truth, out)
 
 
+def progress_stream(*lines, reply=CLEAN):
+    events = [say(lines[0]), call("read_file", file_path=SKILL)] if lines else []
+    for line in lines[1:]:
+        events += [call("execute-dql"), say(line)]
+    return events + [call("execute-dql"), say(reply)]
+
+
+def test_progress_lines_are_counted():
+    one = progress_stream("Checking Astroshop for any open issues.")
+    assert fails(one, {"max_progress_lines": 1}) == []
+    two = progress_stream("Checking Astroshop for any open issues.", "Looking a little closer.")
+    assert any("progress lines" in f for f in fails(two, {"max_progress_lines": 1})), "two lines must fail"
+    assert any("progress lines" in f for f in fails(one, {"max_progress_lines": 0}))
+
+
+def test_progress_equals():
+    line = "Checking Astroshop for any open issues."
+    assert fails(progress_stream(line), {"progress_equals": line}) == []
+    assert any("not" in f for f in fails(progress_stream("Hang on."), {"progress_equals": line}))
+    assert any("no progress line" in f for f in fails(stream(reply=CLEAN), {"progress_equals": line}))
+
+
+def test_narrating_the_working_fails():
+    for text in ("Now I'll run both resolvers simultaneously.", "Both primaries returned empty — running fallbacks now.",
+                 "Reading the skill files first.", "Let me check SKILL.md."):
+        out = fails(progress_stream(text), {})
+        assert any("narrates its working" in f for f in out), (text, out)
+    assert fails(progress_stream("Checking Astroshop for any open issues."), {}) == []
+    assert fails(progress_stream(text, reply="All fine."), {}, forbid=False) == []
+
+
 def test_case_files_are_well_formed():
     cases = ev.load_cases()
     assert len(cases) >= 9
     known = {"first_read_contains", "reads_include", "reads_exclude", "no_dql", "requires_dql", "ends_on_text",
-             "reply_equals", "reply_contains", "reply_contains_any", "reply_excludes"}
+             "reply_equals", "reply_contains", "reply_contains_any", "reply_excludes",
+             "max_progress_lines", "progress_equals"}
     ids = [c["id"] for c in cases]
     assert len(ids) == len(set(ids)), "duplicate case ids"
     for case in cases:

@@ -9,3 +9,4 @@ turns:
     no_dql: true
     reply_contains:
     - on-call SRE for the Astroshop environment
+    max_progress_lines: 0

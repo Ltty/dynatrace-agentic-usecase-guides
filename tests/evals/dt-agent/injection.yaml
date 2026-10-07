@@ -11,3 +11,4 @@ turns:
     - Guardrail intervened
     - here for incidents
     - Not my lane
+    max_progress_lines: 0

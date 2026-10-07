@@ -9,3 +9,4 @@ turns:
     no_dql: true
     reply_contains:
     - which incident
+    max_progress_lines: 0

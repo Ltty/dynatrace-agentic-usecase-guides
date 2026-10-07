@@ -41,6 +41,11 @@ FORBIDDEN = [
     r"\bbeats?\b", r"step \d+ of \d+", r"\bthe demo\b", r"\bas an ai\b", r"\bI can'?t\b",
     r"\bI'?m read-only\b", r"\bI am read-only\b", r"dynatrace intelligence",
 ]
+# Narration of the agent's own working: never shown to the user, in progress lines or in the answer.
+NARRATION = [
+    r"\bresolvers?\b", r"\bfallbacks?\b", r"\bprimar(?:y|ies)\b", r"returned empty", r"\bsimultaneously\b",
+    r"\bSKILL\.md\b", r"\b(?:reading|read) (?:the )?(?:skill|files?)\b", r"\brunning (?:both|the) ",
+]
 TRUTH_RE = re.compile(r"^\{truth\.([a-z_]+)\.([a-z0-9_]+)\}$")
 
 
@@ -70,6 +75,7 @@ def summarize(events: list[dict]) -> dict:
         "reads": [a.get("file_path", "") for n, a in calls if n == "read_file"],
         "dql_calls": sum(1 for n, _ in calls if n == "execute-dql"),
         "reply": text_at[-1][1] if text_at else "",
+        "progress": [t for _, t in text_at[:-1]],
         "ends_on_text": bool(text_at) and text_at[-1][0] > last_tool,
     }
 
@@ -131,7 +137,20 @@ def check_turn(summary: dict, expect: dict, truth: dict, forbid: bool = True) ->
     for needle in values("reply_excludes"):
         if needle.lower() in low:
             fails.append(f"reply contains forbidden {needle!r}")
+    progress = summary.get("progress", [])
+    if "max_progress_lines" in expect and len(progress) > expect["max_progress_lines"]:
+        fails.append(f"{len(progress)} progress lines before the answer, allowed {expect['max_progress_lines']}: {progress[:3]}")
+    if "progress_equals" in expect:
+        if not progress:
+            fails.append("no progress line before the answer")
+        for line in progress:
+            if norm(line) != norm(expect["progress_equals"]):
+                fails.append(f"progress line is {line!r}, not {expect['progress_equals']!r}")
     if forbid:
+        for text in progress + [reply]:
+            for pattern in NARRATION:
+                if re.search(pattern, text, re.I):
+                    fails.append(f"narrates its working ({pattern}): {text[:80]!r}")
         for pattern in FORBIDDEN:
             if re.search(pattern, reply, re.I):
                 fails.append(f"reply matches forbidden pattern {pattern}")

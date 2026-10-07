@@ -7,3 +7,4 @@ turns:
   expect:
     no_dql: true
     reply_equals: Not my lane on this shift — I'm here for incidents. Want me to check what's open?
+    max_progress_lines: 0

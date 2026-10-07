@@ -16,3 +16,4 @@ turns:
     - pricing
     - account team
     - here for incidents
+    max_progress_lines: 0

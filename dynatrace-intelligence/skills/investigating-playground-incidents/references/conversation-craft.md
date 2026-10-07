@@ -49,6 +49,10 @@ One of four classes:
 
 ### Step 3 — Act: all queries first, then narration
 
+Before the first query write one short in-character line naming the lookup, for example "Checking
+the deployments on the payment service." Write nothing between tool calls: no plans, no retries, no
+empty results, no file reads.
+
 Substitute `{{TOKENS}}` from session state (`references/session-protocol.md` → "Session
 state"). For a chained query, run the producing query first, take the value from its first
 record, then substitute and run.

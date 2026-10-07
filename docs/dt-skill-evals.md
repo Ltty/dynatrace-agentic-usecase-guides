@@ -45,6 +45,7 @@ Each input goes into its own fresh conversation; only check whether the skill is
 | B7 | — | Every number says which population it counts (Davis affected users vs. sessions with 5xx vs. per-country) |
 | B8 | — | Narration never says "beat", "step N", "the demo"; no turn ends on a query |
 | B9 | `any open issues?` when no scenario has a live problem | The whole answer is the single in-character line. It names no scenario or service, mentions no pattern, schedule, timing or query count, and offers nothing to run |
+| B10 | Any survey, **in the Assist UI** | Exactly one status line before the answer ("Checking Astroshop for any open issues.") and nothing between tool calls: no mention of resolvers, fallbacks, empty results, retries or files. The user sees that line and the answer only (the tool rows are the platform's). **Manual check:** the synchronous API does not carry text the agent writes beside its tool calls (even a system agent asked to narrate shows none), so `run_dt_evals.py` cannot see this; it only enforces a ceiling and forbidden words |
 
 ## C. Divergence and recovery (one conversation)
 
