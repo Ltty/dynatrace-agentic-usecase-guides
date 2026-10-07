@@ -4,6 +4,8 @@ A port of the [Claude Code plugin](../README.md) to the Dynatrace agentic skill 
 Same SRE-persona incident investigation, same live Playground data, same beat structure —
 restructured to run inside Dynatrace without a local CLI, Python tooling, or Claude Code.
 
+Procedures (layout rules, deploying, testing, adding a scenario): [docs/DYNATRACE-SKILL.md](../docs/DYNATRACE-SKILL.md). This file holds design notes and open items.
+
 ---
 
 ## What this is

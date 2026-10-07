@@ -57,12 +57,14 @@ feels like pair-debugging on a real incident.
 ## Directory map
 
 ```
-.claude/          Claude Code settings, hooks (guardrail enforcement)
+.claude/          Claude Code settings, hooks (guardrail enforcement), maintainer-only skills
 .claude-plugin/   Claude Code plugin manifest
 .opencode/        OpenCode plugin and command definitions
 skills/           Engine skill + Playground DQL skill (shared across harnesses)
 commands/         /demo and /demo-doctor slash commands (shared source)
 scenarios/        One folder per demo; schema in _schema/
+dynatrace-intelligence/  Dynatrace-native skill in the app layout (investigating-playground-incidents)
+agents/           Agent templates for the Dynatrace AI operator (demo-agent)
 tools/            Python validators, preflight scripts, shared guard hook
 docs/             AUTHORING.md, SECURITY.md, spike-notes.md
 ```
@@ -94,6 +96,8 @@ query against the Playground, not just static checks. Zero changes to `skills/` 
 
 ## Tooling reference
 
+- `python tools/dt_agent.py check|pack|docs|template|invoke` — check, copy, upload and test the Dynatrace
+  skill and `demo-agent`; every write is a dry run unless `--apply`. Procedure: `docs/DYNATRACE-SKILL.md`
 - `python tools/preflight.py check` — connectivity/auth/safety-level gate (what `/demo-doctor` runs)
 - `python tools/preflight.py preflight [--deep]` — go/no-go per published scenario (liveness check)
 - `python tools/preflight.py resolve <id> [--write]` — find the live problem, derive the incident
