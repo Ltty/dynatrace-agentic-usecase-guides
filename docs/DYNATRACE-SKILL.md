@@ -66,6 +66,21 @@ These are the app format's rules. `python tools/dt_agent.py check` enforces them
   - Before shipping on a tenant that has the dev copies, delete them, or the mount filter matches both sets by name. Do not upload user-owned copies to the Playground.
 - **Later:** apps will be able to ship agent templates as ready-made documents. Then `template.json` moves into the app, and `template` and `status` can be retired.
 
+## Release to the Playground
+
+The route is the `dynatrace.use.case.guides` app (see "Dev and production routes"). Steps, in order:
+
+1. **Get three answers first** (ask in `#help-dti-agentic-ai`): is the app eligible to ship AI skills (the guide limits it to Dynatrace-internal apps) and does its ID need to be allowlisted; when does the Playground get the `@`-mention flag; can apps ship agent templates yet?
+2. **Copy the skill into the app repo:** `python tools/dt_agent.py pack --out <app-repo>`, review the dry run, then `--apply`, and commit in the app repo. `pack --check` later flags drift.
+3. **`dt-app deploy --dry-run`** in the app repo must list the 8 skill documents as `ai-agent-resource`. Fix any validation error it names.
+4. **Deploy the app to dev first** and look for documents with `originAppId = dynatrace.use.case.guides`. Delete the user-owned dev copies beforehand (needs explicit approval): the mount filter matches by name and would see both sets. Then run `python tools/run_dt_evals.py --tenant dev`.
+5. **Release the app to the Playground** through the app's own pipeline. Documents appear within 5 minutes.
+6. **Create the agent there:** `python tools/dt_agent.py --tenant https://playground.apps.dynatrace.com --token-var DT_PLAYGROUND_AGENT_TOKEN template`, then `--apply` after approval. Needs the token below, write access and the feature flag.
+7. **Run the full suite:** `python tools/run_dt_evals.py --tenant playground --include-draft`. The two Playground cases are drafts until they have run once against live data; tune them, then drop `status: draft`. Open every beat's deep link once. Check that a non-admin visitor can read the documents and run the agent: without the gateway scope the call fails outright.
+8. **Clean up:** expire the token and clear `DT_PLAYGROUND_AGENT_TOKEN`.
+
+The Playground token needs `ai:operator:execute`, `mcp-gateway:servers:read` and `:invoke`, `document:documents:read`, and the `storage:*:read` scopes for events, spans, `user.sessions`, `user.events` and buckets. It needs no document write, because the app ships the documents.
+
 ## Add a scenario
 
 1. Add `scenario-<id>.md` (persona, business context, scope, handoff fields, primary and fallback resolver) and `scenario-<id>-beats.md` to `references/`, copying an existing pair.
