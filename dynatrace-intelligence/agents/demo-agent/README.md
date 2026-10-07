@@ -16,4 +16,4 @@ python tools/dt_agent.py --tenant <url> invoke "any open issues?"    # smoke tes
 ```
 
 The token comes from `DT_DEV_AGENT_TOKEN`. Scopes, mount rules, deploy flow and the move to an app-shipped
-agent are in [docs/DYNATRACE-SKILL.md](../../docs/DYNATRACE-SKILL.md).
+agent are in [docs/DYNATRACE-SKILL.md](../../../docs/DYNATRACE-SKILL.md).

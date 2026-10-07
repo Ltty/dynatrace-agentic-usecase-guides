@@ -41,7 +41,7 @@ DOC_API = "/platform/document/v1/documents"
 DOC_TYPE = "ai-agent-resource"
 TOKEN_VAR = "DT_DEV_AGENT_TOKEN"
 REF_SUFFIXES = {".md", ".yaml", ".json"}
-AGENT_DIR = REPO_ROOT / "agents" / "demo-agent"
+AGENT_DIR = REPO_ROOT / "dynatrace-intelligence" / "agents" / "demo-agent"
 AI_API = "/platform-reserved/ai/v0.1"
 MAX_SKILL_LINES = 150
 LINK_RE = re.compile(r"\]\((references/[^)#\s]+)\)")
@@ -385,7 +385,7 @@ def cmd_pack(args: argparse.Namespace) -> int:
 def build_stamp() -> str:
     def git(*args: str) -> str:
         return subprocess.run(["git", *args], cwd=REPO_ROOT, capture_output=True, text=True).stdout.strip()
-    dirty = git("status", "--porcelain", "--", "dynatrace-intelligence", "agents")
+    dirty = git("status", "--porcelain", "--", "dynatrace-intelligence")
     return (git("rev-parse", "--short", "HEAD") or "unknown") + ("-dirty" if dirty else "")
 
 

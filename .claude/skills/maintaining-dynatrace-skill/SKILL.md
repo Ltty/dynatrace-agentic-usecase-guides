@@ -2,7 +2,7 @@
 name: maintaining-dynatrace-skill
 description: >
   Maintains the Dynatrace-native skill and the demo-agent in this repo. Use when editing
-  dynatrace-intelligence/, agents/demo-agent/ or tools/dt_agent.py, or when asked to check, pack,
+  dynatrace-intelligence/ (the skill and its agent) or tools/dt_agent.py, or when asked to check, pack,
   upload, deploy, test or evaluate the Dynatrace skill or agent. Not for the Claude Code plugin
   under skills/ or scenarios/.
 ---
@@ -30,7 +30,7 @@ holds the rules that must hold every time.
 
 - Skill change: edit, `python tools/dt_agent.py check`, `validate_dt_skill.py` for both scenarios,
   `docs` dry run, approved `docs --apply`, then the evals.
-- Agent change: edit `agents/demo-agent/`, `render`, `template` dry run, approved `template --apply`,
+- Agent change: edit `dynatrace-intelligence/agents/demo-agent/`, `render`, `template` dry run, approved `template --apply`,
   then `invoke`.
 - Run every behavioural test case at least three times: single runs mislead.
 - Keep `SKILL.md` under 150 lines, `references/` flat, and rationale out of the skill folder.

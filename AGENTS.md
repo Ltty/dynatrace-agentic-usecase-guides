@@ -63,8 +63,7 @@ feels like pair-debugging on a real incident.
 skills/           Engine skill + Playground DQL skill (shared across harnesses)
 commands/         /demo and /demo-doctor slash commands (shared source)
 scenarios/        One folder per demo; schema in _schema/
-dynatrace-intelligence/  Dynatrace-native skill in the app layout (investigating-playground-incidents)
-agents/           Agent templates for the Dynatrace AI operator (demo-agent)
+dynatrace-intelligence/  Dynatrace-native skill (app layout) and its agent template (agents/demo-agent)
 tools/            Python validators, preflight scripts, shared guard hook
 docs/             AUTHORING.md, SECURITY.md, spike-notes.md
 ```
