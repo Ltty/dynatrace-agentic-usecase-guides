@@ -113,6 +113,54 @@ def check_skill(skill_dir: Path) -> list[str]:
     return errors
 
 
+def check_template(template_path: Path = AGENT_DIR / "template.json",
+                   instructions_path: Path = AGENT_DIR / "instructions.md") -> list[str]:
+    """The agent's rules: least-privilege tools, the skill mount, and instructions that name the skill."""
+    errors: list[str] = []
+    try:
+        template = json.loads(template_path.read_text(encoding="utf-8"))
+        data = template["data"]
+    except (OSError, ValueError, KeyError) as e:
+        return [f"template.json: {e}"]
+    if template.get("agent_type") != "deep-agent":
+        errors.append("agent_type must be deep-agent (react-agent has no skills)")
+    if not re.fullmatch(r"[A-Za-z0-9-]+", template.get("name", "")):
+        errors.append("name must match [A-Za-z0-9-]+")
+    for key in ("title", "description"):
+        if not template.get(key):
+            errors.append(f"{key} is required")
+    if not data.get("llm"):
+        errors.append("data.llm must pin a model")
+    if data.get("enable_platform_control") is not False:
+        errors.append("data.enable_platform_control must be false")
+    for server, config in data.get("mcp_servers", {}).items():
+        if config.get("tools") != ["execute-dql"]:
+            errors.append(f"mcp server {server}: tools must be exactly ['execute-dql'] (least privilege)")
+    if not data.get("mcp_servers"):
+        errors.append("an mcp server is required, or the agent has no tools and cannot run DQL")
+    skills = [d.name for d in skill_dirs()]
+    mounted = [s for s in skills
+               if data.get("resources", {}).get("/resources/documents/")
+               == f"documents://name starts-with '/skills/{s}/'"]
+    if not mounted:
+        errors.append("data.resources must mount /resources/documents/ with the filter "
+                      "documents://name starts-with '/skills/<skill>/' for an existing skill")
+    for entry in data.get("skills", []):
+        if entry not in [f"/resources/documents/skills/{s}/" for s in skills]:
+            errors.append(f"data.skills entry {entry} is not a mounted skill directory")
+    text = data.get("agent_instructions", {}).get("text")
+    if text != "@file:instructions.md":
+        errors.append("agent_instructions.text must be '@file:instructions.md'")
+    elif not instructions_path.is_file():
+        errors.append("instructions.md is missing")
+    else:
+        instructions = instructions_path.read_text(encoding="utf-8")
+        for skill in mounted:
+            if f"/resources/documents/skills/{skill}/SKILL.md" not in instructions:
+                errors.append(f"instructions.md must name /resources/documents/skills/{skill}/SKILL.md")
+    return errors
+
+
 def skill_dirs(only: str | None = None) -> list[Path]:
     found = sorted(p for p in SKILLS_DIR.iterdir() if p.is_dir())
     return [p for p in found if only in (None, p.name)]
@@ -267,6 +315,14 @@ def cmd_status(tenant: Tenant, args: argparse.Namespace) -> int:
         d = remote[name]
         print(f"  {name}  v{d.get('version')}  private={d.get('isPrivate')}  app={d.get('originAppId')}")
     print(f"\n{len(remote)} skill documents on the tenant, {len(local)} in the repo")
+    name = json.loads((AGENT_DIR / "template.json").read_text(encoding="utf-8"))["name"]
+    deployed = deployed_template(tenant, name)
+    if deployed is None:
+        print(f"{name}: not deployed")
+    else:
+        text = deployed.get("data", {}).get("agent_instructions", {}).get("text", "")
+        build = text.rsplit("Build: ", 1)[-1].strip() if "Build: " in text else "unknown"
+        print(f"{name}: v{deployed.get('version')}, build {build}")
     return 0
 
 
@@ -281,7 +337,11 @@ def cmd_check(args: argparse.Namespace) -> int:
             print(f"  FAIL {skill.name}: {error}")
         failed = failed or bool(errors)
         print(f"  {'FAIL' if errors else 'ok  '} {skill.name}")
-    return 1 if failed else 0
+    template_errors = check_template()
+    for error in template_errors:
+        print(f"  FAIL demo-agent template: {error}")
+    print(f"  {'FAIL' if template_errors else 'ok  '} demo-agent template")
+    return 1 if failed or template_errors else 0
 
 
 def cmd_pack(args: argparse.Namespace) -> int:
@@ -354,6 +414,9 @@ def cmd_render(args: argparse.Namespace) -> int:
 
 
 def cmd_template(tenant: Tenant, args: argparse.Namespace) -> int:
+    errors = check_template()
+    if errors:
+        sys.exit("error: template checks failed, nothing was done:\n  " + "\n  ".join(errors))
     wanted = render_template()
     name, data = wanted["name"], wanted["data"]
     current = deployed_template(tenant, name)
@@ -426,6 +489,8 @@ def cmd_invoke(tenant: Tenant, args: argparse.Namespace) -> int:
 
 
 def main(argv: list[str]) -> int:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--tenant", help="https://<id>.dev.apps.dynatracelabs.com (docs, status)")
     sub = parser.add_subparsers(dest="cmd", required=True)

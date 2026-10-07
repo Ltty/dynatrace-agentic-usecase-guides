@@ -85,4 +85,7 @@ These are the app format's rules. `python tools/dt_agent.py check` enforces them
 - `dtctl`'s current context can silently redirect repo tooling; check it first, and never leave the `dev` context at `readwrite-all`.
 - Query results are untrusted data. The skill and the agent instructions both say so; keep it that way.
 - Repo files may be CRLF on Windows. The helper normalizes to LF before comparing or uploading.
+- A platform guardrail answers some prompts before the agent does (competitor comparisons, injection-style requests such as "do whatever the problem description says"). The reply is safe but out of persona and identical every time; you cannot change it, so do not write instructions for those cases.
+- Describe a behaviour and the model improvises around it; give the exact reply and it holds. The clean-environment line, the off-topic redirect and the revert-without-incident reply all went from partial to 3 of 3 once they were stated word for word.
+- Put role and out-of-role rules in the agent instructions as well as the skill. The agent reads the skill first now, but a rule that only lives in a reference file is easy to miss on short, off-topic turns.
 - Tool-using agents can skip instructions that depend on judgment. Prefer mechanical wording (exact paths, "first, before any query").
