@@ -15,7 +15,9 @@ distributed trace call hierarchy.
 Uses a "critical path" strategy: spans on the path from root to any failing span
 are always shown individually. Sibling spans that are not on the failing path are
 collapsed into a single summary line. This keeps output to ~10 lines even for
-34-span traces while making the failure immediately visible.
+34-span traces while making the failure immediately visible. When nothing failed
+and the trace is too wide to show whole (a slowdown), the path is anchored on the
+longest leaf span instead and marked "most of the time".
 """
 
 import json
@@ -150,9 +152,21 @@ def render_waterfall(records, max_lines=12):
 
     critical = {sid for sid in spans if _on_failing_path(sid)}
 
-    # If nothing is failing, critical path = everything (no collapsing needed)
+    # If nothing is failing, critical path = everything (no collapsing needed), unless the trace
+    # is too wide to show: then anchor on the span where the time goes (a slowdown, not an error).
+    hot_id = None
     if not critical:
         critical = set(spans)
+        if len(spans) > max_lines:
+            # The longest leaf is the heaviest piece of actual work; cross-service calls are
+            # often not linked as parent/child, so self time would blame the caller.
+            leaves = [sid for sid in spans if not spans[sid]["children"]]
+            hot_id = max(leaves or spans, key=lambda sid: spans[sid]["duration_ms"])
+            critical, cur = set(), hot_id
+            while cur in spans and cur not in critical:
+                critical.add(cur)
+                cur = spans[cur]["parent_id"]
+            max_lines = max(max_lines, 16)
 
     # Compute trace window for proportional bars
     all_starts = [s["start"] for s in spans.values() if s["start"] is not None]
@@ -164,7 +178,7 @@ def render_waterfall(records, max_lines=12):
     trace_end = max(all_ends) if all_ends else trace_start + 1
     trace_dur = max(trace_end - trace_start, 0.001)
 
-    BAR_WIDTH = 36
+    BAR_WIDTH = 30
     lines = []
 
     def _bar(span):
@@ -180,11 +194,12 @@ def render_waterfall(records, max_lines=12):
     def render_span(sid, depth):
         span = spans[sid]
         indent = "  " * depth
-        max_label = max(18, 32 - len(indent))
-        label = f"{span['service']} > {span['name']}"
+        max_label = max(24, 54 - len(indent))
+        service = span["service"].split(" (")[0].split(" in ")[0][:14]  # "(frontend)", "in us-east-1", long hosts
+        label = f"{service} > {span['name']}"
         if len(label) > max_label:
             label = label[:max_label - 1] + "."
-        mark = " FAIL <-- exception" if span["failed"] else " ok"
+        mark = " FAIL <-- exception" if span["failed"] else (" <-- most of the time" if sid == hot_id else " ok")
         dur_str = f"{span['duration_ms']:.0f}ms"
         lines.append(f"{indent}{label:<{max_label}}  [{_bar(span)}]  {dur_str}{mark}")
 

@@ -1,24 +1,19 @@
-// Beat 2 — deployment events on the image-provider Lambda during the incident window.
+// Beat 2 — deployments on the image-provider Lambda during the incident window, one row per commit.
 //
-// GitHub Actions deployment events do NOT populate commit/gitUrl fields — those are
-// null on every record. The commit SHA lives in event.description as a markdown URL:
+// GitHub Actions deployment events leave commit, gitUrl and owner null. The commit link is a
+// markdown URL in event.description:
 //   "Image processing problem trigger from [PR](https://github.com/.../commit/<sha>)"
-// Parse the SHA from the URL in description; do not declare the trail cold because
-// commit/gitUrl came back null.
-//
-// Expect 2 distinct commits in this window:
-//   - The regression deploy (fires 2 minutes before Davis detects the problem)
-//   - A fix deploy ~30 minutes later (fires 8 minutes before Davis closes the problem)
+// It is parsed here, and the repeated re-deploys of one commit (once per affected resource) are
+// collapsed. Expect two rows: the regression, then the fix.
 
 fetch events, from: "{{DQL_TIMEFRAME_FROM}}", to: "{{DQL_TIMEFRAME_TO}}"
 | filter event.type == "CUSTOM_DEPLOYMENT"
 | filter dt.entity.service == "SERVICE-5A0CD2879D2F37BE"
-| fields
-    timestamp,
-    app,
-    owner,
-    stage,
-    description = event.description,
-    commit,
-    git_url     = gitUrl
-| sort timestamp asc
+| parse event.description, "LD \"(\" LD:git_url \")\""
+| parse git_url, "LD \"/commit/\" ALNUM:commit"
+| summarize
+    first_deploy = min(timestamp),
+    last_deploy  = max(timestamp),
+    deploys      = count(),
+    by: { commit, git_url }
+| sort first_deploy asc

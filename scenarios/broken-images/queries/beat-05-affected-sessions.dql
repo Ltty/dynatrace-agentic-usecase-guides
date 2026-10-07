@@ -1,0 +1,28 @@
+// Beat 5 — real-user sessions that waited more than a second for a product image, by country,
+// with session replay availability.
+//
+// A slowdown does not show up as 5xx: slow requests still return 200, so error.http_5xx_count
+// finds almost nobody. Per-request RUM data is in user.events; join to user.sessions for replay.
+//   - dt.rum.user_type == "real_user" excludes the synthetic monitor
+//   - duration is nanoseconds
+//   - give the inner fetch of a lookup the same from/to as the outer one
+// No limit: sum the sessions column for the true total. It is a different population from Davis's
+// affected_users — label which is which.
+
+fetch user.events, from: "{{DQL_TIMEFRAME_FROM}}", to: "{{DQL_TIMEFRAME_TO}}"
+| filter characteristics.has_request == true
+| filter contains(url.full, "/api/images/")
+| filter dt.rum.user_type == "real_user"
+| filter toDouble(duration) > 1000000000
+| summarize slow_loads = count(), worst_ms = round(max(toDouble(duration)) / 1000000, decimals: 0),
+    by: { session_id = dt.rum.session.id, country = geo.country.iso_code }
+| lookup [fetch user.sessions, from: "{{DQL_TIMEFRAME_FROM}}", to: "{{DQL_TIMEFRAME_TO}}"
+          | fields session_id = dt.rum.session.id, has_replay = characteristics.has_replay],
+    sourceField: session_id, lookupField: session_id, prefix: "s."
+| summarize
+    sessions    = count(),
+    with_replay = countIf(s.has_replay == true),
+    slow_loads  = sum(slow_loads),
+    worst_ms    = max(worst_ms),
+    by: { country }
+| sort sessions desc

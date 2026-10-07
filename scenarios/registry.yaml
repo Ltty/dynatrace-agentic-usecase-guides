@@ -7,12 +7,12 @@ scenarios:
     path: scenarios/broken-images
     title: "Resolve production incidents faster: Broken product images"
     description: >
-      Product images are failing to load for hundreds of users. The image-provider Lambda
-      is being throttled by DynamoDB — trace the degradation from the Davis alert through
-      the failing spans to the root cause in the AWS SDK.
+      Product images are crawling for hundreds of users. After a deploy the image-provider
+      Lambda started resizing every image on every request — follow the slowdown from the
+      Davis alert through the deployment and the slow trace to the shoppers who waited.
     duration_minutes: [8, 15]
     state: published
-    tags: [incident-response, images, lambda, dynamodb, astroshop, tracing]
+    tags: [incident-response, images, lambda, latency, astroshop, tracing, rum]
 
   - id: payment-failure
     path: scenarios/payment-failure
