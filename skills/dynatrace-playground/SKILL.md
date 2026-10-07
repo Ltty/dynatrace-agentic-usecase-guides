@@ -1,3 +1,11 @@
+---
+name: dynatrace-playground
+description: >
+  Reference for running read-only DQL against the Dynatrace Playground with dtctl: the response
+  envelope, verified field names and gotchas, chained queries, and Davis CoPilot. Use when
+  querying the Playground with dtctl or debugging a DQL query on it.
+---
+
 # Dynatrace Playground — dtctl Reference Skill
 
 This skill teaches you how to query the Dynatrace Playground via `dtctl`
@@ -180,7 +188,10 @@ fetch events | filter event.type == "CUSTOM_DEPLOYMENT"
 // GitHub Actions events leave commit and gitUrl NULL. The commit SHA is embedded
 // in event.description as a markdown URL — always include it in the projection:
 // | fields timestamp, description = event.description, commit, git_url = gitUrl
-// Parse the SHA from the URL in description before declaring the trail cold.
+// Parse the SHA from the URL in description before declaring the trail cold — in DQL:
+// | parse event.description, "LD \"(\" LD:git_url \")\""
+// | parse git_url, "LD \"/commit/\" ALNUM:commit"
+// | summarize first_deploy = min(timestamp), deploys = count(), by: { commit, git_url }
 // A single regression deploy may appear multiple times (once per affected resource).
 // A fix deploy landing during the incident window appears as a second distinct
 // description URL — recognise it as the remediation, not a second regression.
@@ -195,6 +206,18 @@ fetch user.sessions
 | filter error.http_5xx_count > 0
 | summarize sessions = count(), with_replay = countIf(characteristics.has_replay == true),
     by: { country = geo.country.iso_code }
+
+// Slowdowns are not 5xx: slow requests still return 200, so error.http_5xx_count finds almost
+// nobody. Use per-request RUM data in user.events and join to user.sessions for replay:
+// fetch user.events
+// | filter characteristics.has_request == true and contains(url.full, "/api/images/")
+// | filter dt.rum.user_type == "real_user"          // excludes the synthetic monitor
+// | filter toDouble(duration) > 1000000000          // duration is nanoseconds
+// | summarize slow = count(), by: { session_id = dt.rum.session.id, country = geo.country.iso_code }
+// | lookup [fetch user.sessions | fields session_id = dt.rum.session.id, has_replay = characteristics.has_replay],
+//     sourceField: session_id, lookupField: session_id, prefix: "s."
+// Give the lookup's inner fetch the same from/to as the outer one. For a slowdown, filter spans on
+// duration, not request.is_failed: slow spans are usually not failed.
 
 // Problems: the pattern fires as a cluster of near-duplicate Davis problems.
 // dt.davis.is_duplicate == false selects Davis's own merged/umbrella problem —

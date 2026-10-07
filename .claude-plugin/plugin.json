@@ -3,14 +3,14 @@
   "version": "0.1.0",
   "description": "Interactive Dynatrace troubleshooting demos via guided CLI sessions on the Dynatrace Playground.",
   "skills": [
-    "skills/demo-engine/SKILL.md",
-    "skills/dynatrace-playground/SKILL.md"
+    "./skills/demo-engine",
+    "./skills/dynatrace-playground"
   ],
   "commands": [
-    "commands/demo.md",
-    "commands/demo-doctor.md"
+    "./commands/demo.md",
+    "./commands/demo-doctor.md"
   ],
   "hooks": [
-    "tools/guard_dtctl.py"
+    "./hooks/hooks.json"
   ]
 }

@@ -1,3 +1,7 @@
+---
+description: Check that the demo environment is ready (dtctl, authentication, read-only safety level, scenarios)
+---
+
 Run preflight checks for the Dynatrace Agentic Guides demo environment.
 
 ## Steps

@@ -1,3 +1,8 @@
+---
+description: Start the Dynatrace Agentic Use Case Guide demo (investigate, present, list, status, recap, reset)
+argument-hint: "[investigate | present [id] | list | start <id> | status | recap | reset]"
+---
+
 Entry point for the Dynatrace Agentic Use Case Guides.
 
 ## Your operating rules are already loaded — no action needed
