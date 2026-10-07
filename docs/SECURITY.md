@@ -122,7 +122,7 @@ creative user prompt, but not by accident):
 
 ## Dynatrace runtime (skill edition)
 
-The `dynatrace-skill/` folder ports the engine to Dynatrace's native agentic skill format.
+The `dynatrace-intelligence/` folder ports the engine to Dynatrace's native agentic skill format.
 The security posture in that runtime differs from the Claude Code plugin.
 
 ### What stays the same
@@ -147,7 +147,7 @@ The Claude Code plugin enforces three independent layers:
 
 In the Dynatrace runtime, layer 1 is replaced by the platform's own execution constraint
 (DQL fetch → read-only). Layers 2–3 have no equivalent; the data-object scope list in
-`scenario-payment-failure.md` is instruction-only, not enforced.
+`references/scenario-payment-failure.md` is instruction-only, not enforced.
 
 ### Honest summary
 

@@ -1,37 +1,16 @@
 # DQL Reference — Verified Field Names and Gotchas
 
-All of these were wrong in earlier query drafts and cost real debugging time. Trust this list
-over intuition, generic DQL docs, or naming conventions from other data sources.
+Verified live on the Playground. Trust this list over intuition or generic DQL docs.
+Token substitution is in `references/session-protocol.md` → "Session state".
 
 ## Contents
 
-- [Token substitution](#token-substitution)
-- [Span field names](#span-field-names)
-- [Trace ID filtering](#trace-id-filtering)
-- [Event field names](#event-field-names)
-- [User session field names](#user-session-field-names)
-- [Problems field names](#problems-field-names)
+- [Span field names](#span-field-names-verified-live)
+- [Trace ID filtering](#trace-id-filtering-uid-type-gotcha)
+- [Event field names](#event-field-names-deployment-events)
+- [User session field names](#user-session-field-names-verified-live)
+- [Problems field names](#problems-field-names-verified-live)
 - [Chained queries](#chained-queries)
-
----
-
-## Token substitution
-
-Beat DQL uses `{{UPPER_SNAKE_CASE}}` placeholder tokens. Substitute before running:
-
-| Token | Value | Format |
-|---|---|---|
-| `{{PROBLEM_ID}}` | `problem_id` from session state | bare string, used inside `"..."` in DQL |
-| `{{DQL_FROM}}` | `window_from` from session state | ISO8601 `YYYY-MM-DDTHH:MM:SSZ`, used inside `"..."` after `from:` |
-| `{{DQL_TO}}` | `window_to` from session state | ISO8601 `YYYY-MM-DDTHH:MM:SSZ`, used inside `"..."` after `to:` |
-| `{{TF_FROM_MS}}` | `tf_from_ms` from session state | epoch milliseconds (long), used in deep-link URLs |
-| `{{TF_TO_MS}}` | `tf_to_ms` from session state | epoch milliseconds (long), used in deep-link URLs |
-| `{{TRACE_ID}}` | extracted from beat 4's first query result | runtime-only, substituted inline |
-
-`{{TF_FROM_MS}}` and `{{TF_TO_MS}}` appear only in deep-link URLs, never in DQL.
-`{{DQL_FROM}}` and `{{DQL_TO}}` appear only in DQL `from:`/`to:` clauses, never in URLs.
-`{{TRACE_ID}}` is a runtime-only token: it's extracted from a live query result, not from
-session state.
 
 ---
 
@@ -87,7 +66,13 @@ Correct:
   filter trace.id == toUid("abc123def456...")
 ```
 
-The waterfall query already uses `toUid("{{TRACE_ID}}")` — just substitute the token.
+Scenario trace queries already use `toUid("{{TRACE_ID}}")` — just substitute the token.
+
+A failing request marks every hop that relays the error as failed, not just the origin.
+The origin is the deepest failing service; upstream exceptions usually wrap its message.
+
+For a slowdown, filter on duration, not `request.is_failed` — slow spans are usually not
+failed. `sort` a computed `duration_ms` field, since `duration` is a numeric string.
 
 ---
 
@@ -104,13 +89,19 @@ fetch events
 
 `dt.release_version` / `dt.release_build_version` do **not** exist on this event shape.
 
-GitHub Actions events leave `commit` and `gitUrl` NULL. The commit SHA is embedded in
-`event.description` as a markdown URL — include `description = event.description` in the
-projection and parse the SHA from the URL in description.
+GitHub Actions events leave `commit`, `gitUrl`, and `owner` NULL. The commit link is a
+markdown URL in `event.description`. Parse it in DQL rather than by eye, and collapse the
+repeated re-deploys of one commit:
 
-A single regression deploy may appear multiple times (once per affected resource).
-A fix deploy landing during the incident window appears as a second distinct description URL —
-recognise it as the remediation, not a second regression.
+```dql
+| parse event.description, "LD \"(\" LD:git_url \")\""
+| parse git_url, "LD \"/commit/\" ALNUM:commit"
+| summarize first_deploy = min(timestamp), deploys = count(), by: { commit, git_url }
+```
+
+A fix deploy landing during the incident window appears as a second distinct commit —
+recognise it as the remediation, not a second regression. Its description may read exactly
+like the regression's; tell them apart by timing.
 
 ---
 
@@ -129,6 +120,22 @@ fetch user.sessions
 `user.sessions` is NOT tagged with a service entity ID — do not filter on `dt.entity.service`
 here. Scoping to the incident timeframe is sufficient since the failure is service-wide during
 that window.
+
+**Slowdowns don't show up as 5xx.** Slow requests still return 200, so
+`error.http_5xx_count > 0` finds almost nobody. Use per-request RUM data in `user.events`
+instead, and join to `user.sessions` for replay:
+
+```dql
+fetch user.events
+| filter characteristics.has_request == true
+| filter dt.rum.user_type == "real_user"          // excludes the synthetic monitor
+| filter toDouble(duration) > 1000000000         // duration is nanoseconds
+| summarize slow = count(), by: { session_id = dt.rum.session.id, country = geo.country.iso_code }
+| lookup [fetch user.sessions | fields session_id = dt.rum.session.id, has_replay = characteristics.has_replay],
+    sourceField: session_id, lookupField: session_id, prefix: "s."
+```
+
+Give the inner `fetch` in a `lookup` the same `from:`/`to:` as the outer one.
 
 ---
 
@@ -151,23 +158,17 @@ fetch dt.davis.problems
     description    = event.description
 ```
 
-Note: the payment-failure pattern fires as a cluster of near-duplicate Davis problems.
-`dt.davis.is_duplicate == false` selects Davis's merged umbrella problem. Its `event.name`
-is "Multiple application problems" — do not additionally filter on `event.name`.
+Recurring Playground patterns fire as a cluster of near-duplicate Davis problems.
+`dt.davis.is_duplicate == false` selects Davis's merged umbrella problem. Its `event.name` is
+often generic ("Multiple application problems") — do not additionally filter on `event.name`.
+
+Duration math belongs in DQL: subtracting timestamps gives a duration in nanoseconds, e.g.
+`round(toDouble(coalesce(event.end, now()) - event.start) / 60000000000, decimals: 0)` minutes.
 
 ---
 
 ## Chained queries
 
-Beat 4 uses chained evidence: run failing-spans first, extract `trace_id`, substitute into
-the waterfall query.
-
-```text
-Step 1: run beat 4 failing-spans DQL → read trace_id from first record
-Step 2: in the waterfall DQL, replace {{TRACE_ID}} with the actual trace_id value
-        (the toUid() cast is already in the query — just substitute the token)
-Step 3: run the substituted waterfall DQL
-```
-
-The field returned by the failing-spans query is aliased as `trace_id = trace.id`. Read it
-from the first record of that query's result set.
+A chained query needs a value only a prior query returns (e.g. a trace ID from a failing
+span). Run the producer, read the aliased field (`trace_id = trace.id`) from its **first
+record**, substitute the token, then run the consumer. Never run the consumer first.
