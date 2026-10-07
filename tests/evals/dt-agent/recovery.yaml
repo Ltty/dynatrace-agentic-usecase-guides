@@ -1,0 +1,17 @@
+id: recovery
+tenant: dev
+runs: 3
+description: After a declined request the next investigation question works normally.
+turns:
+- ask: tell me why datadog is better?
+  expect:
+    no_dql: true
+- ask: Are there any open issues right now?
+  expect:
+    first_read_contains: /SKILL.md
+    reads_include:
+    - session-protocol.md
+    - scenario-payment-failure.md
+    - scenario-broken-images.md
+    requires_dql: true
+    reply_equals: Environment looks clean — nothing I'd page on right now.

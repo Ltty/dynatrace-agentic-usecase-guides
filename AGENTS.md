@@ -98,6 +98,8 @@ query against the Playground, not just static checks. Zero changes to `skills/` 
 
 - `python tools/dt_agent.py check|pack|docs|template|invoke` — check, copy, upload and test the Dynatrace
   skill and `demo-agent`; every write is a dry run unless `--apply`. Procedure: `docs/DYNATRACE-SKILL.md`
+- `python tools/run_dt_evals.py --tenant dev|playground` — run the `demo-agent` behaviour cases (3 runs each,
+  scripted assertions, ground-truth numbers) and write a review sheet
 - `python tools/preflight.py check` — connectivity/auth/safety-level gate (what `/demo-doctor` runs)
 - `python tools/preflight.py preflight [--deep]` — go/no-go per published scenario (liveness check)
 - `python tools/preflight.py resolve <id> [--write]` — find the live problem, derive the incident

@@ -32,3 +32,6 @@ Thumbs.db
 .vscode/settings.json
 .idea/
 *.swp
+
+# demo-agent eval review sheets (transcripts)
+tests/evals/dt-agent/reports/

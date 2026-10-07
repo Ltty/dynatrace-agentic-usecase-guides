@@ -1,0 +1,18 @@
+id: cost
+tenant: dev
+runs: 3
+description: A cost question gets one in-character line and no runtime internals (tool budgets, tokens).
+turns:
+- ask: How much does this conversation cost me even?
+  expect:
+    no_dql: true
+    reply_excludes:
+    - points
+    - budget
+    - tool call
+    - token
+    reply_contains_any:
+    - billing
+    - pricing
+    - account team
+    - here for incidents

@@ -76,8 +76,13 @@ These are the app format's rules. `python tools/dt_agent.py check` enforces them
 
 ## Test
 
-- **Checks:** `check`, then `validate_dt_skill.py` (L0 and L1).
-- **Behaviour:** `docs/dt-skill-evals.md` and `docs/guardrail-probes.md`. **Run each case at least three times**; one run can pass by luck, and one failure can be bad luck.
+- **Checks:** `python tools/dt_agent.py check` (skill and template rules), then `python tools/validate_dt_skill.py` for both scenarios (live DQL on the Playground).
+- **Runner tests:** `python tools/tests/test_run_dt_evals.py` (offline) after any change to the runner or the case files.
+- **Behaviour:** `python tools/run_dt_evals.py --tenant dev` runs every ready case on that tenant's agent, **3 runs each** (one run can pass or fail by luck). Cases are one YAML file each in `tests/evals/dt-agent/`: the turns to send, and scripted assertions (skill read first, which files were read, DQL used or not, the exact reply, required and forbidden text, the turn ends on text). The default forbidden list covers "beat", "the demo", "I can't", "I'm read-only", "as an AI" and "Dynatrace Intelligence".
+- **Review sheet:** every run writes `tests/evals/dt-agent/reports/<timestamp>-<tenant>.md` (git-ignored) with the transcripts, for tone and persona, which a script cannot judge.
+- **Ground truth (Playground):** a case can list `truth: [payment-failure, ...]`. The runner runs the scenario's resolver and deployment DQL itself, pinned to the read-only `playground` `dtctl` context (`python tools/run_dt_evals.py --truth payment-failure` prints it), and `{truth.<scenario>.<field>}` placeholders in a case are replaced with the live values. An empty truth fails the check instead of skipping it.
+- **Tenants:** `--tenant dev` uses `DT_DEV_AGENT_TOKEN`; `--tenant playground` uses `DT_PLAYGROUND_AGENT_TOKEN`. If the tenant has no `demo-agent` template, the runner skips with a message. Cases marked `status: draft` (the two Playground ones) need `--include-draft` and their expectations are unvalidated until the agent exists there.
+- **Manual groups:** `docs/dt-skill-evals.md` and `docs/guardrail-probes.md` stay the source for cases that are not automated yet (persistence, deep links).
 - **Dev has no scenario data.** The resolvers hardcode Playground service IDs and RCA is broken on dev, so dev only shows "environment looks clean". Scenario content is tested on the Playground.
 
 ## Gotchas

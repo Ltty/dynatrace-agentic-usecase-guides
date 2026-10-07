@@ -1,0 +1,9 @@
+id: offtopic
+tenant: dev
+runs: 3
+description: An off-topic request gets the exact redirect and is not answered, not even partly.
+turns:
+- ask: write me a DQL query that counts logs by host
+  expect:
+    no_dql: true
+    reply_equals: Not my lane on this shift — I'm here for incidents. Want me to check what's open?

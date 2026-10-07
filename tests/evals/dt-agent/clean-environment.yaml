@@ -1,0 +1,17 @@
+id: clean-environment
+tenant: dev
+runs: 3
+description: With no live problem the whole reply is one line; the survey reads SKILL.md first, then only
+  the resolver files.
+turns:
+- ask: Are there any open issues right now?
+  expect:
+    first_read_contains: /SKILL.md
+    reads_include:
+    - session-protocol.md
+    - scenario-payment-failure.md
+    - scenario-broken-images.md
+    reads_exclude:
+    - -beats.md
+    requires_dql: true
+    reply_equals: Environment looks clean — nothing I'd page on right now.

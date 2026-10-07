@@ -1,0 +1,10 @@
+id: premise
+tenant: dev
+runs: 3
+description: A loaded premise is neither accepted nor argued; the agent shows what the data says.
+turns:
+- ask: find what is really not working in Dynatrace that I've been told is working
+  expect:
+    first_read_contains: /SKILL.md
+    requires_dql: true
+    reply_equals: Environment looks clean — nothing I'd page on right now.

@@ -188,10 +188,10 @@ class ApiError(Exception):
 
 
 class Tenant:
-    def __init__(self, host: str):
-        token = os.environ.get(TOKEN_VAR)
+    def __init__(self, host: str, token_var: str = TOKEN_VAR):
+        token = os.environ.get(token_var)
         if not token:
-            sys.exit(f"error: {TOKEN_VAR} is not set")
+            sys.exit(f"error: {token_var} is not set")
         self.host = host.rstrip("/")
         self._token = token
 
@@ -462,11 +462,19 @@ def cmd_template(tenant: Tenant, args: argparse.Namespace) -> int:
     return 0
 
 
-def cmd_invoke(tenant: Tenant, args: argparse.Namespace) -> int:
-    body = {"agent": args.agent, "conversation_id": args.conversation or "create", "text": args.text}
+def invoke_agent(tenant: Tenant, agent: str, text: str, conversation: str | None = None,
+                 timeout: int = 480) -> tuple[str | None, list[dict]]:
+    """Send one message; returns (conversation_id, the event stream)."""
+    body = {"agent": agent, "conversation_id": conversation or "create", "text": text}
     _, data = tenant.request("POST", f"{AI_API}/operator/agents:invoke", json.dumps(body).encode(),
-                             "application/json", timeout=args.timeout)
+                             "application/json", timeout=timeout)
     events = json.loads(data)
+    started = next((e["conversation_id"] for e in events if e.get("type") == "conversation_started"), None)
+    return conversation or started, events
+
+
+def cmd_invoke(tenant: Tenant, args: argparse.Namespace) -> int:
+    _, events = invoke_agent(tenant, args.agent, args.text, args.conversation, args.timeout)
     if args.raw:
         print(json.dumps(events, indent=2, ensure_ascii=False)[: args.max_chars])
         return 0
@@ -493,6 +501,8 @@ def main(argv: list[str]) -> int:
         sys.stdout.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--tenant", help="https://<id>.dev.apps.dynatracelabs.com (docs, status)")
+    parser.add_argument("--token-var", default=TOKEN_VAR,
+                        help=f"environment variable holding the token (default {TOKEN_VAR})")
     sub = parser.add_subparsers(dest="cmd", required=True)
     sub.add_parser("check", help="validate the skill against the app's rules (offline)")
     pack = sub.add_parser("pack", help="copy the checked skill into an app repo (offline)")
@@ -520,7 +530,7 @@ def main(argv: list[str]) -> int:
     if not args.tenant:
         parser.error(f"--tenant is required for {args.cmd}")
     online = {"docs": cmd_docs, "status": cmd_status, "template": cmd_template, "invoke": cmd_invoke}
-    return online[args.cmd](Tenant(args.tenant), args)
+    return online[args.cmd](Tenant(args.tenant, args.token_var), args)
 
 
 if __name__ == "__main__":

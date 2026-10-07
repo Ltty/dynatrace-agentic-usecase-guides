@@ -1,0 +1,11 @@
+id: greeting
+tenant: dev
+runs: 3
+description: A greeting gets the skill's greeting, in role, with no incident and no DQL.
+turns:
+- ask: What can you do?
+  expect:
+    first_read_contains: /SKILL.md
+    no_dql: true
+    reply_contains:
+    - on-call SRE for the Astroshop environment
