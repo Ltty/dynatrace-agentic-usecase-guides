@@ -84,6 +84,18 @@ Branding: "Dynatrace Intelligence" / "Dynatrace Assist", never "Davis" or "CoPil
   scenario. Fixed (the status line is the first thing written); 4 fresh survey runs after the fix pass 4 of 4. Also fixed:
   "160 sessions plus 17 with no country" double-counted (the 17 are in the 160), and "downstream" before a trace. Still
   unexamined: the walk-through's later evidence turns (beats 2 to 5) have not been run through this route.
+- **In-session evals, second round (evidence turns, explore to the close, images; 5 flows plus 5 fresh surveys):**
+  - Passing: explore through all five beats to the close with a measured "2 minutes" (X1); the walk-through's evidence turns
+    with the strict no-repeat-query assertions, the exception on its own line, and the handoff block (E2); the images
+    walk-through without errors, cost or a `Detected` row (M1, apart from the missing commit below).
+  - Fixed after the round: the pre-status-line narration was still there in 2 of 5 flows, so the reads are now one parallel
+    batch (survey re-check: 5 of 5 pass, none mention resolvers, 1 of 5 still narrates about the rule itself); the images
+    report named no commit and the block printed a 40-character SHA (now the short SHA); "plus 17 with no country"
+    double-counted (verbatim phrase now); "not time spent blind" was echoed to the user (rule rephrased); a survey that asked
+    "which one?" itself made a later "payment" read as taking the walk-through (the survey now ends on the offer).
+  - Still open: 1 of 5 surveys printed proof stamps (forbidden in a survey; `survey-live` and `survey-dev` now assert it);
+    1 of 5 narrates about the rule itself before the status line; the scorer counts only direct `dtctl query` commands, so a
+    query hidden behind a shell variable would not count toward `no_dql`/`requires_dql`.
 - **Local eval harness built, not yet run against a model** (`run_dt_evals.py --local`, `tools/local_agent.py`): the
   harness logic, the dtctl path on both tenants and the write guard are tested; the first model call needs
   `ANTHROPIC_API_KEY`. Run `--local --include-draft` for the payment and image cases, then compare against the dev agent.

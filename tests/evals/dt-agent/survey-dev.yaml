@@ -22,6 +22,7 @@ turns:
     - through the whole thing
     reply_excludes:
     - Environment looks clean
+    - queryId
     - payment
     - image
     - cascad
