@@ -77,10 +77,13 @@ Branding: "Dynatrace Intelligence" / "Dynatrace Assist", never "Davis" or "CoPil
     now 0 to 1 of 3 on `survey-dev`, even with the sentence forbidden by example in the instructions and the protocol.
   - One `HTTP 500` ("technical error") from the platform in the third round; transient.
   - `explore-close-dev` is a draft and has not run.
-- **First in-session eval run (payment, Playground, 1 run each):** `survey-live` passes; `walk-through-opening-live` and
-  `walk-through-handoff-live` pass every content check (commit, users, cost, `Detected`, `Rate`, `Goes to`, `Still open`) and
-  fail one: the agent wrote "Now the three resolvers." between tool calls, which is forbidden and names resolvers. No scenario
-  leak and no disk scenario in the Playground survey. Single runs; repeat before trusting any of it.
+- **In-session evals, payment flows on the Playground (subagent plays the agent):** 8 runs of the 3- and 4-turn flows: opening
+  report 3 of 4, handoff block 3 of 4, manager's-words replies 2 of 3, survey 1 of 1. All failures had one cause: 2 of 8
+  agents narrated while reading the skill files, before the status line. The status line was exact in every run, the
+  `queryId`s were real, the three exact replies held, and no run leaked "the other scenarios are clean" or listed the disk
+  scenario. Fixed (the status line is the first thing written); 4 fresh survey runs after the fix pass 4 of 4. Also fixed:
+  "160 sessions plus 17 with no country" double-counted (the 17 are in the 160), and "downstream" before a trace. Still
+  unexamined: the walk-through's later evidence turns (beats 2 to 5) have not been run through this route.
 - **Local eval harness built, not yet run against a model** (`run_dt_evals.py --local`, `tools/local_agent.py`): the
   harness logic, the dtctl path on both tenants and the write guard are tested; the first model call needs
   `ANTHROPIC_API_KEY`. Run `--local --include-draft` for the payment and image cases, then compare against the dev agent.
