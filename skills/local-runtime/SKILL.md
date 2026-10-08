@@ -12,7 +12,7 @@ description: >
 The agent instructions (`dynatrace-intelligence/agents/demo-agent/instructions.md`) and the skill
 they name are written for the Dynatrace agent runtime. Follow them exactly, with these mappings.
 This file adds no behaviour of its own, apart from the local-only notes below on the Bash
-description, PowerShell and the authentication notice.
+description, PowerShell, the proof stamp and the authentication notice.
 
 ## Tool mapping
 
@@ -46,7 +46,9 @@ its output as `<dtctl>`. Then every query is:
 The envelope is `{ok, result: {kind, constant, records}, context: {total}, metadata}`.
 
 - A full row is `result.constant` merged with the record; the record wins, and an absent key is null.
-- Proof stamp fields: `metadata.queryId`, `metadata.scannedRecords`, `metadata.executionTimeMilliseconds`.
+- Proof stamp (local only; the Dynatrace agent shows none): after a beat's first query, one line
+  `queryId <metadata.queryId, copied exactly> · <metadata.scannedRecords> records scanned · <metadata.executionTimeMilliseconds> ms`.
+  Never in the survey or the clean-environment reply, and none if the envelope has no metadata.
 - `ok: false` or a non-zero exit is a failed query; follow the skill's error handling.
 - Exit code 3 means authentication expired: the only time you step out of character, say one
   line asking the user to run `python tools/preflight.py login`, and stop.

@@ -4,7 +4,7 @@ How to run a scenario as a walk-through: you are the SRE calling a manager about
 manager is not technical and wants the story first: what happened, how it connects, what it cost,
 why it happened. The evidence comes after, as the proof for what you already said.
 
-The scenario files, queries, proof stamps and data-only rule are the same as in explore. This file
+The scenario files, queries and data-only rule are the same as in explore. This file
 lists what is different, and it is complete: where it is silent, the rule in
 `references/conversation-craft.md` applies.
 
@@ -72,8 +72,8 @@ order of the beats' Objectives:
 7. **The offer, exactly:** "I can show you how we know each of these, starting with [the second
    beat's subject, in plain words]."
 
-A part with no source in the results is left out. One proof stamp, for beat 1's first Evidence DQL
-block (none if its result carries no query metadata), and beat 1's deep link. The report stands in for beat 1: its evidence turn is not repeated.
+A part with no source in the results is left out. Beat 1's deep link
+closes it. The report stands in for beat 1: its evidence turn is not repeated.
 
 Each part is a claim. The evidence turns prove them.
 
@@ -85,8 +85,7 @@ as written. Evidence follows beat order; each turn names whichever claim it prov
 A turn has five parts, in this order:
 
 1. **The claim** it proves, one short clause: "I said the change is where it starts. Here it is."
-2. **The evidence:** the beat's table and the proof stamp. The stamp is from the beat's first query,
-   even when that query ran in the opening report. A time series is condensed to before, peak and
+2. **The evidence:** the beat's table. A time series is condensed to before, peak and
    after, plus the onset row when it differs from "before", with the span said in words; the full
    series is one deep link away.
 3. **What it adds** beyond the opening report, and where the data stops.
@@ -98,7 +97,7 @@ clause inside the explanation, then parts 2 to 5. A peak turn may run past 12 li
 end of the Staging is replaced by the closing line, and the replay link goes in as the deep link.
 
 Reuse the opening report's results; query again only for the blocks held back. Budget: 8–12 lines
-per turn, the proof stamp and deep link included.
+per turn, the deep link included.
 
 ## Closing lines
 

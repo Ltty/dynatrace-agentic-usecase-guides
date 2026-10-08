@@ -101,7 +101,7 @@ The Playground token needs `ai:operator:execute`, `mcp-gateway:servers:read` and
   `ANTHROPIC_API_KEY` in the environment (user level, then restart VS Code; never in a repo file) and nothing else: no
   deployed agent, no Dynatrace token. It tests the skill and the instructions, not the Dynatrace runtime: there is no
   platform guardrail, and results carry a `queryId` unless you pass `--metadata strip`, which approximates the runtime
-  that often returns none. Tool text written between calls appears here but not in the API stream, so progress-line
+  that often returns none. The skill has no proof stamp (only local `/demo` adds one), so the harness does not test it. Tool text written between calls appears here but not in the API stream, so progress-line
   assertions can differ. The `-live` cases that wait for an agent on the Playground can run this way today with
   `--include-draft`. Offline tests: `python tools/tests/test_local_agent.py`.
 - **In-session evals (no key, no deployed agent):** ask Claude Code in this repo to run a case. It spawns a subagent that
@@ -143,7 +143,7 @@ Local `/demo` includes the instructions, the adapter, `SKILL.md`, `session-proto
 
 Because the local runtime reads the repo files and the Dynatrace agent reads the uploaded documents, a skill change reaches `@demo-agent` only after `docs --apply`. Keep the two in step: upload after every merged skill change.
 
-The local runtime has two properties the Dynatrace one does not. `dtctl` returns an envelope whose `metadata` feeds the proof stamp, and every query passes `--context playground`, so a maintainer's saved context cannot redirect the demo. It also means local `/demo` cannot reach `disk-cpu-cascade`, which lives on the dev tenant.
+The local runtime has two properties the Dynatrace one does not. `dtctl` returns an envelope whose `metadata` feeds the local-only proof stamp, and every query passes `--context playground`, so a maintainer's saved context cannot redirect the demo. It also means local `/demo` cannot reach `disk-cpu-cascade`, which lives on the dev tenant.
 
 Verify an incident's shape on several days before writing its reveal. The Playground's incidents change: the image slowdown looked like a failing-span story on one day and a pure-latency story on another, because one sampled failed span exists only on some days. Anchor the beats on what repeats every cycle.
 

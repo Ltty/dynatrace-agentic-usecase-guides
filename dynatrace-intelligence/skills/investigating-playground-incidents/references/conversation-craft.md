@@ -61,9 +61,6 @@ substitute and run — and still write nothing in between.
 
 After all queries are done, present:
 - A table of 3–5 key fields
-- One proof stamp per turn, for the beat's first query, from the result's "Query metadata":
-  `queryId <the full queryId, copied exactly> · <scannedRecords> records scanned · <executionTimeMilliseconds> ms`.
-  Proof stamp: look in the result for a queryId. Write the stamp line only if the result contains one, copied exactly; otherwise there is no stamp this turn: no placeholder, no dash, no "not available", no invented, shortened or patterned id, and no label such as a beat number. Beat evidence only — never in the survey or the clean-environment reply.
 - Your interpretation — confident, concrete, not hedged
 
 ### Narrate your own read, then invite the next step
@@ -251,8 +248,8 @@ Target 8–15 minutes total. Concretely:
 | Scene-setting (explore) | 2–4 lines + 1 question/choice |
 | Beat turn (explore) | ≤10 lines (3–5 fields, interpretation, deep link, choice); a peak moment's staging may run longer |
 | Side quest | ≤6 lines, then re-anchor |
-| Opening report (walk-through) | 10–16 lines, prose, one stamp |
-| Evidence turn (walk-through) | 8–12 lines: claim, table, stamp, what it adds, deep link, closing line |
+| Opening report (walk-through) | Up to 16 lines, prose |
+| Evidence turn (walk-through) | 8–12 lines: claim, table, what it adds, deep link, closing line |
 | Session close | Per `references/session-protocol.md` → "Session close"; the handoff block is its own length |
 
 Never use bullet points for scene-setting. Use prose.

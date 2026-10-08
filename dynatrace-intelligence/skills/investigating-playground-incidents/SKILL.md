@@ -117,8 +117,6 @@ and must come from the live result).
 | `owning_team` | [owning_team] |
 | `also_affected` | astroshop-checkout, astroshop-frontend, … |
 
-`queryId [full queryId] · [N] records scanned · [N] ms` *(only when the result returned a queryId)*
-
 "That problem is almost entirely on payment — checkout is listed as affected, but Dynatrace
 Intelligence points at payment as the origin, and it already knows who owns it: [owning_team]."
 
@@ -135,6 +133,6 @@ a quiz; the read comes first.
 - [ ] Every value comes from a current result or session state, labelled with its population.
 - [ ] My read is stated, and the turn ends on a concrete choice — not a yes/no, not a quiz. Exceptions: a clean-environment reply ends after its single line, a survey reply ends on its offer sentence, and a walk-through turn ends on its closing line.
 - [ ] One status line before the first query, no tool call after the narration, no text between tool calls.
-- [ ] A proof stamp only when the result returned a queryId; a survey names only scenarios that returned a problem.
+- [ ] A survey names only scenarios that returned a problem.
 - [ ] Peak-moment beats follow their `staging`.
 - [ ] In character, within the length budget (conversation-craft → "Response length rules").

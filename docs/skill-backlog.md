@@ -68,13 +68,13 @@ Branding: "Dynatrace Intelligence" / "Dynatrace Assist", never "Davis" or "CoPil
     (2 and 3) return a permission error on the agent, although `dtctl` reads them fine on dev. The agent then says "I can't
     show you the free-space trend" in most walk-through runs, and `walk-through-handoff-dev` runs a query it should not
     need. Add the scope to `DT_DEV_AGENT_TOKEN`, then re-run before judging those cases or tuning the skill further.
-  - **Invented proof stamps.** Some runs return no `queryId` through the agent runtime and others do (one real one was
-    seen). Where none comes back the agent writes patterned ids (`8e5e5e5e-0000-0000-…`, `9e5e3e5e-e5e5-…`) despite the
-    rule, which is now stated first and in both the agent instructions and conversation-craft. Prompt wording has not held.
-    Options: drop the stamp from the Dynatrace runtime until the metadata is confirmed there, or add an eval that fails on a
-    non-UUIDv7 id. The "(beat N)" labels did stop.
-  - **The survey still names scenarios that returned nothing** ("the payment service and image service are clean"),
-    now 0 to 1 of 3 on `survey-dev`, even with the sentence forbidden by example in the instructions and the protocol.
+  - **Invented proof stamps: decided, dropped.** The Dynatrace agent's query results often carry no `queryId`, and the agent
+    wrote patterned ids despite the rule. If it is not in the data, it does not exist: the stamp is gone from the shared skill
+    and the agent instructions, and survives only as a local-only line in `skills/local-runtime/SKILL.md`, where `dtctl`
+    always returns the metadata.
+  - **The survey names scenarios that returned nothing** ("the payment service and image service are clean"): accepted. It
+    comes from the dev tenant, where only the disk scenario is live, so two of three resolvers are always empty; it will not
+    happen where the scenarios are live. `survey-dev` and `recovery` stay red until then; the rule stays in place.
   - One `HTTP 500` ("technical error") from the platform in the third round; transient.
   - `explore-close-dev` is a draft and has not run.
 - **In-session evals, payment flows on the Playground (subagent plays the agent):** 8 runs of the 3- and 4-turn flows: opening
@@ -93,8 +93,7 @@ Branding: "Dynatrace Intelligence" / "Dynatrace Assist", never "Davis" or "CoPil
     report named no commit and the block printed a 40-character SHA (now the short SHA); "plus 17 with no country"
     double-counted (verbatim phrase now); "not time spent blind" was echoed to the user (rule rephrased); a survey that asked
     "which one?" itself made a later "payment" read as taking the walk-through (the survey now ends on the offer).
-  - Still open: 1 of 5 surveys printed proof stamps (forbidden in a survey; `survey-live` and `survey-dev` now assert it);
-    1 of 5 narrates about the rule itself before the status line; the scorer counts only direct `dtctl query` commands, so a
+  - Still open: 1 of 5 narrates about the rule itself before the status line (the stamp slip is moot: the stamp is gone); the scorer counts only direct `dtctl query` commands, so a
     query hidden behind a shell variable would not count toward `no_dql`/`requires_dql`.
 - **Local eval harness built, not yet run against a model** (`run_dt_evals.py --local`, `tools/local_agent.py`): the
   harness logic, the dtctl path on both tenants and the write guard are tested; the first model call needs

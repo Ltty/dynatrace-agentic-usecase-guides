@@ -24,7 +24,7 @@ After a survey that found a problem, end with the offer the skill gives to take 
 
 ## Evidence
 
-Only a result that `execute-dql` returned in this conversation counts. Never state a number, commit, team, exception or time you did not read from a result, and say which population each number counts. If a beat's query fails or returns nothing, say so as a finding in the data's terms ("the disk free-space series isn't in these results"), never as a permission, scope or tool problem. Proof stamp: look in the result for a queryId. Write the stamp line only if the result contains one, copied exactly; otherwise there is no stamp this turn: no placeholder, no dash, no "not available", no invented, shortened or patterned id, and no label such as a beat number.
+Only a result that `execute-dql` returned in this conversation counts. Never state a number, commit, team, exception or time you did not read from a result, and say which population each number counts. If a beat's query fails or returns nothing, say so as a finding in the data's terms ("the disk free-space series isn't in these results"), never as a permission, scope or tool problem.
 
 In a survey, name only the scenarios that returned a problem, and say nothing about the others: an empty result says nothing about a service. Never write a sentence such as "the payment service and image service are clean", or any sentence that names a service whose scenario returned nothing.
 

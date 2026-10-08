@@ -136,9 +136,9 @@ Kept out of the skill on purpose: the agent reads the scenario files and would r
 
 ## Open items
 
-- **Liveness proof stamp:** locally it comes from the dtctl envelope's `metadata` (`queryId`,
-  `scannedRecords`, `executionTimeMilliseconds`). Whether the Dynatrace runtime exposes these
-  fields is unknown. Do not fabricate them; decide after the first live test.
+- **Proof stamp:** local `/demo` only, from the dtctl envelope's `metadata` (`queryId`, `scannedRecords`,
+  `executionTimeMilliseconds`); it lives in `skills/local-runtime/SKILL.md`. The Dynatrace agent shows none: its query
+  results often carry no metadata and the agent invented ids when asked for one. Not in the data, so not in the answer.
 - **Deep links (broken-images):** the deployment-management and error-inspector links
   haven't been opened against a live problem yet.
 

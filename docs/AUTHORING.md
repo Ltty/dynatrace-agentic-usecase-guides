@@ -137,7 +137,7 @@ It reads your two files and runs your queries. It will:
 - when the user asks to be walked through it, deliver the same beats as a report and close with a handoff
   block built only from your Handoff fields table. A value the table has no source for is left out of the
   block, so say plainly there when a scenario has no owning team or no user count;
-- show a proof stamp (query ID, records scanned, milliseconds) after each beat's evidence.
+- show no query ID: local `/demo` adds a proof stamp from the dtctl envelope, the Dynatrace agent shows none.
 
 It will not guarantee that entity IDs stay stable if the Playground is reset, and it does not parse a failure
 rate out of the problem description text: take exact rates from an evidence query.
