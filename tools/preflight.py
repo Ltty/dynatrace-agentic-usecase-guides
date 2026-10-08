@@ -929,13 +929,20 @@ def main():
     if args[0] == "load-queries" and len(args) >= 2:
         sys.exit(load_queries(args[1]))
 
+    if args[0] == "dtctl-path":
+        # Bare `dtctl` when it is on PATH, so the `Bash(dtctl query *)` allow rule matches;
+        # otherwise the full path, with forward slashes for Git Bash.
+        import shutil
+        print("dtctl" if shutil.which("dtctl") else DTCTL.replace("\\", "/"))
+        sys.exit(0)
+
     if args[0] == "login":
         codespace_login()
         # codespace_login() always calls sys.exit() itself; this is unreachable.
 
     print(f"Usage: {sys.argv[0]} [check|preflight [--deep]|resolve <scenario-id> [--write]|"
           f"run-query <scenario-id> <dql-path> [--var KEY=VALUE ...] [--render waterfall]|"
-          f"load-queries <scenario-id>|login]",
+          f"load-queries <scenario-id>|dtctl-path|login]",
           file=sys.stderr)
     sys.exit(2)
 
