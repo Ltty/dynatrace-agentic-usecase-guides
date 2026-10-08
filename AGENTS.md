@@ -1,8 +1,10 @@
 # Dynatrace Agentic Use Case Guides
 
-Skills are loaded separately by each harness:
-- **Claude Code:** `CLAUDE.md` imports `skills/demo-engine/SKILL.md` and `skills/dynatrace-playground/SKILL.md` via `@import`.
-- **OpenCode:** `opencode.json` `instructions` array loads the same files.
+The demo runs on one skill for both runtimes: `dynatrace-intelligence/skills/investigating-playground-incidents/`
+with the agent prompt `dynatrace-intelligence/agents/demo-agent/instructions.md`. Locally, `/demo` loads both plus
+`skills/local-runtime/SKILL.md` (dtctl in place of the Dynatrace tools). Nothing loads the persona outside `/demo`,
+so ordinary sessions in this repo stay normal. The rest of this file still describes the retired plugin engine in
+places; it is rewritten in Phase 4 of the port.
 
 ## What this repo is
 

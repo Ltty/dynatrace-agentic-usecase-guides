@@ -840,60 +840,57 @@ def _dql_reachable() -> bool:
 
 
 def preflight_report(deep: bool = False) -> int:
-    """Print a go/no-go status line per published scenario and return an exit code.
+    """Print a go/no-go line per scenario, using the Dynatrace skill's own resolver DQL.
 
     Exit codes:
       0 — all scenarios live
       1 — at least one scenario empty or broken
-      2 — cannot determine (registry missing, DQL unreachable)
+      2 — cannot determine (DQL unreachable)
     """
-    print("=== presenter preflight ===")
+    import importlib.util
+
+    print("=== scenario liveness ===")
     print()
 
-    if not REGISTRY_PATH.exists():
-        print("[FAIL] registry not found — expected scenarios/registry.yaml")
-        return 2
-
-    scenarios = published_scenarios()
-    if not scenarios:
-        print("[INFO] no published scenarios found in registry")
-        return 2
-
+    # The demo always queries the read-only Playground, whatever the saved context is.
+    os.environ["DTCTL_CONTEXT"] = "playground"
     if not _dql_reachable():
         print("[FAIL] DQL not reachable — run /demo-doctor to fix auth first")
         return 2
 
-    all_live = True
+    spec = importlib.util.spec_from_file_location(
+        "validate_dt_skill", Path(__file__).parent / "validate_dt_skill.py")
+    skill = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(skill)
+
     live_ids = []
-    for s in scenarios:
-        scenario_id = s["id"]
+    for scenario_id, (resolver_file, _) in skill.SCENARIO_FILES.items():
         try:
-            rc, state = resolve_scenario(scenario_id, write_state=False, quiet=True)
-            if rc == 0 and state:
-                mode = state.get("mode", "live_active")
-                prob = state.get("problem", {})
-                display = prob.get("display_id", "?")
-                status = prob.get("status", "?")
-                users = prob.get("affected_users", "?")
-                detail = f"{display} {status}, {users} users ({mode})"
-                check(scenario_id, True, detail)
+            row = None
+            # Primary resolver, then the fallback, as the skill's session protocol does.
+            for block in skill.extract_dql_blocks(resolver_file)[:2]:
+                _, out, _ = run_dtctl("query", skill.strip_dql_comments(block), "-o", "json",
+                                      "--max-field-chars", "0")
+                envelope = parse_envelope(out)
+                rows = _flatten_records(envelope) if envelope and envelope.get("ok") else []
+                if rows:
+                    row = rows[0]
+                    break
+            if row:
+                mode = "live_active" if row.get("status") == "ACTIVE" or not row.get("ended") else "live_recent"
+                check(scenario_id, True, f"{row.get('display_id', '?')} {row.get('status', '?')}, "
+                                         f"{row.get('affected_users', '?')} users ({mode})")
                 live_ids.append(scenario_id)
-            elif rc == 1:
-                check(scenario_id, False, "EMPTY — no live problem in the last 48h")
-                all_live = False
             else:
-                check(scenario_id, False, "BROKEN — manifest or resolver fault")
-                all_live = False
+                check(scenario_id, False, "EMPTY — no live problem in the last 48h")
         except Exception as e:
             # One broken scenario must never abort the whole report.
             check(scenario_id, False, f"BROKEN — {e}")
-            all_live = False
 
     print()
-    live_str = ", ".join(live_ids) if live_ids else "none"
-    print(f"Result: {len(live_ids)} of {len(scenarios)} storylines live — presentable: {live_str}")
-
-    return 0 if all_live else 1
+    total = len(skill.SCENARIO_FILES)
+    print(f"Result: {len(live_ids)} of {total} scenarios live — {', '.join(live_ids) or 'none'}")
+    return 0 if len(live_ids) == total else 1
 
 
 def main():

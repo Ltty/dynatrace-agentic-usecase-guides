@@ -25,6 +25,9 @@ jobs:
         run: python tools/tests/test_guard_hook.py
       - name: Eval runner
         run: python tools/tests/test_run_dt_evals.py
+      # .claude/commands/ is what a cloned repo uses, commands/ what the plugin ships.
+      - name: Slash commands in sync
+        run: diff -r commands .claude/commands
       - name: Eval cases parse
         run: |
           python -c "import glob, yaml; fs = sorted(glob.glob('tests/evals/dt-agent/*.yaml')); [yaml.safe_load(open(f, encoding='utf-8'))['turns'] for f in fs]; print(len(fs), 'eval cases parse')"
