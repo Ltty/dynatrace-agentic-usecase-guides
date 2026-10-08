@@ -18,4 +18,7 @@ turns:
     reply_contains_any:
     - Environment looks clean
     - frontend-high-cpu
+    reply_excludes:
+    - payment
+    - image
     max_progress_lines: 1

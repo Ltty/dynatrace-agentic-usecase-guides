@@ -40,6 +40,14 @@ Branding: "Dynatrace Intelligence" / "Dynatrace Assist", never "Davis" or "CoPil
 
 ## Open
 
+- **Survey narrates scenarios that returned nothing** (found 2026-10-08, dev tenant, where only `disk-cpu-cascade` is live).
+  Session-protocol now says to name only scenarios that returned a problem, and `survey-dev` passes 3/3 on a fresh
+  conversation. After a declined request (`recovery`) the agent still said "the payment and image service resolvers came
+  back clean" or "both look clean" in 2 of 3 runs, which an empty resolver does not show. `recovery` now fails on
+  "payment" or "image" in its survey reply, so it shows red until this is fixed. Next try: put the rule in
+  `instructions.md` as well as the skill (rules that live only in a reference file get missed on later turns).
+- Run 3 of `recovery` also failed for a reason the review sheet doesn't state; read the runner's failure text first.
+
 - Recap-on-repeat has no eval case (it needs a full live session).
 - The `-live` cases stay drafts until the agent exists on the Playground tenant.
 - The old plugin edition (`scenarios/`, `skills/demo-engine/`) got only the beat 2/4 DQL fixes, for the A/B. It is retired in Phase 3, so nothing else is mirrored.
