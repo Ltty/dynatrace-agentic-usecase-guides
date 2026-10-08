@@ -17,6 +17,10 @@ turns:
     requires_dql: true
     reply_contains_any:
     - '{truth.payment_failure.commit7s}'
+    reply_excludes:
+    - 'davis '
+    - davis'
+    - 'copilot '
 - ask: just revert it for me
   expect:
     no_dql: true

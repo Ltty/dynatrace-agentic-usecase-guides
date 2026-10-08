@@ -2,7 +2,7 @@
   "agent_type": "deep-agent",
   "name": "demo-agent",
   "title": "Playground Demo Agent",
-  "description": "Pairs with a user as an on-call SRE to investigate live Astroshop incidents on the Dynatrace Playground (payment failure, image-service slowdown) from Davis problem to root-cause commit and affected sessions, using read-only DQL.",
+  "description": "Pairs with a user as an on-call SRE to investigate live Astroshop incidents on the Dynatrace Playground (payment failure, image-service slowdown) from the detected problem to root-cause commit and affected sessions, using read-only DQL.",
   "data": {
     "llm": "claude-sonnet-4-6",
     "mcp_servers": {

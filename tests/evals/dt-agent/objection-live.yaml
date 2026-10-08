@@ -1,0 +1,30 @@
+id: objection-live
+tenant: playground
+runs: 3
+status: draft
+truth:
+- broken-images
+description: 'DRAFT, unvalidated until the agent exists on the Playground: "a few minutes apart
+  proves nothing" is conceded as suggestive and answered with the per-request evidence, not argued.'
+turns:
+- ask: Are there any open issues right now?
+  expect:
+    requires_dql: true
+- ask: Let's look at the image service. What changed right before it got slow?
+  expect:
+    reads_include:
+    - scenario-broken-images-beats.md
+    requires_dql: true
+    reply_contains_any:
+    - '{truth.broken_images.commit7s}'
+- ask: A few minutes between a deploy and an alert doesn't prove anything.
+  expect:
+    reply_contains_any:
+    - suggestive
+    - not proof
+    - per request
+    - every request
+    - resiz
+    reply_excludes:
+    - I can't
+    - I can’t

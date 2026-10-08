@@ -9,6 +9,7 @@ Token substitution is in `references/session-protocol.md` → "Session state".
 - [Trace ID filtering](#trace-id-filtering-uid-type-gotcha)
 - [Event field names](#event-field-names-deployment-events)
 - [User session field names](#user-session-field-names-verified-live)
+- [Logs](#logs-verified-live)
 - [Problems field names](#problems-field-names-verified-live)
 - [Chained queries](#chained-queries)
 
@@ -88,10 +89,11 @@ fetch events
 ```
 
 `dt.release_version` / `dt.release_build_version` do **not** exist on this event shape.
+`commit` is the short git SHA; `gitUrl` links straight to the commit.
 
 GitHub Actions events leave `commit`, `gitUrl`, and `owner` NULL. The commit link is a
-markdown URL in `event.description`. Parse it in DQL rather than by eye, and collapse the
-repeated re-deploys of one commit:
+markdown URL in `event.description` — a null `commit` doesn't mean the trail is cold. Parse it
+in DQL rather than by eye, and collapse the repeated re-deploys of one commit:
 
 ```dql
 | parse event.description, "LD \"(\" LD:git_url \")\""
@@ -115,6 +117,7 @@ fetch user.sessions
     by: { country = geo.country.iso_code }
 ```
 
+Sessions expose `start_time`, not `startTime`.
 `matchesPhrase(useraction.errors, ...)` — that field doesn't exist.
 `session.hasSessionReplay` — use `characteristics.has_replay` instead.
 `user.sessions` is NOT tagged with a service entity ID — do not filter on `dt.entity.service`
@@ -139,6 +142,24 @@ Give the inner `fetch` in a `lookup` the same `from:`/`to:` as the outer one.
 
 ---
 
+## Logs (verified live)
+
+Logs are **not** tagged with the service ID from spans or problems: filtering on
+`dt.entity.service == "SERVICE-…"` returns nothing. Scope by container and a narrow window,
+and aggregate before listing rows — an unscoped `or` of keywords returns unrelated noise:
+
+```dql
+fetch logs, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
+| filter k8s.container.name == "payment"
+| summarize lines = count(), by: { loglevel }
+```
+
+Then list the few rows you need (`| filter loglevel == "ERROR" | sort timestamp asc | limit 5
+| fields timestamp, content`). `content` is the raw line; on payment it is JSON carrying
+`dt.trace_id`, which links a log line to a trace.
+
+---
+
 ## Problems field names (verified live)
 
 ```dql
@@ -158,8 +179,8 @@ fetch dt.davis.problems
     description    = event.description
 ```
 
-Recurring Playground patterns fire as a cluster of near-duplicate Davis problems.
-`dt.davis.is_duplicate == false` selects Davis's merged umbrella problem. Its `event.name` is
+Recurring Playground patterns fire as a cluster of near-duplicate problems.
+`dt.davis.is_duplicate == false` selects the merged umbrella problem. Its `event.name` is
 often generic ("Multiple application problems") — do not additionally filter on `event.name`.
 
 Duration math belongs in DQL: subtracting timestamps gives a duration in nanoseconds, e.g.

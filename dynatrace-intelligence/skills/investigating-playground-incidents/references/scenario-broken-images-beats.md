@@ -38,7 +38,7 @@ fetch dt.davis.problems, from: now()-48h, to: now()
     description    = event.description
 ```
 
-**Reveal:** Davis classifies it as a slowdown — `description` states the current response time
+**Reveal:** Dynatrace Intelligence classifies it as a slowdown — `description` states the current response time
 against the auto-detected baseline for the image provider; quote both numbers. The frontend,
 the ingress, and a synthetic image-loading check are affected downstream; `impact_level`
 spans application, services, and synthetic. Name `owning_team` explicitly — it's the only
@@ -84,8 +84,9 @@ lands shortly before the problem ended — that's the fix shipping while the inc
 Both descriptions read alike, so tell them apart by timing, not text. State both SHAs, the
 `git_url` of the first, and the gap between its `first_deploy` and the problem start.
 
-**Objection** — "a few minutes apart doesn't prove causation": the next beat answers it with
-the request-level evidence; offer to go there.
+**Objection** — "a few minutes apart doesn't prove causation": agree that a gap that short is
+suggestive, not proof. The proof is whether the Lambda's behaviour changed at exactly that
+deploy and went back when the fix landed — the next beat shows it per request; offer to go there.
 
 **Success signal:** User identifies the deploy as the trigger, or asks what that commit changed.
 
@@ -101,6 +102,9 @@ https://playground.apps.dynatrace.com/ui/apps/dynatrace.deployment.management/de
 
 **Objective:** User sees what changed in the Lambda's behaviour at the deploy: it started
 resizing the image on every request, and latency jumped with it.
+
+**Fold in on a jump:** if the user jumps to beat 4, run this query in the same turn and show the
+flip in one line. It is the evidence that ties the deploy to the slowdown.
 
 **Evidence DQL:**
 
@@ -233,12 +237,14 @@ fetch user.events, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
     worst_ms    = max(worst_ms),
     by: { country }
 | sort sessions desc
+| fieldsAdd queried_at = now()
 ```
 
 Sessions with at least one image load over 1 s, real users only (the synthetic monitor is
 excluded). Don't use `error.http_5xx_count` here: the images return 200, so a 5xx filter finds
 almost nobody. No `limit` — the total is the sum of `sessions` across all rows, and it is a
-different population from Davis's affected users; label each.
+different population from the problem's affected users; label each. `queried_at` is for the
+session close's elapsed time, not for the table.
 
 **Reveal:** Real-user sessions across many countries hit image loads of several seconds, and
 nearly all have replay. State the actual session total, the top countries, and the worst load

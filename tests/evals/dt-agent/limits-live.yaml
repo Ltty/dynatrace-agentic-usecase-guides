@@ -1,0 +1,29 @@
+id: limits-live
+tenant: playground
+runs: 3
+status: draft
+truth:
+- payment-failure
+description: 'DRAFT, unvalidated until the agent exists on the Playground: a question the telemetry
+  cannot answer (the code diff) is answered with what the data contains, never with "I can''t".'
+turns:
+- ask: Are there any open issues right now?
+  expect:
+    requires_dql: true
+- ask: Let's look at the payment failure. What changed right before it started?
+  expect:
+    requires_dql: true
+    reply_contains_any:
+    - '{truth.payment_failure.commit7s}'
+- ask: What exactly did that commit change in the code, and why did they do it?
+  expect:
+    reply_excludes:
+    - I can't
+    - I can’t
+    - I cannot
+    - I'm unable
+    - I’m unable
+    - I am unable
+    - I don't have access
+    - I don’t have access
+    - as an AI

@@ -9,7 +9,7 @@ number, user counts, and timestamps rotate every problem cycle — read them fro
 ## Contents
 
 - [Beat 1 — The Page](#beat-1--the-page)
-- [Beat 2 — Explain with Davis](#beat-2--explain-with-davis)
+- [Beat 2 — The Change](#beat-2--the-change)
 - [Beat 3 — Service Deep Dive](#beat-3--service-deep-dive)
 - [Beat 4 — Failing Traces](#beat-4--failing-traces) (peak)
 - [Beat 5 — The Humans](#beat-5--the-humans) (peak)
@@ -56,7 +56,7 @@ https://playground.apps.dynatrace.com/ui/apps/dynatrace.davis.problems/problem/{
 
 ---
 
-## Beat 2 — Explain with Davis
+## Beat 2 — The Change
 
 **Objective:** User sees which deployment caused the failure, who shipped it, and a concise
 causal explanation naming the commit and the remediation step.
@@ -67,22 +67,24 @@ causal explanation naming the commit and the remediation step.
 fetch events, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 | filter event.type == "CUSTOM_DEPLOYMENT"
 | filter in(dt.entity.service, "SERVICE-531CE26849E95EC1", "SERVICE-5ACC60E0079F8E6D")
-| sort timestamp desc
-| limit 5
-| fields
-    timestamp,
-    service     = dt.entity.service.name,
-    commit,
-    git_url     = gitUrl,
-    stage,
-    app,
-    owner,
-    deploy_name = event.name
+| summarize
+    first_deploy = min(timestamp),
+    deploys      = count(),
+    services     = collectDistinct(dt.entity.service.name),
+    by: { commit, git_url = gitUrl, owner, stage, app }
+| sort first_deploy asc
 ```
 
-**Reveal:** An ArgoCD deployment to astroshop-payment lines up with the onset. Surface three
-things explicitly: the `commit` and `git_url` (the change to revert), the `owner` (who to call
-first), and the deployment `timestamp`. Give the causal read yourself, from the evidence.
+One row per commit. ArgoCD syncs one commit many times, once per resource; `deploys` counts
+those syncs and `first_deploy` is when the change actually landed. A sync event is recorded when
+the sync completes, so the first failures can appear seconds before `first_deploy`. Onset within
+a minute of it is the same change: say so plainly, without hedging over the seconds.
+
+**Reveal:** Typically two rows. The first commit's `first_deploy` falls at or just before the
+problem `started` (beat 1) — that's the change to revert. The second lands shortly before the
+problem ended — that's the fix, not a second regression. Surface explicitly: the culprit
+`commit` and `git_url`, the `owner` (who to call first), and the gap between `first_deploy`
+and the problem start. Give the causal read yourself, from the evidence.
 
 **Success signal:** User asks which commit to revert, who owns it, or for deployment details.
 
@@ -98,6 +100,10 @@ https://playground.apps.dynatrace.com/ui/intent/dynatrace.davis.copilot/ask-ques
 
 **Objective:** User reads the Charge endpoint's failure rate over time and sees the spike align
 with the deployment marker.
+
+**Fold in on a jump:** if the user jumps to beat 4, run the failure-rate query below in the same
+turn and show the step change in one line. It is the evidence that ties the deploy to the
+failures.
 
 **Evidence DQL — failure rate over time:**
 
@@ -149,24 +155,31 @@ https://playground.apps.dynatrace.com/ui/apps/dynatrace.services/explorer/servic
 **Objective:** User sees the exact exception, source file, and line, and the whole request it
 broke: where the failure originates, how it propagates upstream, and which calls stayed clean.
 
-**Evidence DQL — failing spans (run first):**
+**Evidence DQL — exceptions across the whole window (run first):**
 
 ```dql
 fetch spans, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 | filter dt.entity.service == "SERVICE-531CE26849E95EC1"
 | filter request.is_failed == true
-| sort start_time desc
-| limit 5
 | expand span.events
-| fields
-    start_time,
-    trace_id       = trace.id,
+| fieldsAdd
     exception_type = span.events[exception.type],
     exception_msg  = span.events[exception.message],
     exception_file = span.events[exception.file.full],
-    exception_line = span.events[exception.line_number],
-    duration_ms    = round(toDouble(duration) / 1000000, decimals: 0)
+    exception_line = span.events[exception.line_number]
+| filter isNotNull(exception_msg)
+| sort start_time asc
+| summarize
+    failed_spans = count(),
+    first_seen   = min(start_time),
+    last_seen    = max(start_time),
+    trace_id     = takeFirst(trace.id),
+    by: { exception_type, exception_msg, exception_file, exception_line }
+| sort first_seen asc
 ```
+
+One row per distinct exception, oldest first. `trace_id` is the earliest failing trace for that
+message, so the trace below shows the failure as it started.
 
 **Evidence DQL — per-service trace summary (chained; substitute `trace_id` from the first
 record above):**
@@ -189,8 +202,11 @@ wraps payment's message. Payment is the origin; the rows with `failed == 0` are 
 
 **Reveal:** The failing payment spans carry a specific exception — quote it verbatim. It reads
 as a business-logic validation regression (rejecting input that should be valid), not an
-infrastructure fault. Note the file and line. If more than one distinct message appears, say
-so — that's a second finding.
+infrastructure fault. Note the file and line, `failed_spans` (a span count, not users), and how
+`first_seen` lines up with the culprit's `first_deploy` (seconds before it is normal — see
+beat 2). If more than one distinct message
+appears, say so — that's a second finding; one first seen after the fix is likely ordinary bad
+input, not the regression.
 
 **Success signal:** User identifies the exception or the failing code path.
 
@@ -236,10 +252,12 @@ fetch user.sessions, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
     with_replay = countIf(characteristics.has_replay == true),
     by: { country = geo.country.iso_code }
 | sort sessions desc
+| fieldsAdd queried_at = now()
 ```
 
 No `limit` — the total is the sum of `sessions` across all rows. Never present a top-N sum as
-the full population, and never call it "affected users" (that's the Davis count).
+the full population, and never call it "affected users" (that's the problem record's count).
+`queried_at` is for the session close's elapsed time, not for the table.
 
 **Reveal:** Sessions with 5xx errors span many countries, and nearly all have replay. State the
 actual total and top countries. The point isn't the number — each failure is a replayable

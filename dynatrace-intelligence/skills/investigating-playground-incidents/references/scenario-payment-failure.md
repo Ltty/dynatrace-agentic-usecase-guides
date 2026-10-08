@@ -58,8 +58,8 @@ which one a number counts.
 | Value | Source |
 |---|---|
 | `owning_team` | Beat 1 — The Page |
-| `commit`, `git_url`, `owner` | Beat 2 — Explain with Davis |
-| Davis affected users | resolver `affected_users` |
+| `commit`, `git_url`, `owner` | Beat 2 — The Change |
+| Affected users (problem record) | resolver `affected_users` |
 | Sessions with 5xx errors | Beat 5 — sum of `sessions` across all countries |
 | Per-country sessions | Beat 5 — individual rows |
 | Session replay link | Beat 5 deep link |
@@ -78,9 +78,11 @@ fetch dt.davis.problems, from: now()-48h, to: now()
 | limit 1
 | fieldsAdd window_from = event.start - 15m,
             window_to   = coalesce(event.end, now()) + 15m
-| fieldsAdd tf_from_ms   = toLong(window_from) / 1000000,
-            tf_to_ms     = toLong(window_to) / 1000000,
-            duration_min = round(toDouble(coalesce(event.end, now()) - event.start) / 60000000000, decimals: 0)
+| fieldsAdd tf_from_ms    = toLong(window_from) / 1000000,
+            tf_to_ms      = toLong(window_to) / 1000000,
+            duration_min  = round(toDouble(coalesce(event.end, now()) - event.start) / 60000000000, decimals: 0),
+            ended_min_ago = round(toDouble(now() - event.end) / 60000000000, decimals: 0),
+            queried_at    = now()
 | fields problem_id     = event.id,
          display_id,
          status         = event.status,
@@ -90,6 +92,8 @@ fetch dt.davis.problems, from: now()-48h, to: now()
          root_cause     = root_cause_entity_name,
          description    = event.description,
          duration_min,
+         ended_min_ago,
+         queried_at,
          window_from,
          window_to,
          tf_from_ms,
@@ -107,9 +111,11 @@ fetch dt.davis.problems, from: now()-48h, to: now()
 | limit 1
 | fieldsAdd window_from = event.start - 15m,
             window_to   = coalesce(event.end, now()) + 15m
-| fieldsAdd tf_from_ms   = toLong(window_from) / 1000000,
-            tf_to_ms     = toLong(window_to) / 1000000,
-            duration_min = round(toDouble(coalesce(event.end, now()) - event.start) / 60000000000, decimals: 0)
+| fieldsAdd tf_from_ms    = toLong(window_from) / 1000000,
+            tf_to_ms      = toLong(window_to) / 1000000,
+            duration_min  = round(toDouble(coalesce(event.end, now()) - event.start) / 60000000000, decimals: 0),
+            ended_min_ago = round(toDouble(now() - event.end) / 60000000000, decimals: 0),
+            queried_at    = now()
 | fields problem_id     = event.id,
          display_id,
          status         = event.status,
@@ -119,6 +125,8 @@ fetch dt.davis.problems, from: now()-48h, to: now()
          root_cause     = root_cause_entity_name,
          description    = event.description,
          duration_min,
+         ended_min_ago,
+         queried_at,
          window_from,
          window_to,
          tf_from_ms,

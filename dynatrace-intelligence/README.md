@@ -110,7 +110,7 @@ Kept out of the skill on purpose: the agent reads the scenario files and would r
 
 - `now()-48h`: payment-failure fires about twice a day and broken-images once a day (around 03:04 UTC), so 48 hours always spans at least one occurrence.
 - `±15m` window padding catches the culprit deploy just before onset, a clean baseline, and the recovery after the fix.
-- The fallback resolver drops `is_duplicate` and takes the largest-impact problem instead, for cycles where Davis didn't merge the near-duplicate problems.
+- The fallback resolver drops `is_duplicate` and takes the largest-impact problem instead, for cycles where the near-duplicate problems weren't merged.
 - The resolvers hardcode Playground service IDs, so on any other tenant the survey reports a clean environment.
 
 ## Open items
@@ -125,8 +125,12 @@ Agents run DQL through the MCP gateway tool `execute-dql` (server `dynatrace-mcp
 `dtp-mcp-gateway`), so SKILL.md names it as `dynatrace-mcp:execute-dql`. An agent that has no MCP
 server has no tools at all and cannot run the DQL in this skill.
 
-Davis CoPilot is not used: inside Assist or `@demo-agent` the agent is the copilot, so beat 2 gives
-the causal read itself.
+No separate AI call in beat 2: inside Dynatrace Assist or `@demo-agent` the agent already is
+Dynatrace Intelligence, so beat 2 gives the causal read itself.
+
+Naming: all Dynatrace AI is "Dynatrace Intelligence" and the chat interface is "Dynatrace Assist".
+The skill never says "Davis" or "CoPilot"; `dt.davis.*` fields and app IDs in links are identifiers
+and stay as they are.
 
 ## Format
 
