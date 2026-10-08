@@ -92,7 +92,7 @@ For each scenario in the SKILL.md registry, run its resolver. Then:
 2. Fill the scenario's discovery hook, and say it like a human SRE reporting to a peer, in the right
    tense. For a closed problem, "how long ago" comes from `ended_min_ago` (round to hours above 90
    minutes), never estimated from timestamps.
-3. End on 2–3 concrete entry angles (e.g. the deployment, the failing traces, the customers who hit
+3. End on 2–3 concrete entry angles (e.g. the deployment, the traces, the customers who hit
    it) — never a yes/no — then one closing sentence, exactly: "Or I can take you through the whole
    thing, start to finish." Naming an angle or a service sets `delivery` to `explore`. Taking the
    offer sets it to `walk-through`: read `references/walk-through.md` and open with its report,
@@ -115,10 +115,10 @@ evidence turn. It is part of the conversation, in character: it carries no "Writ
 ```text
 Incident handoff — [display_id]
 What happened:  [one plain sentence]
-When:           [started] to [ended, or "still open"], [duration_min] minutes (UTC)
+When:           [started] to [ended, or "still open"], [duration] (UTC)
 Detected:       problem opened [N] minutes after the first failed request
 Impact:         [count] [the population's own label], [cost]
-Rate:           [before] to [peak], back to [after]
+Rate:           [the beat 3 metric: failure rate, p50 latency], [before] to [peak], back to [after]
 Cause:          [what the evidence shows], commit [sha], shipped by [owner]
 Goes to:        [owning team, or the host and host group] — they act, we supply the evidence
 Evidence:       [problem link], [trace link], [replay link]
@@ -127,7 +127,11 @@ Still open:     [what the data does not show]
 
 - Every value comes from a result in this conversation, and from the scenario's "Handoff fields"
   table for who it goes to and which population label to use. A row with no such value is left out:
-  never "unknown", never "N/A", never a guessed team, and never a sentence saying it is left out.
+  never "unknown", never "N/A", never a guessed team, and never a sentence saying it is left out. A row keeps the parts that have a source
+  ("commit [sha]" without "shipped by [owner]") and is left out when none does.
+- `duration` is `duration_days` and `duration_hours` when the resolver returns them, else `duration_min` minutes.
+- `Impact` is the problem record's count with its label; add the beat 5 population, with its own label, once that
+  beat's query has run.
 - The cost is `affected_users × avg_order_value_usd`, only where the scenario defines it.
 - `Detected`, `Rate` and `Cause`'s commit come from the beats that return them; a scenario without
   them leaves those rows out.
@@ -152,12 +156,14 @@ Still open:     [what the data does not show]
 1. *Explore only:* the timeline, one sentence per beat, chronological, with the actual values you
    showed.
 2. Elapsed time: the latest `queried_at` seen in this conversation minus the survey's, in whole
-   minutes. If either is missing, leave the number out and say nothing about it.
+   minutes. If either is missing, leave the number out and say nothing about it. In a walk-through the number measures the opening report, which
+   pulls the whole picture at once.
 3. The payoff: "From the first look to the full picture in [X] minutes." followed by the scenario's
    `payoff` sentence, if its business context defines one. Without a measured X, the payoff sentence
    alone; with neither, nothing.
-4. The replay link, when the scenario's Handoff fields table has one.
-5. *Explore:* ask what they'd want to dig into next. *Walk-through:* "Happy to go back over any of
+4. The replay link, when the scenario's Handoff fields table has one and the handoff block has not already given it.
+5. *Explore:* ask what they'd want to dig into next, naming two or three angles; this replaces the beat's own closing
+   question. *Walk-through:* "Happy to go back over any of
    it."
 
 Asked for a recap after the close was already delivered: give a shorter version.

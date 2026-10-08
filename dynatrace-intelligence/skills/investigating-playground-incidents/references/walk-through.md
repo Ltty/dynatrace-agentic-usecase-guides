@@ -29,7 +29,9 @@ outright: "walk me through it", "take me through it", "brief me", "present it", 
 incident report", "report it to me". "Give me the summary" is not one of these: it asks for the
 handoff block.
 
-If no survey has run in this conversation, resolve the scenario first, as the survey does.
+If no survey has run in this conversation, resolve the scenario first, as the survey does. Read the
+scenario's beats file and `references/conversation-craft.md` before the opening report, if they are not
+already read.
 
 Never name the two ways of working to the user: no "walk-through", "briefing", "explore", "mode" or
 "presentation". They only see what happens next.
@@ -47,7 +49,9 @@ queries per beat.
 
 **Status line.** Exactly one line before the calls: "Pulling the whole picture together."
 
-**The report** is 10–16 lines, prose and labelled lines, no evidence table, in this order:
+**The report** is up to 16 lines, prose and labelled lines, no evidence table, in this order. Leave out any
+part the scenario has no source for. Where the parts do not fit a scenario (a state, not a change), tell it in the
+order of the beats' Objectives:
 
 1. **Lead paragraph, plain words:** what happened, when and for how long (times in UTC as
    returned), how many it affected and which population that counts, the cost, and whether it is
@@ -67,8 +71,8 @@ queries per beat.
 7. **The offer, exactly:** "I can show you how we know each of these, starting with [the second
    beat's subject, in plain words]."
 
-A part with no source in the results is left out. One proof stamp, for the first query, and the
-first beat's deep link. The report stands in for beat 1: its evidence turn is not repeated.
+A part with no source in the results is left out. One proof stamp, for beat 1's first Evidence DQL
+block, and beat 1's deep link. The report stands in for beat 1: its evidence turn is not repeated.
 
 Each part is a claim. The evidence turns prove them.
 
@@ -88,8 +92,9 @@ A turn has five parts, in this order:
 4. **The deep link.**
 5. **The closing line** (below).
 
-A peak moment keeps its Staging exactly: the finding alone on its own line first, then the pause,
-then part 1 as a clause inside the explanation, then parts 3 to 5.
+A peak moment keeps its Staging: the finding alone on its own line first, then the pause, then part 1 as a
+clause inside the explanation, then parts 2 to 5. A peak turn may run past 12 lines. A question or invitation at the
+end of the Staging is replaced by the closing line, and the replay link goes in as the deep link.
 
 Reuse the opening report's results; query again only for the blocks held back. Budget: 8–12 lines
 per turn, the proof stamp and deep link included.
@@ -97,24 +102,26 @@ per turn, the proof stamp and deep link included.
 ## Closing lines
 
 A turn ends on one line that says why the next piece follows from what was just shown, then names
-it. Not "Next is the exact exception" but the reason too. Illustrative shapes; the facts come from
-the results:
+it. Not "Next is the exact exception" but the reason too. Illustrative shapes (payment-failure); use the
+scenario's own terms, and take the facts from the results:
 
-- "The errors start with the change, so the question is what exactly it broke. That's the trace."
+- "The change lines up with the start, so the question is what exactly it broke. That's the trace."
 - "That's what broke. The next question is who felt it."
 - "That's who it hit. What's left is what we hand to the team."
 
-The user can answer "go on" and nothing else. Never five turns of "Shall I continue?". After the
-last evidence turn, the closing line is the handoff block (session-protocol → "Session close").
+The user can answer "go on" and nothing else. Never five turns of "Shall I continue?". The last
+evidence turn ends with the handoff block (session-protocol → "Handoff block"); where a scenario's last beat is
+itself the handoff, that turn is the block.
 
 ## What differs from explore
 
 - A turn ends on the closing line, not on a choice. Offer one path, never two.
 - Skip "Optional engagement". Never wait for a Success signal; advance on any acknowledgement.
-- After a detour, return to the thread: "Back to where we were — next is X." Not the explore
-  re-anchor, which offers options.
+- After a detour or an out-of-scope reply, return to the thread: "Back to where we were — next is X." Not
+  the explore re-anchor, which offers options.
 - The opening report is prose; evidence turns use tables.
-- In remediation and out-of-role replies, end with one path: the handoff block, or the open thread.
+- The exact replies in conversation-craft and the agent instructions keep their wording but end on one path:
+  the handoff block, or "Back to where we were — next is X."
 
 ## What the user says, what you do
 
@@ -123,7 +130,7 @@ last evidence turn, the closing line is the handoff block (session-protocol → 
 | "understood", "ok", "got it", "go on", "next", "yes" | Deliver the next evidence turn |
 | "what does that mean", "so what" | Say the same result in terms of consequence. No new query. See below |
 | "how do we know", "where's that from", "show me" | Name the data the claim comes from and give the deep link. Query only for data not pulled yet |
-| "what next", "what do we do", "wrap it up", "give me the summary" | The handoff block now (session-protocol → "Session close"), plus any held-back block its rows need |
+| "what next", "what do we do", "wrap it up", "give me the summary" | The handoff block now (session-protocol → "Handoff block"), plus any held-back block its rows need |
 | "was it a bug", "was that the fix", "was it global" | The exact replies below |
 | a specific question | Answer it from data, querying if needed, then one line back to the thread |
 | "let me look myself", "what would you check" | Set `delivery` to `explore` and end on 2–3 entry angles |
@@ -157,6 +164,10 @@ from the results:
   recorded. That's the count; the data says nothing more about reach."
 
 Never say "global outage" or "worldwide".
+
+These use payment-failure's terms. For another scenario keep the structure and substitute its own: the population
+label from the Handoff fields table instead of "sessions with errors", and the beat 4 finding instead of the
+exception. Never call a slowdown an error.
 
 ## Keeping it a conversation
 

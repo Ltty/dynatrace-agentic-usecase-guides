@@ -40,7 +40,7 @@ fetch dt.davis.problems, from: now()-48h, to: now()
 ```
 
 **Reveal:** The problem record names the payment service as root cause and counts a large
-number of affected users; quote the failing endpoint and the failure rate from `description`.
+number of affected users; quote the failing endpoint from `description`.
 Checkout shows as impacted, but `root_cause` points at payment — checkout is listed as affected,
 not named as the cause. This result has no call direction, so don't say
 checkout calls payment until the trace in beat 4 shows it. State the actual numbers, and name
@@ -59,7 +59,7 @@ https://playground.apps.dynatrace.com/ui/apps/dynatrace.davis.problems/problem/{
 ## Beat 2 — The Change
 
 **Objective:** User sees which deployment lines up with the start of the failure, who shipped
-it, and a concise read of the timing naming the commit and the remediation step.
+it, and a concise read of the timing naming the commit and who it goes to.
 
 **Evidence DQL:**
 
@@ -82,11 +82,11 @@ the sync completes, so the first failures can appear seconds before `first_deplo
 a minute of it is the same change: say so plainly, without hedging over the seconds.
 
 **Reveal:** Typically two rows. The first commit's `first_deploy` falls at or just before the
-problem `started` (beat 1) — that's the change to revert. The second lands shortly before the
+problem `started` (beat 1) — the change that lines up with the start. The second lands shortly before the
 problem ended and is not a second regression; whether the failures stop around it is for beat 3,
 and what it changed is in the diff, not the telemetry. Surface explicitly: the culprit
 `commit` and `git_url`, the `owner` (who to call first), and the gap between `first_deploy`
-and the problem start. Give the causal read yourself, from the evidence.
+and the problem start. Give the read yourself, from the timing.
 
 **Success signal:** User asks which commit to revert, who owns it, or for deployment details.
 
@@ -214,8 +214,7 @@ the owning team's call, not something the telemetry shows. Note the file and lin
 beat 2). Also state when the problem opened relative to the first failure: the problem's
 `started` (beat 1) against `first_seen`, both times and the gap, as a fact. Never call the gap
 time spent blind. If more than one distinct message
-appears, say so — that's a second finding; one first seen after the later deploy is likely
-ordinary bad input, not the regression.
+appears, say so — that's a second finding; one first seen after the later deploy is a separate finding, reported as returned.
 
 **Success signal:** User identifies the exception or the failing code path.
 

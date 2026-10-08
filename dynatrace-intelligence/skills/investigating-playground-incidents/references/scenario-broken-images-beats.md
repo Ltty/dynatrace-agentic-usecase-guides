@@ -81,7 +81,7 @@ These GitHub Actions events leave `commit` and `gitUrl` null; the query parses b
 markdown link in `event.description` and collapses the repeated re-deploys of one commit.
 
 **Reveal:** Typically two rows. The first commit lands a few minutes before the problem
-`started` (beat 1) and is re-deployed several times — that's the regression. The second
+`started` (beat 1) and is re-deployed several times — that's the lead suspect. The second
 lands shortly before the problem ended and is not a second regression; whether the slowdown
 stops around it is for beat 3, and what it changed is in the diff, not the telemetry. Both
 descriptions read alike, so tell them apart by timing, not text. State both SHAs, the
@@ -125,8 +125,7 @@ fetch spans, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 | fieldsAdd queried_at = now()
 ```
 
-**Reveal:** Before the regression deploy, `resizes` is zero — resized images are served from
-S3. From the deploy's bucket on, `resizes` equals `requests`: every single image request runs
+**Reveal:** Before the regression deploy, `resizes` is zero. From the deploy's bucket on, `resizes` equals `requests`: every single image request runs
 the full resize pipeline, and `p50_ms` jumps from tens of milliseconds to seconds. After the later
 deploy, resizes fall back to zero and latency recovers. State the actual before/after p50 and
 the buckets where it flips — that flip lines up with both commits.
@@ -181,7 +180,7 @@ it is fast.
 Lambda, the DynamoDB lookup and the S3 "check if image for screen size exists" take
 milliseconds; then "Resize original product image" takes almost the whole request — the
 resizing itself plus writing the result back to S3. The S3 check runs, and the resize happens
-anyway: the cache stopped short-circuiting. Say that as the read, and point at beat 2's commit
+anyway, which reads as the cache no longer short-circuiting. Say that as the read, and point at beat 2's commit
 for the code-level confirmation — don't state what the diff contains.
 
 Don't claim there are no errors anywhere. If the user asks about errors, query the failing spans for the window: a single sampled failed `GET` span may be there, with a throttle exception ("SlowDown: Please reduce your request rate.") after about 7 seconds of retries. Quote the exception verbatim; it is a symptom of the resizes, not a separate cause.

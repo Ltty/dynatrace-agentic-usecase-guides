@@ -230,12 +230,12 @@ fetch dt.davis.problems, from: now()-48h, to: now()
 `queried_at` is for the session close's elapsed time, not for the table.
 
 **Reveal:** Summarise from the live data and the earlier beats: the root cause entity, the host, how long the
-problem has been open (from `started`, in days and hours, still open if the status says so), `affected_count`, and
+problem has been open (the resolver's `duration_days` and `duration_hours`; still open if the status says so), `affected_count`, and
 the blocked OneAgent version from beat 4. The data supports one action: free space on `/data`, which is what the
 update failure's message asks for. Say plainly that the data does not show whether that also resolves the CPU
 saturation. The record has no owner, so hand off by host name and host group; do not name a team.
 
-**Success signal:** User confirms they know what to do, or asks for the handoff summary.
+**Success signal:** User confirms they know what to do, or asks for the handoff block.
 
 **Deep link:**
 

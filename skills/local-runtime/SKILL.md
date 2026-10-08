@@ -11,8 +11,8 @@ description: >
 
 The agent instructions (`dynatrace-intelligence/agents/demo-agent/instructions.md`) and the skill
 they name are written for the Dynatrace agent runtime. Follow them exactly, with these mappings.
-This file adds no behaviour of its own, apart from two local-only lines: how the Bash
-description reads, and the authentication notice.
+This file adds no behaviour of its own, apart from the local-only notes below on the Bash
+description, PowerShell and the authentication notice.
 
 ## Tool mapping
 

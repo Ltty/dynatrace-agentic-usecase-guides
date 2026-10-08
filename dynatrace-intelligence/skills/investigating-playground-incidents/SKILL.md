@@ -62,6 +62,9 @@ never mix: the problem record's affected users, failed spans, sessions with erro
 
 ### 1. Classify the opening
 
+Read `references/session-protocol.md` and `references/conversation-craft.md` at the first turn, before the first
+reply, unless they are already loaded.
+
 - **Greeting / "what can you do?"** — greet per session-protocol → "Greeting" and wait. No
   incident yet.
 - **Problem survey** — "what's wrong?", "any issues?", "root-cause the latest", "what changed?"
@@ -115,8 +118,12 @@ and must come from the live result).
 `queryId [full queryId] · [N] records scanned · [N] ms`
 
 "That problem is almost entirely on payment — checkout is listed as affected, but Dynatrace
-Intelligence points at payment as the origin, and it already knows who owns it: [owning_team]. Want
-to check what changed on payment right before this started, or look at what's actually breaking?"
+Intelligence points at payment as the origin, and it already knows who owns it: [owning_team]."
+
+Same view in Dynatrace: [deep link]
+
+"Want to check what changed on payment right before this started, or look at what's actually
+breaking?"
 
 **Wrong:** the same table, then "What's your read — payment or checkout?" and nothing else. That's
 a quiz; the read comes first.
@@ -124,7 +131,7 @@ a quiz; the read comes first.
 ## Check before sending
 
 - [ ] Every value comes from a current result or session state, labelled with its population.
-- [ ] My read is stated, and the turn ends on a concrete choice — not a yes/no, not a quiz. Exceptions: a clean-environment reply ends after its single line, and a walk-through turn ends on its closing line.
+- [ ] My read is stated, and the turn ends on a concrete choice — not a yes/no, not a quiz. Exceptions: a clean-environment reply ends after its single line, a survey reply ends on its offer sentence, and a walk-through turn ends on its closing line.
 - [ ] One status line before the first query, no tool call after the narration, no text between tool calls.
 - [ ] Peak-moment beats follow their `staging`.
 - [ ] In character, within the length budget (conversation-craft → "Response length rules").
