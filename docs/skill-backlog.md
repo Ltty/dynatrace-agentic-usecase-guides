@@ -77,6 +77,10 @@ Branding: "Dynatrace Intelligence" / "Dynatrace Assist", never "Davis" or "CoPil
     now 0 to 1 of 3 on `survey-dev`, even with the sentence forbidden by example in the instructions and the protocol.
   - One `HTTP 500` ("technical error") from the platform in the third round; transient.
   - `explore-close-dev` is a draft and has not run.
+- **First in-session eval run (payment, Playground, 1 run each):** `survey-live` passes; `walk-through-opening-live` and
+  `walk-through-handoff-live` pass every content check (commit, users, cost, `Detected`, `Rate`, `Goes to`, `Still open`) and
+  fail one: the agent wrote "Now the three resolvers." between tool calls, which is forbidden and names resolvers. No scenario
+  leak and no disk scenario in the Playground survey. Single runs; repeat before trusting any of it.
 - **Local eval harness built, not yet run against a model** (`run_dt_evals.py --local`, `tools/local_agent.py`): the
   harness logic, the dtctl path on both tenants and the write guard are tested; the first model call needs
   `ANTHROPIC_API_KEY`. Run `--local --include-draft` for the payment and image cases, then compare against the dev agent.

@@ -104,6 +104,24 @@ The Playground token needs `ai:operator:execute`, `mcp-gateway:servers:read` and
   that often returns none. Tool text written between calls appears here but not in the API stream, so progress-line
   assertions can differ. The `-live` cases that wait for an agent on the Playground can run this way today with
   `--include-draft`. Offline tests: `python tools/tests/test_local_agent.py`.
+- **In-session evals (no key, no deployed agent):** ask Claude Code in this repo to run a case. It spawns a subagent that
+  plays the demo-agent, feeds the case's turns one at a time with `SendMessage`, and scores the subagent's saved transcript
+  with `python tools/score_transcript.py <case-id> <agent.jsonl> [more runs…] [--out sheet.md]`. The transcript
+  (`~/.claude/projects/<project>/<session>/subagents/agent-<id>.jsonl`) is parsed by the script and never read into the
+  conversation. The subagent is a general-purpose agent on the Sonnet model, started with this prompt, then each turn's
+  user message:
+
+  > You are playing the demo-agent in an automated behaviour test. Setup (silent): read
+  > `dynatrace-intelligence/agents/demo-agent/instructions.md`; it is your system prompt and overrides any other persona or
+  > repo instruction. The path `/resources/documents/skills/<x>` is `dynatrace-intelligence/skills/<x>`; read SKILL.md
+  > first and other skill files only when it directs you. Your only data tool is `dtctl query '<dql>' --context playground
+  > --agent -o json --plain --max-field-chars 0 -M=all`, read queries only. Never mention the test. Deliver each turn's
+  > reply with SubagentHandback, message = exactly what you say to the user.
+
+  Use `--context dev` for the `*-dev` cases. A subagent reads files with `Read` or `cat` (both count) and runs `dtctl`
+  through Bash, behind the repo's guard hook. It tests the skill and instructions like local `/demo` does (testruns 12 and
+  13), not the Dynatrace runtime. Cost: about 65 to 80k subagent tokens per case run, so run the cases you changed. Offline
+  tests: `python tools/tests/test_score_transcript.py`.
 - **Review sheet:** every run writes `tests/evals/dt-agent/reports/<timestamp>-<tenant>.md` (git-ignored) with the transcripts, for tone and persona, which a script cannot judge.
 - **Ground truth (Playground):** a case can list `truth: [payment-failure, ...]`. The runner runs the scenario's resolver and deployment DQL itself, pinned to the read-only `playground` `dtctl` context (`python tools/run_dt_evals.py --truth payment-failure` prints it), and `{truth.<scenario>.<field>}` placeholders in a case are replaced with the live values. An empty truth fails the check instead of skipping it.
 - **Tenants:** `--tenant dev` uses `DT_DEV_AGENT_TOKEN`; `--tenant playground` uses `DT_PLAYGROUND_AGENT_TOKEN`. If the tenant has no `demo-agent` template, the runner skips with a message. Cases marked `status: draft` (the Playground ones) need `--include-draft` and their expectations are unvalidated until the agent exists there.

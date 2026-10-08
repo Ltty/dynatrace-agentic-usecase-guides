@@ -27,6 +27,8 @@ jobs:
         run: python tools/tests/test_run_dt_evals.py
       - name: Local agent harness
         run: python tools/tests/test_local_agent.py
+      - name: Transcript scorer
+        run: python tools/tests/test_score_transcript.py
       # .claude/commands/ is what a cloned repo uses, commands/ what the plugin ships.
       - name: Slash commands in sync
         run: diff -r commands .claude/commands
