@@ -102,9 +102,10 @@ in DQL rather than by eye, and collapse the repeated re-deploys of one commit:
 | summarize first_deploy = min(timestamp), deploys = count(), by: { commit, git_url }
 ```
 
-A fix deploy landing during the incident window appears as a second distinct commit —
-recognise it as the remediation, not a second regression. Its description may read exactly
-like the regression's; tell them apart by timing.
+A second deploy landing during the incident window appears as a second distinct commit — not
+a second regression: the problem stopping around it reads as the fix landing, though what it
+changed is in the diff, not the telemetry. Its description may read exactly like the
+regression's; tell them apart by timing.
 
 ---
 

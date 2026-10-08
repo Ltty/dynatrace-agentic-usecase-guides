@@ -19,7 +19,7 @@ number, user counts, and timestamps rotate every problem cycle — read them fro
 ## Beat 1 — The Page
 
 **Objective:** User grasps the blast radius: root-cause service, impacted users, onset, that
-checkout is a downstream victim, and which team owns the failing service.
+checkout is listed as affected, and which team owns the failing service.
 
 **Evidence DQL:**
 
@@ -43,8 +43,9 @@ risk cutting off the problem record.
 
 **Reveal:** A sharp failure spike on the payment service's Charge endpoint, affecting a large
 user count. Checkout shows as impacted, but `root_cause` points at payment — checkout is
-collateral. State the actual numbers, and name `owning_team` explicitly: Dynatrace already
-knows who to page.
+listed as affected, not named as the cause. This result has no call direction, so don't say
+checkout calls payment until the trace in beat 4 shows it. State the actual numbers, and name
+`owning_team` explicitly: Dynatrace already knows who to page.
 
 **Success signal:** User names payment or Charge, or asks to drill into the payment service.
 
@@ -82,7 +83,8 @@ a minute of it is the same change: say so plainly, without hedging over the seco
 
 **Reveal:** Typically two rows. The first commit's `first_deploy` falls at or just before the
 problem `started` (beat 1) — that's the change to revert. The second lands shortly before the
-problem ended — that's the fix, not a second regression. Surface explicitly: the culprit
+problem ended — not a second regression: the failures stop around it, which reads as the fix
+landing, though what it changed is in the diff, not the telemetry. Surface explicitly: the culprit
 `commit` and `git_url`, the `owner` (who to call first), and the gap between `first_deploy`
 and the problem start. Give the causal read yourself, from the evidence.
 
@@ -102,7 +104,7 @@ https://playground.apps.dynatrace.com/ui/intent/dynatrace.davis.copilot/ask-ques
 with the deployment marker.
 
 **Fold in on a jump:** if the user jumps to beat 4, run the failure-rate query below in the same
-turn and show the step change in one line. It is the evidence that ties the deploy to the
+turn and show the rise in one line. It is the evidence that ties the deploy to the
 failures.
 
 **Evidence DQL — failure rate over time:**
@@ -130,15 +132,16 @@ fetch events, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 | sort timestamp asc
 ```
 
-Returns every deployment in the window — typically the culprit and the fix. `sort desc | limit 1`
-would return only the fix.
+Returns every deployment in the window — typically the culprit and a later deploy.
+`sort desc | limit 1` would return only the later one.
 
-**Reveal:** A step change from near-zero to a sustained elevated failure rate. The first
-failures fall in the bucket that holds the culprit's `first_deploy`, and the rate reaches its full
-level in the next bucket. Read it from the rows: a bucket that holds the deploy can still show a
-low rate. State the actual before/after percentages, with failures and totals, and the bucket
-timestamps. A later deploy that brings the rate back down is the fix,
-not a second regression.
+**Reveal:** A rise from near-zero to an elevated failure rate that stays elevated until the
+later deploy. It can ramp over several buckets rather than step. The first failures fall in or
+just before the bucket that holds the culprit's `first_deploy`. Read it from the rows: a bucket
+that holds the deploy can still show a low rate. State the actual before/after percentages, with
+failures and totals, and the bucket timestamps. A later deploy after which the rate falls back is
+not a second regression: the failures stopping around it reads as the fix landing, though what it
+changed is in the diff, not the telemetry.
 
 **Success signal:** User connects the deploy to the spike, or asks for the failing requests.
 
@@ -207,9 +210,11 @@ the data shows: the service itself raises it, at the file and line returned, wit
 names the rejected input — not an infrastructure error. Whether the rejection was intended is
 the owning team's call, not something the telemetry shows. Note the file and line, `failed_spans` (a span count, not users), and how
 `first_seen` lines up with the culprit's `first_deploy` (seconds before it is normal — see
-beat 2). If more than one distinct message
-appears, say so — that's a second finding; one first seen after the fix is likely ordinary bad
-input, not the regression.
+beat 2). Also state when the problem opened relative to the first failure: the problem's
+`started` (beat 1) against `first_seen`, both times and the gap, as a fact. Never call the gap
+time spent blind. If more than one distinct message
+appears, say so — that's a second finding; one first seen after the later deploy is likely
+ordinary bad input, not the regression.
 
 **Success signal:** User identifies the exception or the failing code path.
 

@@ -40,7 +40,7 @@ fetch dt.davis.problems, from: now()-48h, to: now()
 
 **Reveal:** Dynatrace Intelligence classifies it as a slowdown — `description` states the current response time
 against the auto-detected baseline for the image provider; quote both numbers. The frontend,
-the ingress, and a synthetic image-loading check are affected downstream; `impact_level`
+the ingress, and a synthetic image-loading check are listed as affected; `impact_level`
 spans application, services, and synthetic. Name `owning_team` explicitly — it's the only
 owner on record, since the deploy events carry none.
 
@@ -56,8 +56,8 @@ https://playground.apps.dynatrace.com/ui/apps/dynatrace.davis.problems/problem/{
 
 ## Beat 2 — The Deploy
 
-**Objective:** User connects the slowdown to a specific commit, and sees both the regression
-and the fix on the timeline.
+**Objective:** User connects the slowdown to a specific commit, and sees both deploys on the
+timeline.
 
 **Evidence DQL:**
 
@@ -80,13 +80,15 @@ markdown link in `event.description` and collapses the repeated re-deploys of on
 
 **Reveal:** Typically two rows. The first commit lands a few minutes before the problem
 `started` (beat 1) and is re-deployed several times — that's the regression. The second
-lands shortly before the problem ended — that's the fix shipping while the incident was open.
+lands shortly before the problem ended — the slowdown stops around it, which reads as the fix
+shipping while the incident was open, though what it changed is in the diff, not the telemetry.
 Both descriptions read alike, so tell them apart by timing, not text. State both SHAs, the
 `git_url` of the first, and the gap between its `first_deploy` and the problem start.
 
 **Objection** — "a few minutes apart doesn't prove causation": agree that a gap that short is
 suggestive, not proof. The proof is whether the Lambda's behaviour changed at exactly that
-deploy and went back when the fix landed — the next beat shows it per request; offer to go there.
+deploy and went back around the later deploy — the next beat shows it per request; offer to go
+there.
 
 **Success signal:** User identifies the deploy as the trigger, or asks what that commit changed.
 
@@ -122,8 +124,8 @@ fetch spans, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 
 **Reveal:** Before the regression deploy, `resizes` is zero — resized images are served from
 S3. From the deploy's bucket on, `resizes` equals `requests`: every single image request runs
-the full resize pipeline, and `p50_ms` jumps from tens of milliseconds to seconds. After the fix
-lands, resizes fall back to zero and latency recovers. State the actual before/after p50 and
+the full resize pipeline, and `p50_ms` jumps from tens of milliseconds to seconds. After the later
+deploy, resizes fall back to zero and latency recovers. State the actual before/after p50 and
 the buckets where it flips — that step change, lined up with both commits, is the smoking gun.
 
 **Success signal:** User connects the resizes to the deploy, or asks where the time goes.
