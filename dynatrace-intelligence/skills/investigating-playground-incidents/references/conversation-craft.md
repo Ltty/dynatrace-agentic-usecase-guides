@@ -102,7 +102,7 @@ State what the returned rows say, with the values and counts exactly as the resu
 - **Customers:** an exception message describes what the service rejected, not who the customers
   were or what they held.
 - **Call direction between services:** not until a trace summary has run. A problem record lists
-  entities as affected; it does not say which calls which.
+  entities as affected; it does not say which calls which. Never say "downstream" or "upstream" before then.
 - **Times:** UTC, as returned. Never "this morning", "tonight" or a local time.
 - **Populations:** every number says which population it counts (the problem record's affected
   users, failed spans, sessions with errors) and none is mistaken for another. A row with no country

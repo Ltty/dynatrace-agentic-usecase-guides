@@ -65,7 +65,7 @@ order of the beats' Objectives:
    services: the trace has not run yet. The verbatim exception, file, line and trace chain wait for
    their evidence turn.
 5. **Who it hit:** the count, labelled, and how many countries as returned. A row with no country is
-   reported as exactly that.
+   reported as exactly that, and its sessions are part of the count, not extra.
 6. **Detection:** the first failure against when the problem opened, both times and the gap, as a
    fact.
 7. **The offer, exactly:** "I can show you how we know each of these, starting with [the second
@@ -160,8 +160,8 @@ from the results:
   was intended is [owning_team]'s call. We can see the behaviour and the timing, not the intent."
 - **"Was that the fix?"** "[The symptom] stops within [gap] of [short SHA]'s deploy, so it reads as
   the fix landing. What it changed is in the diff, which the telemetry doesn't hold."
-- **"Was it global?"** "The sessions with errors span [N] countries, plus [M] with no country
-  recorded. That's the count; the data says nothing more about reach."
+- **"Was it global?"** "[T] sessions had errors, [M] of them with no country recorded and the rest
+  across [N] countries. That's the count; the data says nothing more about reach."
 
 Never say "global outage" or "worldwide".
 

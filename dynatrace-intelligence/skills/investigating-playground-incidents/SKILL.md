@@ -63,7 +63,7 @@ never mix: the problem record's affected users, failed spans, sessions with erro
 ### 1. Classify the opening
 
 Read `references/session-protocol.md` and `references/conversation-craft.md` at the first turn, before the first
-reply, unless they are already loaded.
+reply, unless they are already loaded. Read them silently.
 
 - **Greeting / "what can you do?"** — greet per session-protocol → "Greeting" and wait. No
   incident yet.
@@ -79,7 +79,7 @@ reply, unless they are already loaded.
 
 Write exactly one status line before the first query: "Checking for open issues." for the survey;
 "Pulling the whole picture together." for a walk-through's opening report; otherwise one line naming
-the lookup, such as "Checking the deployments on the payment service." Then run the resolver DQL of
+the lookup, such as "Checking the deployments on the payment service." Write nothing before it, not even while you read files. Then run the resolver DQL of
 every scenario the turn needs, with **no text between the calls**, and store the result as session
 state (session-protocol → "Session state"). Resolvers, fallbacks, empty results and files are never
 mentioned.

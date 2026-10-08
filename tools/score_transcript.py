@@ -76,6 +76,10 @@ def to_turns(rows: list[dict]) -> list[list[dict]]:
             elif kind == "tool_use":
                 name, args = block.get("name"), block.get("input") or {}
                 if name == "SubagentHandback":
+                    reply = args.get("message", "").strip()
+                    # a subagent often writes its answer as text just before handing it back: that is the reply, not progress
+                    events = [e for e in events if e["type"] != "agent_response"
+                              or e["content"][0]["text"].strip() != reply]
                     events.append({"type": "agent_response", "content": [{"text": args.get("message", "")}]})
                     turns.append(events)
                     events = []

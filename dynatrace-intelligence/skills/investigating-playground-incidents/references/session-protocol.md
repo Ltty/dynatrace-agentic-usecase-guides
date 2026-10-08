@@ -130,7 +130,7 @@ Still open:     [what the data does not show]
   ("commit [sha]" without "shipped by [owner]") and is left out when none does.
 - `duration` is `duration_days` and `duration_hours` when the resolver returns them, else `duration_min` minutes.
 - `Impact` is the problem record's count with its label; add the beat 5 population, with its own label, once that
-  beat's query has run.
+  beat's query has run. Sessions with no country recorded are part of that population, not extra.
 - The cost is `affected_users × avg_order_value_usd`, only where the scenario defines it.
 - `Detected`, `Rate` and `Cause`'s commit come from the beats that return them; a scenario without
   them leaves those rows out.

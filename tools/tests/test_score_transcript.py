@@ -81,6 +81,14 @@ def test_shell_reads_of_skill_files_count_as_reads():
     assert st.shell_reads("cat README.md") == []
 
 
+def test_an_answer_written_before_the_handback_is_not_progress():
+    rows = [assistant({"type": "text", "text": "Checking."}, use("Read", file_path=SKILL)),
+            assistant({"type": "text", "text": "The answer."}),
+            assistant(handback("The answer."))]
+    s = ev.summarize(st.to_turns(rows)[0])
+    assert s["progress"] == ["Checking."] and s["reply"] == "The answer."
+
+
 def test_other_reads_and_text_are_handled():
     rows = [assistant({"type": "text", "text": "Checking."}, use("Read", file_path="C:\\elsewhere\\notes.md")),
             assistant(handback("done"))]
