@@ -35,7 +35,8 @@ fetch dt.davis.problems, from: now()-48h, to: now()
     owning_team    = team,
     also_affected  = affected_entity_names,
     impact_level   = dt.davis.impact_level,
-    description    = event.description
+    description    = event.description,
+    queried_at     = now()
 ```
 
 **Reveal:** Dynatrace Intelligence classifies it as a slowdown — `description` states the current response time
@@ -73,6 +74,7 @@ fetch events, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
     deploys      = count(),
     by: { commit, git_url }
 | sort first_deploy asc
+| fieldsAdd queried_at = now()
 ```
 
 These GitHub Actions events leave `commit` and `gitUrl` null; the query parses both from the
@@ -80,9 +82,9 @@ markdown link in `event.description` and collapses the repeated re-deploys of on
 
 **Reveal:** Typically two rows. The first commit lands a few minutes before the problem
 `started` (beat 1) and is re-deployed several times — that's the regression. The second
-lands shortly before the problem ended — the slowdown stops around it, which reads as the fix
-shipping while the incident was open, though what it changed is in the diff, not the telemetry.
-Both descriptions read alike, so tell them apart by timing, not text. State both SHAs, the
+lands shortly before the problem ended and is not a second regression; whether the slowdown
+stops around it is for beat 3, and what it changed is in the diff, not the telemetry. Both
+descriptions read alike, so tell them apart by timing, not text. State both SHAs, the
 `git_url` of the first, and the gap between its `first_deploy` and the problem start.
 
 **Objection** — "a few minutes apart doesn't prove causation": agree that a gap that short is
@@ -120,13 +122,14 @@ fetch spans, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
     p50_ms   = round(percentile(if(span.name == "Invoke lambda /images/presign.", toDouble(duration)), 50) / 1000000, decimals: 0),
     by: { bucket = bin(start_time, 5m) }
 | sort bucket asc
+| fieldsAdd queried_at = now()
 ```
 
 **Reveal:** Before the regression deploy, `resizes` is zero — resized images are served from
 S3. From the deploy's bucket on, `resizes` equals `requests`: every single image request runs
 the full resize pipeline, and `p50_ms` jumps from tens of milliseconds to seconds. After the later
 deploy, resizes fall back to zero and latency recovers. State the actual before/after p50 and
-the buckets where it flips — that step change, lined up with both commits, is the smoking gun.
+the buckets where it flips — that flip lines up with both commits.
 
 **Success signal:** User connects the resizes to the deploy, or asks where the time goes.
 
@@ -154,7 +157,7 @@ fetch spans, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 | fieldsAdd duration_ms = round(toDouble(duration) / 1000000, decimals: 0)
 | sort duration_ms desc
 | limit 5
-| fields start_time, trace_id = trace.id, duration_ms, failed = request.is_failed
+| fields start_time, trace_id = trace.id, duration_ms, failed = request.is_failed, queried_at = now()
 ```
 
 **Evidence DQL — the trace's time budget (chained; substitute `trace_id` from the first
@@ -171,8 +174,8 @@ fetch spans, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 | fields service, span_name, duration_ms
 ```
 
-One row per operation in call order; sub-50 ms noise is dropped except DynamoDB, which is kept
-deliberately to show it's fast.
+One row per operation in call order; sub-50 ms noise is dropped except DynamoDB, which shows
+it is fast.
 
 **Reveal:** The Lambda invocations themselves are not marked failed — this is latency, not an error. Inside the
 Lambda, the DynamoDB lookup and the S3 "check if image for screen size exists" take
@@ -181,7 +184,7 @@ resizing itself plus writing the result back to S3. The S3 check runs, and the r
 anyway: the cache stopped short-circuiting. Say that as the read, and point at beat 2's commit
 for the code-level confirmation — don't state what the diff contains.
 
-Don't claim there are no errors anywhere. On some days the service also shows a single sampled failed `GET` span whose exception is a throttle ("SlowDown: Please reduce your request rate.") after about 7 seconds of retries. If the user asks about errors, query the failing spans for the window and quote the exception verbatim; it is a symptom of the resizes, not a separate cause.
+Don't claim there are no errors anywhere. If the user asks about errors, query the failing spans for the window: a single sampled failed `GET` span may be there, with a throttle exception ("SlowDown: Please reduce your request rate.") after about 7 seconds of retries. Quote the exception verbatim; it is a symptom of the resizes, not a separate cause.
 
 **Success signal:** User names the resize step as where the time goes, or asks why the cache
 check doesn't skip it.

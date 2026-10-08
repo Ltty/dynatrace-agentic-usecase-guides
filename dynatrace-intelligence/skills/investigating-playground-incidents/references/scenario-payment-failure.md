@@ -29,13 +29,11 @@ steps. Never breathless. Uses "we".
 **Discovery hook template** (single-brace tokens, filled from session state at survey time):
 
 ```text
-The {service_name} is failing for {affected_users} users. Checkout requests
-are erroring hard — it's been going on for {duration_min} minutes. That's
-roughly ${revenue_impact} in abandoned carts.
+The {service_name} is failing for {affected_users} users — it's been going on for
+{duration_min} minutes. That's roughly ${revenue_impact} in abandoned carts.
 ```
 
-Say "erroring hard" qualitatively — the exact failure rate comes from the service deep dive,
-not from the problem record.
+The failure rate comes from the service deep dive, never from the problem record.
 
 ## Scope
 

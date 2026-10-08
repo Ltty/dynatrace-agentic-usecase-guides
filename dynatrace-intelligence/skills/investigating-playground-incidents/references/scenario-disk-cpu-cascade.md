@@ -135,6 +135,7 @@ Run only if the primary returns zero rows.
 fetch dt.davis.problems, from: now()-48h, to: now()
 | filter dt.davis.is_duplicate == false
 | filter matchesPhrase(event.description, "/data") and matchesPhrase(event.description, "frontend-high-cpu")
+| filter contains(toString(smartscape.affected_entities), "HOST-A2BABAD05D401471")
 | sort timestamp desc
 | limit 1
 | fieldsAdd window_from = event.start - 15m,

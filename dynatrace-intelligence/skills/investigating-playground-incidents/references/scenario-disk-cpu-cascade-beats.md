@@ -34,7 +34,8 @@ fetch dt.davis.problems, from: now()-48h, to: now()
     root_cause    = root_cause.smartscape_entity[name],
     affected      = smartscape.affected_entities,
     impact_level  = dt.davis.impact_level,
-    description   = event.description
+    description   = event.description,
+    queried_at    = now()
 ```
 
 **Reveal:** Dynatrace Intelligence named the `/data` disk as the root cause — not the host and not the CPU. The
@@ -72,7 +73,7 @@ timeseries
     free_pct_max = round(arrayMax(free_pct), decimals: 2),
     avail_mb_min = round(arrayMin(avail_bytes) / 1048576, decimals: 1),
     avail_mb_max = round(arrayMax(avail_bytes) / 1048576, decimals: 1)
-| fields dt.entity.disk, interval, timeframe, buckets, free_pct_min, free_pct_max, avail_mb_min, avail_mb_max
+| fields dt.entity.disk, interval, timeframe, buckets, free_pct_min, free_pct_max, avail_mb_min, avail_mb_max, queried_at = now()
 ```
 
 One row: the series is summarised in DQL (min and max across all buckets, and the bucket size in `interval`).
@@ -113,7 +114,7 @@ timeseries
     cpu_max    = round(arrayMax(cpu), decimals: 1),
     iowait_avg = round(arrayAvg(iowait), decimals: 4),
     iowait_max = round(arrayMax(iowait), decimals: 4)
-| fields host.name, interval, timeframe, buckets, cpu_min, cpu_avg, cpu_max, iowait_avg, iowait_max
+| fields host.name, interval, timeframe, buckets, cpu_min, cpu_avg, cpu_max, iowait_avg, iowait_max, queried_at = now()
 ```
 
 One row, summarised in DQL. Both metrics are in percent.
@@ -159,6 +160,7 @@ fetch events, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
     last_seen  = max(timestamp),
     by: { event.description }
 | sort last_seen desc
+| fieldsAdd queried_at = now()
 ```
 
 One row per distinct failure message (each carries a from-version and a target version), newest first. No `limit`:

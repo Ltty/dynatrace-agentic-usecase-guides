@@ -35,15 +35,17 @@ fetch dt.davis.problems, from: now()-48h, to: now()
     owning_team   = team,
     also_affected = affected_entity_names,
     impact_level  = dt.davis.impact_level,
-    description   = event.description
+    description   = event.description,
+    queried_at    = now()
 ```
 
 Pinned to the resolved problem ID, so the 48h range is safe — the incident window would only
 risk cutting off the problem record.
 
-**Reveal:** A sharp failure spike on the payment service's Charge endpoint, affecting a large
-user count. Checkout shows as impacted, but `root_cause` points at payment — checkout is
-listed as affected, not named as the cause. This result has no call direction, so don't say
+**Reveal:** The problem record names the payment service as root cause and counts a large
+number of affected users; quote the failing endpoint and the failure rate from `description`.
+Checkout shows as impacted, but `root_cause` points at payment — checkout is listed as affected,
+not named as the cause. This result has no call direction, so don't say
 checkout calls payment until the trace in beat 4 shows it. State the actual numbers, and name
 `owning_team` explicitly: Dynatrace already knows who to page.
 
@@ -59,8 +61,8 @@ https://playground.apps.dynatrace.com/ui/apps/dynatrace.davis.problems/problem/{
 
 ## Beat 2 — The Change
 
-**Objective:** User sees which deployment caused the failure, who shipped it, and a concise
-causal explanation naming the commit and the remediation step.
+**Objective:** User sees which deployment lines up with the start of the failure, who shipped
+it, and a concise read of the timing naming the commit and the remediation step.
 
 **Evidence DQL:**
 
@@ -74,6 +76,7 @@ fetch events, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
     services     = collectDistinct(dt.entity.service.name),
     by: { commit, git_url = gitUrl, owner, stage, app }
 | sort first_deploy asc
+| fieldsAdd queried_at = now()
 ```
 
 One row per commit. ArgoCD syncs one commit many times, once per resource; `deploys` counts
@@ -83,8 +86,8 @@ a minute of it is the same change: say so plainly, without hedging over the seco
 
 **Reveal:** Typically two rows. The first commit's `first_deploy` falls at or just before the
 problem `started` (beat 1) — that's the change to revert. The second lands shortly before the
-problem ended — not a second regression: the failures stop around it, which reads as the fix
-landing, though what it changed is in the diff, not the telemetry. Surface explicitly: the culprit
+problem ended and is not a second regression; whether the failures stop around it is for beat 3,
+and what it changed is in the diff, not the telemetry. Surface explicitly: the culprit
 `commit` and `git_url`, the `owner` (who to call first), and the gap between `first_deploy`
 and the problem start. Give the causal read yourself, from the evidence.
 
@@ -119,7 +122,7 @@ fetch spans, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
     by: { bucket = bin(start_time, 5m) }
 | fieldsAdd failure_rate_pct = round(toDouble(failures) / toDouble(total) * 100, decimals: 1)
 | sort bucket asc
-| fields bucket, total, failures, failure_rate_pct
+| fields bucket, total, failures, failure_rate_pct, queried_at = now()
 ```
 
 **Evidence DQL — deployment marker:**
@@ -132,8 +135,8 @@ fetch events, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 | sort timestamp asc
 ```
 
-Returns every deployment in the window — typically the culprit and a later deploy.
-`sort desc | limit 1` would return only the later one.
+Skip this query when beat 2 has run in this conversation: its rows already give each commit's
+first deploy.
 
 **Reveal:** A rise from near-zero to an elevated failure rate that stays elevated until the
 later deploy. It can ramp over several buckets rather than step. The first failures fall in or
@@ -181,6 +184,7 @@ fetch spans, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
     trace_id     = takeFirst(trace.id),
     by: { exception_type, exception_msg, exception_file, exception_line }
 | sort first_seen asc
+| fieldsAdd queried_at = now()
 ```
 
 One row per distinct exception, oldest first. `trace_id` is the earliest failing trace for that
