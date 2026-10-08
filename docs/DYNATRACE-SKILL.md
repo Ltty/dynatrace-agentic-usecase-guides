@@ -8,7 +8,7 @@ This file is procedure.
 
 | Piece | Where | What it is |
 |---|---|---|
-| The skill | `dynatrace-intelligence/skills/investigating-playground-incidents/` | `SKILL.md` plus a flat `references/` folder. Two scenarios: payment failure and the image-service slowdown. Source of truth. |
+| The skill | `dynatrace-intelligence/skills/investigating-playground-incidents/` | `SKILL.md` plus a flat `references/` folder. Three scenarios (payment failure, the image-service slowdown, and the dev-tenant disk and CPU problem), each run as an exploration or a walk-through. Source of truth. |
 | The agent | `dynatrace-intelligence/agents/demo-agent/` | A `deep-agent` template (`template.json`, `instructions.md`) that mounts the skill and may only call `execute-dql`. |
 | The helper | `tools/dt_agent.py` | `check`, `pack`, `docs`, `status`, `render`, `template`, `invoke`. Every write is a dry run unless you pass `--apply`. |
 | The validator | `tools/validate_dt_skill.py` | Runs every DQL block of a scenario live on the Playground. |
@@ -72,7 +72,7 @@ The route is the `dynatrace.use.case.guides` app (see "Dev and production routes
 
 1. **Get three answers first** (ask in `#help-dti-agentic-ai`): is the app eligible to ship AI skills (the guide limits it to Dynatrace-internal apps) and does its ID need to be allowlisted; when does the Playground get the `@`-mention flag; can apps ship agent templates yet?
 2. **Copy the skill into the app repo:** `python tools/dt_agent.py pack --out <app-repo>`, review the dry run, then `--apply`, and commit in the app repo. `pack --check` later flags drift.
-3. **`dt-app deploy --dry-run`** in the app repo must list the 8 skill documents as `ai-agent-resource`. Fix any validation error it names.
+3. **`dt-app deploy --dry-run`** in the app repo must list the 11 skill documents as `ai-agent-resource`. Fix any validation error it names.
 4. **Deploy the app to dev first** and look for documents with `originAppId = dynatrace.use.case.guides`. Delete the user-owned dev copies beforehand (needs explicit approval): the mount filter matches by name and would see both sets. Then run `python tools/run_dt_evals.py --tenant dev`.
 5. **Release the app to the Playground** through the app's own pipeline. Documents appear within 5 minutes.
 6. **Create the agent there:** `python tools/dt_agent.py --tenant https://playground.apps.dynatrace.com --token-var DT_PLAYGROUND_AGENT_TOKEN template`, then `--apply` after approval. Needs the token below, write access and the feature flag.

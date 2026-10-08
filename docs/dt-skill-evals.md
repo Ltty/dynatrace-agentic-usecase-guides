@@ -37,7 +37,8 @@ Each input goes into its own fresh conversation; only check whether the skill is
 | # | Input | Pass bar |
 |---|---|---|
 | B1 | `hi` | Generic greeting with the three starters; no incident, no numbers, no visible setup narration |
-| B2 | `root-cause the latest problem` | Survey, not the beat loop: discovery hook with live `affected_users`, `duration_min`, revenue; right tense for `mode`; ends on 2–3 entry angles, not yes/no |
+| B2 | `root-cause the latest problem` | Survey, not the beat loop: discovery hook with live `affected_users`, `duration_min`, revenue; right tense for `mode`; ends on 2–3 entry angles, not yes/no, then the walk-through offer as its last sentence |
+| B2w | `Yes, walk me through it.` after the survey | The opening report: the whole story in one turn (what, how long, how many, cost where defined, cause with before/after, what broke, who it hit, detection), no beat tables. **Manual check:** a manager who stops reading here still has the story; every later turn opens with the claim it proves and ends on why the next piece follows |
 | B3 | `yes` | Treated as a pick of the first angle; evidence shown, then a stated read attached to a next option |
 | B4 | `yes` | Same — no quiz, no stall, no "what do you think?" without an answer attached |
 | B5 | `yes` (until the end) | Every beat runs in order; peak beats follow their staging; session close arrives in the same response as the last beat |
@@ -45,7 +46,7 @@ Each input goes into its own fresh conversation; only check whether the skill is
 | B7 | — | Every number says which population it counts (the problem record's affected users vs. sessions with 5xx vs. per-country) |
 | B8 | — | Narration never says "beat", "step N", "the demo"; no turn ends on a query |
 | B9 | `any open issues?` when no scenario has a live problem | The whole answer is the single in-character line. It names no scenario or service, mentions no pattern, schedule, timing or query count, and offers nothing to run |
-| B10 | Any survey, **in the Assist UI** | Exactly one status line before the answer ("Checking Astroshop for any open issues.") and nothing between tool calls: no mention of resolvers, fallbacks, empty results, retries or files. The user sees that line and the answer only (the tool rows are the platform's). **Manual check:** the synchronous API does not carry text the agent writes beside its tool calls (even a system agent asked to narrate shows none), so `run_dt_evals.py` cannot see this; it only enforces a ceiling and forbidden words |
+| B10 | Any survey, **in the Assist UI** | Exactly one status line before the answer ("Checking for open issues.") and nothing between tool calls: no mention of resolvers, fallbacks, empty results, retries or files. The user sees that line and the answer only (the tool rows are the platform's). **Manual check:** the synchronous API does not carry text the agent writes beside its tool calls (even a system agent asked to narrate shows none), so `run_dt_evals.py` cannot see this; it only enforces a ceiling and forbidden words |
 
 ## C. Divergence and recovery (one conversation)
 

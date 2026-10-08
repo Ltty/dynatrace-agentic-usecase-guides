@@ -29,12 +29,21 @@ dynatrace-intelligence/
         └── references/                       — flat: no subfolders, unique names, linked as references/<name>.md
             ├── session-protocol.md           — greeting, session state + token table, survey, close
             ├── conversation-craft.md         — beat loop, divergence, staying in role, pacing rules
+            ├── briefing-mode.md              — the walk-through delivery: turn shape, intent table, handoff block
             ├── dql-reference.md              — verified field names, gotchas, chained queries
             ├── scenario-payment-failure.md        — persona, business context, scope, handoff fields, resolvers
             ├── scenario-payment-failure-beats.md  — the 5 beats with DQL, reveals, staging, deep links
             ├── scenario-broken-images.md          — same shape, for the image-provider slowdown
-            └── scenario-broken-images-beats.md    — the 5 beats for the slowdown
+            ├── scenario-broken-images-beats.md    — the 5 beats for the slowdown
+            ├── scenario-disk-cpu-cascade.md       — same shape, for the dev-tenant disk and CPU problem
+            └── scenario-disk-cpu-cascade-beats.md — the 5 beats for the disk and CPU problem
 ```
+
+Every scenario runs in two deliveries: the user explores with the SRE as a peer (default), or the SRE
+reports the incident to them as to a manager and ends with a handoff block. The survey offers the second
+once, after the entry angles. `briefing-mode.md` is the only file that knows about it; scenarios author
+nothing extra, but the handoff block draws on their Handoff fields table, so a scenario with no owner or no
+user count must say so there.
 
 The survey reads only each scenario's resolver file; the beats file is read once the user picks
 a direction. Adding a scenario means adding both files and a row in the SKILL.md registry.
