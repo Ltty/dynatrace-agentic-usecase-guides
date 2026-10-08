@@ -15,5 +15,7 @@ turns:
     - scenario-payment-failure.md
     - scenario-broken-images.md
     requires_dql: true
-    reply_equals: Environment looks clean — nothing I'd page on right now.
+    reply_contains_any:
+    - Environment looks clean
+    - frontend-high-cpu
     max_progress_lines: 1

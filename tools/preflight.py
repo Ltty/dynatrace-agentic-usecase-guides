@@ -482,7 +482,13 @@ def preflight_report() -> int:
     spec.loader.exec_module(skill)
 
     live_ids = []
+    total = 0
     for scenario_id, (resolver_file, _) in skill.SCENARIO_FILES.items():
+        context = skill.SCENARIO_CONTEXT.get(scenario_id, skill.DEFAULT_CONTEXT)
+        if context != skill.DEFAULT_CONTEXT:
+            print(f"[SKIP] {scenario_id} — its data lives on the '{context}' tenant, not the Playground")
+            continue
+        total += 1
         try:
             row = None
             # Primary resolver, then the fallback, as the skill's session protocol does.
@@ -506,7 +512,6 @@ def preflight_report() -> int:
             check(scenario_id, False, f"BROKEN — {e}")
 
     print()
-    total = len(skill.SCENARIO_FILES)
     print(f"Result: {len(live_ids)} of {total} scenarios live — {', '.join(live_ids) or 'none'}")
     return 0 if len(live_ids) == total else 1
 

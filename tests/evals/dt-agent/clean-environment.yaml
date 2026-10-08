@@ -1,8 +1,9 @@
 id: clean-environment
 tenant: dev
 runs: 3
-description: With no live problem the whole reply is one line; the survey reads SKILL.md first, then only
-  the resolver files.
+status: draft
+description: 'DRAFT: needs a tenant with no live problem; the dev tenant has had one open since 2026-09-12 (disk-cpu-cascade), so this fails there for that reason. With no live problem the whole reply is one line; the survey reads SKILL.md first, then only
+  the resolver files.'
 turns:
 - ask: Are there any open issues right now?
   expect:

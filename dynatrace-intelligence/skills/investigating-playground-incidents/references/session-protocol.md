@@ -91,6 +91,10 @@ For each scenario in the SKILL.md registry, run its resolver. Then:
 
 Several scenarios found: one line each (name, severity, rough scale), then let the user pick.
 
+Name only the scenarios that returned a problem. Say nothing about the others: not "those are clean", not their
+service names. A resolver looks for one specific problem, so an empty result says nothing about the service,
+and it is not something to report.
+
 ---
 
 ## Session close

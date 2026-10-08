@@ -107,6 +107,9 @@ differ, say which is who.
 
 1. Add the row to the Scenarios table in `SKILL.md` and the files to `SCENARIO_FILES` in
    `tools/validate_dt_skill.py` (the same dict feeds `run_dt_evals.py` and `preflight.py preflight`).
+   A scenario whose entities exist on another tenant (the `disk-cpu-cascade` one is dev-only) also goes in
+   `SCENARIO_CONTEXT` there: the validator then uses that dtctl context for it, and `preflight.py preflight`
+   skips it instead of reporting it empty. The local `/demo` is pinned to the Playground and cannot reach it.
 2. `python tools/dt_agent.py check` — layout rules.
 3. `python tools/validate_dt_skill.py --scenario <id>` — runs the resolver and **every** beat query live,
    including chained ones, and fails on a bad field name or `round()` call. Do not call a scenario done

@@ -35,7 +35,17 @@ SCENARIO_FILES = {
         SCENARIO_DIR / "scenario-broken-images.md",
         SCENARIO_DIR / "scenario-broken-images-beats.md",
     ),
+    "disk-cpu-cascade": (
+        SCENARIO_DIR / "scenario-disk-cpu-cascade.md",
+        SCENARIO_DIR / "scenario-disk-cpu-cascade-beats.md",
+    ),
 }
+
+# dtctl context each scenario's data lives on; anything not listed is on the Playground.
+SCENARIO_CONTEXT = {
+    "disk-cpu-cascade": "dev",
+}
+DEFAULT_CONTEXT = "playground"
 
 # Runtime-only tokens: present in DQL until a live query result supplies the value.
 RUNTIME_ONLY = {"TRACE_ID"}
@@ -135,9 +145,9 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         description="Validate Dynatrace skill scenario DQL blocks against the live Playground."
     )
     parser.add_argument(
-        "--context", default="playground",
-        help="dtctl context to query (default: playground). Set per run, never saved, so a "
-             "different current context cannot redirect the validation."
+        "--context", default=None,
+        help="dtctl context to query (default: the scenario's own, else playground). Set per run, "
+             "never saved, so a different current context cannot redirect the validation."
     )
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument(
@@ -153,6 +163,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 
 def main(argv: list[str]) -> int:
     args = parse_args(argv)
+    args.context = args.context or SCENARIO_CONTEXT.get(args.scenario, DEFAULT_CONTEXT)
     os.environ["DTCTL_CONTEXT"] = args.context
 
     if args.scenario:

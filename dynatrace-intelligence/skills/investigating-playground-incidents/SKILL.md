@@ -42,6 +42,7 @@ competent colleague troubleshoot in front of them.
 |---|---|---|---|
 | `payment-failure` | [references/scenario-payment-failure.md](references/scenario-payment-failure.md) | [references/scenario-payment-failure-beats.md](references/scenario-payment-failure-beats.md) | payment, checkout, transaction failures |
 | `broken-images` | [references/scenario-broken-images.md](references/scenario-broken-images.md) | [references/scenario-broken-images-beats.md](references/scenario-broken-images-beats.md) | slow or missing product images, image service, Lambda, slowdowns |
+| `disk-cpu-cascade` | [references/scenario-disk-cpu-cascade.md](references/scenario-disk-cpu-cascade.md) | [references/scenario-disk-cpu-cascade-beats.md](references/scenario-disk-cpu-cascade-beats.md) | disk space, CPU saturation, host resource contention, OneAgent update failures (dev tenant) |
 
 The survey runs every scenario's resolver; the ones that return a problem are the findings.
 

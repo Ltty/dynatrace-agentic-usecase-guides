@@ -9,6 +9,7 @@ Token substitution is in `references/session-protocol.md` → "Session state".
 - [Trace ID filtering](#trace-id-filtering-uid-type-gotcha)
 - [Event field names](#event-field-names-deployment-events)
 - [User session field names](#user-session-field-names-verified-live)
+- [Metrics](#metrics-timeseries-verified-live)
 - [Logs](#logs-verified-live)
 - [Problems field names](#problems-field-names-verified-live)
 - [Chained queries](#chained-queries)
@@ -142,6 +143,21 @@ Give the inner `fetch` in a `lookup` the same `from:`/`to:` as the outer one.
 
 ---
 
+## Metrics (timeseries, verified live)
+
+A `by` field the metric doesn't carry does **not** fail: every series aggregates into one tenant-wide row, which
+looks like a result. Check that the by-field comes back as a column. On the host metrics:
+
+- `dt.host.cpu.usage` and `dt.host.cpu.iowait` (percent) are split by `host.name`, **not** `dt.entity.host`.
+- Disk metrics are split by `dt.entity.disk`. `dt.host.disk.free` is the free **percent**, `dt.host.disk.used.percent`
+  the used percent, `dt.host.disk.avail` the available **bytes**. `dt.host.disk.avail.percent` does not exist; a metric
+  that doesn't exist also returns zero series, not an error.
+- Filter inside the command (`timeseries ..., filter: host.name == "x"`) rather than after it.
+- Summarise a long series in DQL instead of reading it: `fieldsAdd lo = arrayMin(v), avg = arrayAvg(v), hi = arrayMax(v)`
+  gives one row for a window of any length. The `interval` field says how long each bucket is.
+
+---
+
 ## Logs (verified live)
 
 Logs are **not** tagged with the service ID from spans or problems: filtering on
@@ -178,6 +194,12 @@ fetch dt.davis.problems
     impact_level   = dt.davis.impact_level,
     description    = event.description
 ```
+
+A problem is stored once per update, so one problem has several rows with different `timestamp`s, and not every
+row carries every field. `root_cause.smartscape_entity` (a record with `id`, `name`, `type`) exists only on some
+rows; read it with bracket access, `root_cause.smartscape_entity[id]`. That id is smartscape-typed: compare
+`toString(x) == "DISK-…"`, or the filter silently matches nothing (the same trap as `trace.id`). Events carry
+`host.name`, not `dt.entity.host`.
 
 Recurring Playground patterns fire as a cluster of near-duplicate problems.
 `dt.davis.is_duplicate == false` selects the merged umbrella problem. Its `event.name` is
