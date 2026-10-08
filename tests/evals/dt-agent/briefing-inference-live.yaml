@@ -1,0 +1,37 @@
+id: briefing-inference-live
+tenant: playground
+runs: 3
+status: draft
+forbid: false
+truth:
+- payment-failure
+description: 'DRAFT, unvalidated until the agent exists on the Playground: a manager''s stronger words get the
+  data''s answer. Intent goes to the owning team, the later deploy is a labelled inference, reach is a country count.'
+turns:
+- ask: Are there any open issues right now?
+  expect:
+    requires_dql: true
+- ask: Take me through the payment failure.
+  expect:
+    requires_dql: true
+- ask: So was it a bug?
+  expect:
+    no_dql: true
+    reply_contains_any:
+    - intended
+    - intent
+    reply_excludes:
+    - accidentally
+    - mistake
+    - bug in the code
+    - I can't
+    - I can’t
+- ask: Was it a global outage?
+  expect:
+    no_dql: true
+    reply_contains_any:
+    - countries
+    reply_excludes:
+    - worldwide
+    - I can't
+    - I can’t

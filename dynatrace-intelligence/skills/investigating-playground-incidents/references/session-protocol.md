@@ -33,7 +33,9 @@ The starters illustrate a kind of question, not a fixed menu.
 
 ## Session state
 
-Each scenario provides a **primary** and a **fallback** resolver DQL. Run the primary; if it
+Each scenario provides a **primary** and a **fallback** resolver DQL. Run each exactly as the
+file gives it, never with fields removed: `duration_min`, `ended_min_ago`, `queried_at` and the
+window fields are needed later, and a trimmed copy costs a second query. Run the primary; if it
 returns zero rows, run the fallback; use the first row. If both are empty, `mode` is
 `no_live_problem`.
 
@@ -55,6 +57,7 @@ Store the result in conversation context (never a file). This is the single sour
 | runtime values (e.g. `trace_id`) | a prior beat's first record | e.g. `{{TRACE_ID}}` | Chained beat DQL |
 | `mode` | derived | — | Tense and framing |
 | `beats_completed`, `current_beat` | conversation | — | Progress |
+| `delivery` | conversation | — | `explore` (default) or `briefing`; see `references/briefing-mode.md` |
 
 A resolver row missing any window field is broken — every beat query depends on them.
 
@@ -87,7 +90,10 @@ For each scenario in the SKILL.md registry, run its resolver. Then:
    closed problem, "how long ago" comes from `ended_min_ago` (round to hours above 90 minutes) —
    never estimate it from timestamps.
 3. End on 2–3 concrete entry angles (e.g. the deployment, the failing traces, the customers who
-   hit it) — never a yes/no.
+   hit it) — never a yes/no — then one closing sentence, exactly: "Or I can take you through the
+   whole thing, start to finish." Taking it sets `delivery` to `briefing`: read
+   `references/briefing-mode.md` and open with its report, before any beat. Naming an angle or a service sets `explore`. A direct start gets
+   no offer. With several findings, a walk-through ask that names none gets one line asking which.
 
 Several scenarios found: one line each (name, severity, rough scale), then let the user pick.
 
@@ -110,5 +116,8 @@ not in a new turn, and not only when asked.
    recent deploys is responsible." Without a measured X, drop "in [X] minutes".
 4. The session-replay deep link.
 5. Ask what they'd want to dig into next.
+
+In a `briefing` delivery the close is the handoff block in `references/briefing-mode.md`,
+followed by steps 2–4; steps 1 and 5 are left out. It can be asked for at any point.
 
 Asked for a recap after the close was already delivered: give a shorter version.

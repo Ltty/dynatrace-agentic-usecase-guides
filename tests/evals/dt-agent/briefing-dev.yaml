@@ -1,0 +1,32 @@
+id: briefing-dev
+tenant: dev
+runs: 3
+forbid: false
+description: The survey closes with the walk-through offer, and taking it starts the report from live data
+  without ever naming the two ways of working. forbid is off because beat 1 names Dynatrace Intelligence by design.
+turns:
+- ask: Are there any open issues right now?
+  expect:
+    first_read_contains: /SKILL.md
+    requires_dql: true
+    reply_contains_any:
+    - take you through
+    - through the whole thing
+    reply_excludes:
+    - Environment looks clean
+- ask: Yes, walk me through it.
+  expect:
+    reads_include:
+    - briefing-mode.md
+    - scenario-disk-cpu-cascade-beats.md
+    requires_dql: true
+    reply_contains:
+    - frontend-high-cpu
+    - /data
+    reply_excludes:
+    - briefing mode
+    - explore mode
+    - walk-through mode
+    - presentation
+    - I can't
+    - I can’t

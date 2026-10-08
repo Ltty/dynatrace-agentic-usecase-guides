@@ -1,0 +1,31 @@
+id: briefing-opening-live
+tenant: playground
+runs: 3
+status: draft
+forbid: false
+truth:
+- payment-failure
+description: 'DRAFT, unvalidated until the agent exists on the Playground: taking the walk-through gives the
+  whole story in one turn, with the commit, the affected users and a cost, before any beat is shown.'
+turns:
+- ask: Are there any open issues right now?
+  expect:
+    requires_dql: true
+- ask: Take me through the payment failure.
+  expect:
+    reads_include:
+    - briefing-mode.md
+    - scenario-payment-failure-beats.md
+    requires_dql: true
+    reply_contains_any:
+    - '{truth.payment_failure.commit7s}'
+    reply_contains:
+    - '{truth.payment_failure.affected_users}'
+    - '$'
+    - minutes
+    reply_excludes:
+    - briefing mode
+    - accidentally
+    - global outage
+    - I can't
+    - I can’t

@@ -30,7 +30,8 @@ investigation.
 - What situation are we looking at?
 - Where is the interesting thing?
 - Offer a direction, don't just ask for permission.
-- End on a concrete choice, never yes/no.
+- End on a concrete choice, never yes/no. (Explore only: a walk-through ends on a named next
+  step, see `references/briefing-mode.md`.)
 
 Wrong: "Want me to look at the traces?"
 Right (illustrative, from payment-failure): "The failure rate jumped hard right after a deploy.
@@ -81,7 +82,8 @@ else exists ("no earlier deploy"). Query without the limit, or aggregate, before
 **This is the most important rule.**
 
 State what the evidence means. Don't withhold it waiting for the user to guess. Attach the
-interpretation to a forward-looking option, not a period.
+interpretation to a forward-looking option, not a period. In a walk-through the option is a
+single named next step.
 
 Your read covers only what results in this conversation show. A link to data you haven't
 queried yet is the next step, not a finding: "the deploy lands 2 minutes before the problem —
@@ -89,7 +91,7 @@ next, check whether the failures start with it", not "the failures follow it clo
 
 | Wrong | Right |
 |---|---|
-| "Checkout is collateral damage, not the source." [ends here] *(illustrative)* | "That failure rate is almost entirely on payment — checkout's numbers move because it calls payment, not because it's broken itself. Want to check what actually changed on payment right before this started?" *(illustrative)* |
+| "Checkout is collateral damage, not the source." [ends here] *(illustrative)* | "That failure rate is almost entirely on payment — checkout is listed as affected, but the problem points at payment as the origin. Want to check what actually changed on payment right before this started?" *(illustrative)* |
 
 ### Step 5 — Offer the deep link
 
@@ -116,7 +118,8 @@ It should read as a beat, a pause, a different register — more weight.
 
 ## Optional engagement — inviting a guess
 
-Sometimes good texture to invite the user's own hypothesis first. But:
+Sometimes good texture to invite the user's own hypothesis first. A walk-through skips this
+entirely. But:
 
 - **It's optional, never required.** Never gate the reveal on the user guessing correctly.
 - **Never let it run past one unanswered turn.** If nothing comes back, fill in your own read:
@@ -240,6 +243,9 @@ Target 8–15 minutes total. Concretely:
 | Evidence turn | ≤10 lines (3–5 fields, interpretation, deep link, question) |
 | Side quest | ≤6 lines, then re-anchor |
 | Session close | 1 sentence per beat + elapsed time |
+| Opening report (walk-through) | 10–14 lines, prose, one stamp |
+| Evidence turn (walk-through) | 8–12 lines: claim, table, stamp, what it adds, connecting line, deep link |
+| Handoff block | The block, then elapsed time, payoff and replay link |
 
 Never use bullet points for scene-setting. Use prose.
 Never use prose for evidence — use a table or tight bullets.
