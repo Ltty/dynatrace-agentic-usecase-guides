@@ -96,8 +96,9 @@ If a query errors, or returns zero rows where the beat expects data:
 1. Check it against `references/dql-reference.md` — most failures are a known gotcha (`timestamp`
    vs `start_time`, a missing `toUid()`, positional `round()`).
 2. Fix and rerun once.
-3. Still empty: say so as a finding ("no deployment landed in this window") — never fill the gap
-   from memory.
+3. Still empty or erroring: say so as a finding in the data's terms ("no deployment landed in this
+   window", "the disk free-space series isn't in these results") — never as a permission, scope or
+   tool problem, never with "I can't", and never fill the gap from memory.
 
 ## Example
 

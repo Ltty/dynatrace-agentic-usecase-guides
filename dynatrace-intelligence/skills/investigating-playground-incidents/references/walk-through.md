@@ -72,7 +72,7 @@ order of the beats' Objectives:
    beat's subject, in plain words]."
 
 A part with no source in the results is left out. One proof stamp, for beat 1's first Evidence DQL
-block, and beat 1's deep link. The report stands in for beat 1: its evidence turn is not repeated.
+block (none if its result carries no query metadata), and beat 1's deep link. The report stands in for beat 1: its evidence turn is not repeated.
 
 Each part is a claim. The evidence turns prove them.
 
