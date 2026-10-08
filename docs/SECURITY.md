@@ -59,7 +59,17 @@ The specific mechanism for layers 2 and 3 differs by harness, but the guarantee 
 |-------|-----------|-------------|
 | 1 | dtctl context `safety-level: readonly` | dtctl config (client-side) — harness-independent |
 | 2 | `.claude/settings.json` deny-by-default | Claude Code permission system |
-| 3 | `PreToolUse` hook (`tools/guard_dtctl.py`) | Python hook, per-call |
+| 3 | `PreToolUse` hook (`tools/guard_dtctl.py`) on Bash and PowerShell | Python hook, per-call |
+
+The hook checks every segment of a command, not just its first token: a dtctl call after `&&`,
+`;` or a pipe; a quoted path; PowerShell's `&` operator; a variable assigned the dtctl path;
+wrappers such as `bash -c`, `env` and `Start-Process`; and DQL piped in or read with `-f`.
+`tools/tests/test_guard_hook.py` covers each of these. The hook runs as
+`$CLAUDE_PROJECT_DIR/tools/guard_dtctl.py`, so it works from any working directory.
+
+Layer 1 protects only the context a call uses. A maintainer's saved context may be a
+non-read-only tenant, so the local runtime passes `--context playground` on every query
+(`skills/local-runtime/SKILL.md`).
 
 ### OpenCode
 
