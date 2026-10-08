@@ -48,8 +48,7 @@ numbers from the result.
 The slowest invocation's trace: ingress and frontend requests of about 8.5 s, then the image-provider
 `GET` (about 8.2 s) and `Invoke lambda /images/presign.` (about 8.2 s). Inside it: DynamoDB `GetItem` (5 ms),
 S3 `HeadObject` (80 ms), then `Resize original product image` (about 6.1 s) containing `Image resizing`
-(about 6.0 s), and `S3:PutObject` (about 1.5 s). `render_waterfall.py` anchors on the longest leaf when no
-span failed and marks it "most of the time".
+(about 6.0 s), and `S3:PutObject` (about 1.5 s). The slowest operation is the longest span that is not a wrapper of another slow span.
 
 ## Beat DQL status (all verified live 2026-10-07)
 

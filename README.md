@@ -1,17 +1,18 @@
 # Dynatrace Agentic Use Case Guides
 
-A Claude Code plugin for interactive, AI-guided incident investigations on the
-[Dynatrace Playground](https://playground.apps.dynatrace.com) — real live data, no fixtures.
+Interactive, AI-guided incident investigations on the
+[Dynatrace Playground](https://playground.apps.dynatrace.com) — real live data, no fixtures. Runs in Claude Code
+(as a plugin), OpenCode, and as an agent inside Dynatrace.
 
-## Two modes
+## How it works
 
-`/demo` opens a mode menu on every session:
+`/demo` starts a conversation with an on-call SRE for the Astroshop environment. Ask what's going on, pick an
+incident, and the SRE digs in with you on live data: the page, the change that caused it, the failing
+requests, who was affected, and a handoff to the owning team. Every number comes from a query it ran in front
+of you, and it says where the data stops.
 
-- **[A] Investigate with me** — conversational 1:1. Ask anything, the engine digs in live.
-  Best for self-serve exploration or walk-through with a single person.
-- **[B] Presenter mode** — stage-ready 1:many. Fixed beat order, DQL shown before each run,
-  raw dtctl table as the evidence. The user advances with `n`; off-script questions are
-  answered inline and the step resumes. Best for demos to a room or a screenshare audience.
+It is the same agent as `@demo-agent` in Dynatrace Assist: one skill and one prompt under
+[dynatrace-intelligence/](dynatrace-intelligence/), run locally through `dtctl`.
 
 ## Quickstart
 
@@ -44,7 +45,7 @@ Clone the repo, open in VS Code, click **Reopen in Container**, then follow step
 ### OpenCode (free-tier alternative)
 
 OpenCode lets you run the same demos with a hosted free-tier model instead of Claude Code.
-Zero per-demo cost, same skills and scenarios.
+Zero per-demo cost, same skill and scenarios.
 
 1. **Install OpenCode and configure the free bundled model:**
    ```bash
@@ -77,6 +78,7 @@ Reports exactly which piece is missing and how to fix it.
 
 ---
 
-- **Add a demo:** [docs/AUTHORING.md](docs/AUTHORING.md)
+- **Add a scenario:** [docs/AUTHORING.md](docs/AUTHORING.md)
+- **Change the skill or agent:** [docs/DYNATRACE-SKILL.md](docs/DYNATRACE-SKILL.md)
 - **Security model:** [docs/SECURITY.md](docs/SECURITY.md)
 - **OpenCode setup:** [docs/OPENCODE.md](docs/OPENCODE.md)

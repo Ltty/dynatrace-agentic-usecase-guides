@@ -100,8 +100,9 @@ the relevant scopes are:
 
 - `storage:logs:read`, `storage:spans:read`, `storage:events:read` — DQL data access
 - `storage:entities:read`, `storage:user.sessions:read` — entity and session queries
-- `davis:analyzers:read` — Davis CoPilot read
-- `davis-copilot:conversations:execute` — Davis CoPilot chat
+- `davis:analyzers:read` — Dynatrace Intelligence analyzers, read
+- `davis-copilot:conversations:execute` — Dynatrace Intelligence chat (the demo no longer calls it; the
+  login flow still requests it)
 - `app-engine:apps:run` — Playground app access
 
 The `readonly` safety level instructs dtctl to request only read scopes. If the Playground
@@ -110,7 +111,7 @@ restricts the set of scopes available to a user's account, the effect is tighter
 ## What a user can do
 
 - Query the Playground's Grail data store (read-only)
-- Chat with Davis CoPilot
+- Ask Dynatrace Intelligence (`dtctl exec copilot`; the demo itself no longer uses it)
 - View entity inventory
 - Open Dynatrace apps via the deep links presented in each beat
 
@@ -121,7 +122,7 @@ Hard limits (enforced by the three layers above — cannot be prompted away):
 - Create, modify, or delete Dynatrace resources (workflows, dashboards, settings)
 - Issue curl/wget requests to non-Dynatrace hosts
 
-Soft limits (enforced by the engine skill prompt — can be overridden by a sufficiently
+Soft limits (enforced by the agent instructions and skill — can be overridden by a sufficiently
 creative user prompt, but not by accident):
 - Query data outside the scenario's `scope.data_objects` list
 - Exfiltrate data by asking the engine to summarise and send it somewhere

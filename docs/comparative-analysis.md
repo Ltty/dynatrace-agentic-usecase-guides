@@ -1,5 +1,10 @@
 # Comparative analysis: DEM-Demo, log-dtctl-DUAL, and the agentic use-case-guides engine
 
+> **Historical (2026-10-01).** Written when the plugin edition had its own engine, scenario YAML and
+> Python tooling (`skills/demo-engine`, `scenarios/`, `render_waterfall.py`, `.demo-state`). Those were
+> retired on 2026-10-08, when `/demo` moved onto the Dynatrace skill. File references to them below point
+> at git history, not the working tree.
+
 **Audience:** demo-tooling owners and contributors to this repo.
 **Source material:** `DEM-Demo.zip` and `log-dtctl-demo-DUAL.zip`, both placed at the repo root on
 2026-10-01 and extracted to a session scratchpad for analysis. Neither zip was extracted into the

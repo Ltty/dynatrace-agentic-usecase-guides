@@ -1,26 +1,27 @@
 # Dynatrace Agentic Use Case Guides
 
-The demo runs on one skill for both runtimes: `dynatrace-intelligence/skills/investigating-playground-incidents/`
-with the agent prompt `dynatrace-intelligence/agents/demo-agent/instructions.md`. Locally, `/demo` loads both plus
-`skills/local-runtime/SKILL.md` (dtctl in place of the Dynatrace tools). Nothing loads the persona outside `/demo`,
-so ordinary sessions in this repo stay normal. The rest of this file still describes the retired plugin engine in
-places; it is rewritten in Phase 4 of the port.
+Interactive, CLI-driven incident investigations on the Dynatrace Playground. The user explores real
+Playground data as if responding to a production incident — guided, but explorative.
 
-## What this repo is
+## One skill, two runtimes
 
-A Claude Code plugin that turns Dynatrace Use Case Guides into interactive, CLI-driven
-troubleshooting sessions. The user explores real Playground data as if responding to a
-production incident — guided, but explorative.
+The demo is one skill and one agent prompt, run in two places:
+
+- **Dynatrace** — `@demo-agent` in Dynatrace Assist. Tool: `execute-dql`.
+- **Locally** — `/demo` in Claude Code or OpenCode. Tool: `dtctl query`.
+
+Both read `dynatrace-intelligence/skills/investigating-playground-incidents/` (the skill, with its
+`references/`) and `dynatrace-intelligence/agents/demo-agent/instructions.md` (the agent prompt).
+`skills/local-runtime/SKILL.md` is the only local-only piece: it maps `read_file` to a local Read and
+`execute-dql` to `dtctl query --context playground`, and holds no behaviour rules. A rule change goes
+in the skill once and both runtimes get it.
+
+`/demo` loads these with `@`-includes. `CLAUDE.md` and `opencode.json` load only this file, so ordinary
+sessions in this repo are not the SRE persona.
 
 ## Quick start (for contributors)
 
 ```bash
-# 0. Add dtctl to PATH (new sessions don't always inherit it)
-#    Windows (in Bash tool):
-export PATH="$PATH:/c/Users/$USERNAME/AppData/Local/dtctl"
-#    Linux/Mac:
-export PATH="$PATH:$HOME/.local/bin"
-
 # 1. Authenticate against the Playground (browser, one-time per machine)
 python tools/preflight.py login
 
@@ -31,30 +32,21 @@ python tools/preflight.py login
 /demo
 ```
 
-## Architecture in one paragraph
-
-One scenario-agnostic engine skill (`skills/demo-engine/SKILL.md`) drives all demos.
-Everything scenario-specific lives in `scenarios/<id>/` as YAML, DQL, and Markdown data files.
-Adding a new demo means adding a folder — no engine changes. The engine reads the active
-scenario's manifest, resolves live Playground state via `dtctl`, and runs a beat loop that
-feels like pair-debugging on a real incident.
+`dtctl` must be on PATH so `Bash(dtctl query *)` matches without a permission prompt. Windows: add
+`%LOCALAPPDATA%\dtctl` to your user PATH; Linux/Mac: `~/.local/bin`.
 
 ## Connectivity
 
-- **Tool:** `dtctl` (Dynatrace CLI) — `dtctl query`, `dtctl exec copilot`, `dtctl inventory`
-- **Context:** `playground` / `https://playground.apps.dynatrace.com`
-- **Safety level:** `readonly` — hard-enforced at the dtctl context layer
-- **Agent mode:** auto-activates (`CLAUDECODE` env var present); output is JSON envelope
+- **Tool:** `dtctl` (Dynatrace CLI) — `dtctl query`, `dtctl inventory`
+- **Context:** `playground` / `https://playground.apps.dynatrace.com`. Every local query passes
+  `--context playground`, whatever the saved context is.
+- **Safety level:** `readonly` on the playground context, plus the guard hook (see Guardrails)
+- **Agent mode:** auto-activates (`CLAUDECODE` env var present); output is a JSON envelope
 - **Auth:** per-user browser OAuth; no shared tokens exist in this repo
-- **Resolved state:** `tools/preflight.py resolve <id> --write` → `.demo-state.<id>.json`
-  (mirrored to `.demo-state.json` for backward compat). Mode is one of `live_active` /
-  `live_recent` (no fixture fallback — the pattern fires twice daily, a 48h lookback always
-  finds an occurrence; if the Playground is quiet, the engine says so)
-- **Beat queries:** DQL is pre-substituted at session start via `python tools/preflight.py
-  load-queries <id>` → `{relative_path: single_line_dql}` dict. Beats run
-  `dtctl query "<pre-loaded-dql>" --agent -o json --plain --max-field-chars 0 -M=all` directly.
-  Proof stamp: `canonicalQuery` (Grail's echo), `queryId`, `executionTimeMilliseconds`,
-  `scannedRecords`. For the trace waterfall, pipe to `python tools/render_waterfall.py`.
+- **State:** conversation context only. The resolver DQL in each scenario file returns the problem,
+  the incident window and the timing fields; there is no state file.
+- **Quoting:** run `dtctl` from Bash. Windows PowerShell 5.1 strips the double quotes inside DQL
+  string literals, so the query silently returns no rows.
 
 ## Directory map
 
@@ -62,12 +54,13 @@ feels like pair-debugging on a real incident.
 .claude/          Claude Code settings, hooks (guardrail enforcement), maintainer-only skills
 .claude-plugin/   Claude Code plugin manifest
 .opencode/        OpenCode plugin and command definitions
-skills/           Engine skill + Playground DQL skill (shared across harnesses)
-commands/         /demo and /demo-doctor slash commands (shared source)
-scenarios/        One folder per demo; schema in _schema/
-dynatrace-intelligence/  Dynatrace-native skill (app layout) and its agent template (agents/demo-agent)
-tools/            Python validators, preflight scripts, shared guard hook
-docs/             AUTHORING.md, SECURITY.md, spike-notes.md
+skills/           local-runtime: the adapter that runs the Dynatrace skill with dtctl
+commands/         /demo and /demo-doctor (.claude/commands/ is a copy; CI checks they match)
+dynatrace-intelligence/  The skill and the demo-agent: the single source for both runtimes
+tools/            dt_agent.py (check/upload/test the Dynatrace skill and agent), validate_dt_skill.py,
+                  run_dt_evals.py, preflight.py, guard_dtctl.py
+tests/            Behaviour evals for the demo-agent (tests/evals/dt-agent/)
+docs/             AUTHORING.md, SECURITY.md, DYNATRACE-SKILL.md, skill-backlog.md, test runs
 ```
 
 ## Guardrails
@@ -75,61 +68,56 @@ docs/             AUTHORING.md, SECURITY.md, spike-notes.md
 Hard (hook-enforced, cannot be prompted away):
 
 - `dtctl` context locked to `readonly` safety level — harness-independent
-- Claude Code: `.claude/settings.json` deny-by-default + `PreToolUse` hook
+- Claude Code: `.claude/settings.json` deny-by-default + a `PreToolUse` hook on Bash and PowerShell
 - OpenCode: `opencode.json` permission globs + `.opencode/plugin/guard-dtctl.ts`
 
-Both harnesses call the same underlying Python script (`tools/guard_dtctl.py`) for verb+DQL
-enforcement. One copy of the deny logic, tested once, honoured by both.
+Both harnesses call the same script (`tools/guard_dtctl.py`) for verb and DQL enforcement. It checks
+every segment of a command: quoted paths, `&&`/`;`/pipes, `&` in PowerShell, variables holding the
+dtctl path, wrappers such as `bash -c`, and DQL piped in or read with `-f`.
+`tools/tests/test_guard_hook.py` covers each.
 
 Soft (skill-level):
 
-- Active scenario scope limits which data objects and services Claude queries
+- The scenario's scope limits which data objects and services are queried
 - Off-script prompts get an in-character redirect, not an error
-- Out-of-role asks and remediation requests get an in-character decline plus a live-data
-  handoff, never a capability refusal
+- Out-of-role asks and remediation requests get an in-character handoff, never a capability refusal
 
-## Adding a demo
+## Changing the skill or the agent
 
-See `docs/AUTHORING.md`. The contract: add `scenarios/<new-id>/scenario.yaml` plus beats,
-queries, and fixtures. Register in `scenarios/registry.yaml`. Run
-`python tools/validate_scenarios.py --live scenarios/<new-id>` — this actually executes every
-query against the Playground, not just static checks. Zero changes to `skills/` or `commands/`.
+Edit `dynatrace-intelligence/`, then follow `docs/DYNATRACE-SKILL.md` (check, validate live, upload
+with approval, evals). Ideas that are not in the skill yet, and why, are in `docs/skill-backlog.md`.
+
+Adding a scenario: `docs/AUTHORING.md`.
 
 ## Tooling reference
 
 - `python tools/dt_agent.py check|pack|docs|template|invoke` — check, copy, upload and test the Dynatrace
   skill and `demo-agent`; every write is a dry run unless `--apply`. Procedure: `docs/DYNATRACE-SKILL.md`
-- `python tools/run_dt_evals.py --tenant dev|playground` — run the `demo-agent` behaviour cases (3 runs each,
-  scripted assertions, ground-truth numbers) and write a review sheet
+- `python tools/validate_dt_skill.py --scenario <id>` — runs every DQL block of a scenario live
+- `python tools/run_dt_evals.py --tenant dev|playground` — the `demo-agent` behaviour cases (3 runs each,
+  scripted assertions, ground-truth numbers); writes a review sheet
 - `python tools/preflight.py check` — connectivity/auth/safety-level gate (what `/demo-doctor` runs)
-- `python tools/preflight.py preflight [--deep]` — go/no-go per published scenario (liveness check)
-- `python tools/preflight.py resolve <id> [--write]` — find the live problem, derive the incident
-  window, optionally write `.demo-state.<id>.json`
-- `python tools/preflight.py load-queries <id>` — pre-substitute all `{{PLACEHOLDER}}` tokens
-  in every beat query and return `{relative_path: single_line_dql}`; called once at session start
-- `python tools/preflight.py run-query <id> <dql-path> [--var KEY=VAL] [--render waterfall]`
-  — development/debug helper: substitute + execute a single query; prints proof stamp to stderr
-- `python tools/render_waterfall.py` — ASCII waterfall renderer (reads dtctl envelope from stdin)
-- `python tools/validate_scenarios.py [--live] [scenarios/<id>]` — schema/integrity/DQL-lint,
-  plus (with `--live`) real execution of every query
-- `dtctl exec copilot "<question>" --context "<your own query facts>"` — Davis CoPilot; message
-  is positional, not stdin
+- `python tools/preflight.py preflight` — is each scenario's problem live?
+- `python tools/preflight.py dtctl-path` — how to invoke dtctl (bare `dtctl` if on PATH)
+- `python tools/tests/test_guard_hook.py`, `test_run_dt_evals.py` — offline tests (CI runs them)
 
 ## Known constraints
 
-- Recurring Playground problem patterns fire as a **cluster of near-duplicate Davis problems**.
-  The resolver filters `dt.davis.is_duplicate == false` to get one deterministic instance — do
-  not additionally filter on `event.name`, the umbrella problem is often generically named.
-- Specific values (exception text, commit SHA, line numbers, affected-user counts) **rotate
-  every problem cycle** — never hardcode them in a `scenario.yaml` reveal; read them live.
-- Three distinct populations exist in the payment-failure scenario: Davis `affected_users`,
-  total sessions with 5xx (sum of the beat-05 query), and per-country breakdowns. Never
-  conflate them — always label which population a number describes.
-- `dtctl exec copilot` output is non-deterministic; used for colour/narrative fed by your own
-  query results, not as primary evidence.
-- The Playground is read-only; the engine must never attempt a write (hook enforces this).
-- Field names in this Playground do not always match generic DQL documentation — see the
-  verified list in `skills/dynatrace-playground/SKILL.md` before trusting an assumption.
-- No fixture fallback exists — all queries hit the live Playground. The resolver widens to 48h
-  and the problem fires twice daily, so a live occurrence is almost always available.
-  If nothing is found, the engine stops cleanly in character.
+- Recurring Playground problem patterns fire as a **cluster of near-duplicate problems**. The resolver
+  filters `dt.davis.is_duplicate == false` to get one deterministic instance — do not additionally filter
+  on `event.name`, the umbrella problem is often generically named.
+- Specific values (exception text, commit SHA, line numbers, affected-user counts) **rotate every problem
+  cycle** — never hardcode them in a scenario file; read them live.
+- Several populations exist in an incident (the problem record's affected users, failed spans, sessions
+  with 5xx). Never conflate them — always label which population a number describes.
+- **Data is the only source of conclusions.** Counts and nulls are stated as returned; no geography,
+  intent or cause that no returned field contains.
+- Product naming: all Dynatrace AI is "Dynatrace Intelligence", the chat interface is "Dynatrace Assist";
+  never "Davis" or "CoPilot" in what the agent says. `dt.davis.*` fields and app IDs in links are
+  identifiers and stay.
+- Field names in this Playground do not always match generic DQL documentation — see
+  `references/dql-reference.md` in the skill before trusting an assumption.
+- The Playground is read-only; the agent must never attempt a write (the hook enforces this).
+- No fixture fallback exists — all queries hit the live Playground. The resolver looks back 48h and each
+  problem fires at least once a day, so a live occurrence is almost always available. If nothing is
+  found, the agent says the environment is clean and stops.

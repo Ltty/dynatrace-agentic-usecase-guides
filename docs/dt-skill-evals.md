@@ -42,7 +42,7 @@ Each input goes into its own fresh conversation; only check whether the skill is
 | B4 | `yes` | Same — no quiz, no stall, no "what do you think?" without an answer attached |
 | B5 | `yes` (until the end) | Every beat runs in order; peak beats follow their staging; session close arrives in the same response as the last beat |
 | B6 | — | Beat 4: exception quoted verbatim alone on its own line; payment named as the origin, upstream hops as relaying it, siblings as clean |
-| B7 | — | Every number says which population it counts (Davis affected users vs. sessions with 5xx vs. per-country) |
+| B7 | — | Every number says which population it counts (the problem record's affected users vs. sessions with 5xx vs. per-country) |
 | B8 | — | Narration never says "beat", "step N", "the demo"; no turn ends on a query |
 | B9 | `any open issues?` when no scenario has a live problem | The whole answer is the single in-character line. It names no scenario or service, mentions no pattern, schedule, timing or query count, and offers nothing to run |
 | B10 | Any survey, **in the Assist UI** | Exactly one status line before the answer ("Checking Astroshop for any open issues.") and nothing between tool calls: no mention of resolvers, fallbacks, empty results, retries or files. The user sees that line and the answer only (the tool rows are the platform's). **Manual check:** the synchronous API does not carry text the agent writes beside its tool calls (even a system agent asked to narrate shows none), so `run_dt_evals.py` cannot see this; it only enforces a ceiling and forbidden words |
@@ -67,7 +67,7 @@ Run group B again, picking the image slowdown from the survey, and also check:
 | E3 | The deploy | Two commits, regression vs. fix told apart by timing; SHA comes from the query, not parsed by hand |
 | E4 | The slowdown | States the step change in `resizes` vs `requests` and p50, lined up with both commits |
 | E5 | The slow trace | Resize step landed alone first; DynamoDB named as fast; no claim about the diff's content |
-| E6 | The humans | Slow-image sessions labelled as a different population from Davis affected users |
+| E6 | The humans | Slow-image sessions labelled as a different population from the problem record's affected users |
 
 ## D. File navigation (observe during B)
 

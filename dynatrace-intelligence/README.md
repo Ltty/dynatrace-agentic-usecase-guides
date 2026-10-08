@@ -1,8 +1,8 @@
 # Dynatrace Agentic Use Case Guide — Skill Edition
 
-A port of the [Claude Code plugin](../README.md) to the Dynatrace agentic skill format.
-Same SRE-persona incident investigation, same live Playground data, same beat structure —
-restructured to run inside Dynatrace without a local CLI, Python tooling, or Claude Code.
+The single source of the SRE-persona incident investigation: one skill and one agent prompt, run both
+inside Dynatrace (`@demo-agent`) and locally (`/demo` in Claude Code or OpenCode, through
+[`skills/local-runtime`](../skills/local-runtime/SKILL.md)). Same live Playground data, same beat structure.
 
 Procedures (layout rules, deploying, testing, adding a scenario): [docs/DYNATRACE-SKILL.md](../docs/DYNATRACE-SKILL.md). This file holds design notes and open items.
 
@@ -10,16 +10,14 @@ Procedures (layout rules, deploying, testing, adding a scenario): [docs/DYNATRAC
 
 ## What this is
 
-The Claude Code plugin drives the investigation through `dtctl` (a local CLI), Python scripts
-(`preflight.py`, `render_waterfall.py`), and Claude Code's hook/slash-command machinery.
-
-This skill edition replaces all of that with:
-
 - **One `SKILL.md`** — the entry point and dispatch layer.
-- **Five reference `.md` files** — the engine prose, DQL queries, scenario data.
-- **Native DQL execution** — the Dynatrace runtime runs queries directly; no CLI, no envelope parsing.
+- **Reference `.md` files** — the conversation rules, DQL gotchas, and each scenario's resolver and beats.
+- **Native DQL execution** — in Dynatrace the runtime runs queries through `execute-dql`; locally the
+  adapter maps the same call onto `dtctl query`.
 
-The content is the same. The plumbing is gone.
+The first version of this demo was a Claude Code plugin with its own engine, scenario YAML and Python
+tooling (`preflight.py` state files, a waterfall renderer). It was retired once this skill ran locally
+too; the history is in git and `docs/comparative-analysis.md`.
 
 ## Files
 
@@ -51,36 +49,23 @@ from a live query, and there is no fixture fallback.
 | Surface | Works? | Why |
 |---|---|---|
 | Dynatrace agent runtime (Assist, `@demo-agent`) | Yes — the target | DQL through the MCP gateway tool `execute-dql` |
-| Claude Code | Use the plugin edition instead | `dtctl` provides DQL there; see below |
+| Claude Code, OpenCode (`/demo`) | Yes | `skills/local-runtime` maps `execute-dql` to `dtctl query` on the read-only `playground` context |
 | Claude API (Skills upload) | No | Skill containers have no network access |
 | claude.ai | Only with network access and a DQL tool | Network access varies by user/admin settings |
 
 Because the Dynatrace runtime has no bash or scripts, DQL is this skill's deterministic layer:
 date math, epoch conversion, and trace condensing live in the queries, not in the model's prose.
 
-**Two editions, maintained separately.** Skills don't sync across surfaces. This directory is
-the Dynatrace-runtime edition; the Claude Code edition is the plugin (`skills/`, `commands/`,
-`scenarios/`). A new DQL gotcha or scenario change must be applied to both — for example, the
-GitHub Actions deploy rule (`commit` is null; parse the SHA from `event.description`) matters
-to broken-images in both editions.
-
-## What changed from the Claude Code plugin
-
-| Plugin | Skill edition | Why |
-|---|---|---|
-| `preflight.py resolve` (Python, 100+ lines) | Resolver DQL with `fieldsAdd` timestamp arithmetic | Keeps date math in the data layer, not the model |
-| `preflight.py load-queries` (pre-substitution) | Agent substitutes `{{TOKENS}}` inline at beat time | No pre-loading needed without a state file |
-| `render_waterfall.py` (247 lines, span tree) | Per-service trace summary in DQL | `summarize … by: { service }` returns ~10 ordered rows; no tree building in the model |
-| `guard_dtctl.py` + `settings.json` (hook enforcement) | Platform read-only + skill instructions | DQL `fetch` has no write path; behavioural guardrails remain instruction-only |
-| `.demo-state.<id>.json` (on-disk state) | Conversation context only | No filesystem in the Dynatrace runtime |
-| `/demo` slash command | Natural-language entry (survey on request) | The two-stage greeting/survey design already works without a slash command |
-| Two `SKILL.md` files (`@import`ed) | One `SKILL.md` + reference files | Matches the skill skeleton format |
+**One codebase.** A rule, a DQL gotcha or a scenario change is edited here once and both runtimes get it
+— for example, the GitHub Actions deploy rule (`commit` is null; parse the SHA from `event.description`)
+matters to broken-images in both. The local runtime reads these repo files; `@demo-agent` reads the
+uploaded documents, so upload after every change (`docs/DYNATRACE-SKILL.md`).
 
 ## Security posture
 
-The Claude Code plugin enforces three independent read-only layers; the Dynatrace runtime
-replaces them with DQL's platform-level read-only constraint. See `docs/SECURITY.md` →
-"Dynatrace runtime" for the full comparison.
+Locally, three independent read-only layers apply (the `readonly` dtctl context, the permission
+allow-list, and the guard hook). The Dynatrace runtime replaces them with DQL's platform-level read-only
+constraint. See `docs/SECURITY.md` for both.
 
 ## Verification
 
@@ -96,13 +81,13 @@ Also open one deep link with substituted values and confirm the Dynatrace app lo
 
 ## Current scope
 
-- **Engine:** complete — session protocol, beat loop, divergence, persona, pacing.
+- **Engine:** complete — session protocol, beat loop, divergence, persona, pacing, data-only conclusions.
 - **payment-failure scenario:** complete — resolver DQLs and all 5 beats with DQL inline.
 - **broken-images scenario:** complete — ported as a latency investigation, rebuilt against
   live data. The incident repeats every day: after a deploy around 03:00 UTC the Lambda resizes
   every image on every request until a fix lands about 30 minutes later. A single sampled failed
   `GET` span with a `SlowDown` throttle exists on some days only, so the beats do not depend on
-  it. The plugin edition tells the same story.
+  it.
 
 ## Resolver notes (maintainers only)
 
@@ -115,11 +100,11 @@ Kept out of the skill on purpose: the agent reads the scenario files and would r
 
 ## Open items
 
-- **Liveness proof stamp:** the plugin shows `queryId / scannedRecords / executionTimeMs` from
-  the dtctl envelope. Whether the Dynatrace runtime exposes these fields is unknown. Do not
-  fabricate them; decide after the first live test.
-- **Deep links (broken-images):** the deployment-management and error-inspector links are
-  carried over from the plugin and haven't been opened against a live problem yet.
+- **Liveness proof stamp:** locally it comes from the dtctl envelope's `metadata` (`queryId`,
+  `scannedRecords`, `executionTimeMilliseconds`). Whether the Dynatrace runtime exposes these
+  fields is unknown. Do not fabricate them; decide after the first live test.
+- **Deep links (broken-images):** the deployment-management and error-inspector links
+  haven't been opened against a live problem yet.
 
 Agents run DQL through the MCP gateway tool `execute-dql` (server `dynatrace-mcp`, type
 `dtp-mcp-gateway`), so SKILL.md names it as `dynatrace-mcp:execute-dql`. An agent that has no MCP

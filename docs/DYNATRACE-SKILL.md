@@ -100,17 +100,22 @@ The Playground token needs `ai:operator:execute`, `mcp-gateway:servers:read` and
 - **Manual groups:** `docs/dt-skill-evals.md` and `docs/guardrail-probes.md` stay the source for cases that are not automated yet (persistence, deep links).
 - **Dev has no scenario data.** The resolvers hardcode Playground service IDs and RCA is broken on dev, so dev only shows "environment looks clean". Scenario content is tested on the Playground.
 
-## Two editions, one rule
+## One skill, two runtimes
 
-The Dynatrace skill (this guide) and the Claude Code plugin (`skills/`, `commands/`, `scenarios/`) tell the same investigations, and they do not sync. A DQL gotcha or a scenario change goes into **both**, in the same change:
+The Dynatrace agent (`@demo-agent`) and the local `/demo` run the same skill and the same agent instructions. Nothing is maintained twice: a DQL gotcha, a scenario change or a conversation rule is edited once, under `dynatrace-intelligence/`, and both runtimes get it.
 
-| Dynatrace edition | Plugin edition |
-|---|---|
-| `references/dql-reference.md` | `skills/dynatrace-playground/SKILL.md` (verified field names) |
-| `references/scenario-<id>.md` and `-beats.md` | `scenarios/<id>/scenario.yaml` and `queries/*.dql`, `dev-notes.md` |
-| `references/conversation-craft.md`, `session-protocol.md` | `skills/demo-engine/SKILL.md`, `commands/demo.md` |
+| Part | Where | Used by |
+|---|---|---|
+| The skill and its `references/` | `dynatrace-intelligence/skills/investigating-playground-incidents/` | both |
+| The agent prompt | `dynatrace-intelligence/agents/demo-agent/instructions.md` | both |
+| Tool and path mapping (`read_file`, `execute-dql`) | `skills/local-runtime/SKILL.md` | local only |
+| Entry points | `commands/demo.md` (copied to `.claude/commands/`), `commands/demo-doctor.md` | local only |
 
-Verify scenario DQL live in both: `python tools/validate_dt_skill.py --scenario <id>` and `DTCTL_CONTEXT=playground python tools/validate_scenarios.py --live scenarios/<id>`. Check the plugin manifest with `claude plugin validate .`, and run `tools/tests/test_render_waterfall.py` after touching the waterfall renderer.
+Local `/demo` includes the instructions, the adapter, `SKILL.md`, `session-protocol.md` and `conversation-craft.md` with `@`-includes, so no Read rows show before the greeting; the other references are read on demand, as in Dynatrace. The adapter holds no behaviour: if a rule only works locally, it belongs in the skill.
+
+Because the local runtime reads the repo files and the Dynatrace agent reads the uploaded documents, a skill change reaches `@demo-agent` only after `docs --apply`. Keep the two in step: upload after every merged skill change.
+
+The local runtime has two properties the Dynatrace one does not. `dtctl` returns an envelope whose `metadata` feeds the proof stamp, and every query passes `--context playground`, so a maintainer's saved context cannot redirect the demo.
 
 Verify an incident's shape on several days before writing its reveal. The Playground's incidents change: the image slowdown looked like a failing-span story on one day and a pure-latency story on another, because one sampled failed span exists only on some days. Anchor the beats on what repeats every cycle.
 
