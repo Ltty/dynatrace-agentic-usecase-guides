@@ -61,8 +61,22 @@ Branding: "Dynatrace Intelligence" / "Dynatrace Assist", never "Davis" or "CoPil
 
 ## Open
 
-- **Upload pending (needs approval):** `dt_agent.py docs --apply`, `template --apply` (the description changed), then
-  `run_dt_evals.py --tenant dev`. Nothing here has run on `@demo-agent`; the walk-through ran locally in testruns 12 and 13.
+- **Deployed to dev, 2026-10-08 (template v12, 11 documents); first `@demo-agent` runs.** Dev evals, 3 runs each, across
+  four rounds: cost, greeting, injection, offtopic, revert-no-incident and vendor pass 3/3 every time. The rest moved
+  between rounds with 3-run noise; what stays broken, and why:
+  - **The agent token lacks the metrics read scope** (`storage:metrics:read`). The disk scenario's `timeseries` beats
+    (2 and 3) return a permission error on the agent, although `dtctl` reads them fine on dev. The agent then says "I can't
+    show you the free-space trend" in most walk-through runs, and `walk-through-handoff-dev` runs a query it should not
+    need. Add the scope to `DT_DEV_AGENT_TOKEN`, then re-run before judging those cases or tuning the skill further.
+  - **Invented proof stamps.** Some runs return no `queryId` through the agent runtime and others do (one real one was
+    seen). Where none comes back the agent writes patterned ids (`8e5e5e5e-0000-0000-…`, `9e5e3e5e-e5e5-…`) despite the
+    rule, which is now stated first and in both the agent instructions and conversation-craft. Prompt wording has not held.
+    Options: drop the stamp from the Dynatrace runtime until the metadata is confirmed there, or add an eval that fails on a
+    non-UUIDv7 id. The "(beat N)" labels did stop.
+  - **The survey still names scenarios that returned nothing** ("the payment service and image service are clean"),
+    now 0 to 1 of 3 on `survey-dev`, even with the sentence forbidden by example in the instructions and the protocol.
+  - One `HTTP 500` ("technical error") from the platform in the third round; transient.
+  - `explore-close-dev` is a draft and has not run.
 - **`explore-close-dev` and the new `queried_at` queries** need a live run: a steered user who finishes all five beats gets the
   close with a measured elapsed time.
 - **Detection gap is computed by the model** from two timestamps (payment beat 4). Correct in both testrun-13 runs; move it
