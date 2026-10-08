@@ -1,0 +1,32 @@
+id: explore-close-dev
+tenant: dev
+runs: 3
+status: draft
+description: 'DRAFT: after the last of the five beats the close arrives in the same reply, measures the elapsed time from
+  the latest queried_at, and never announces that something was left out.'
+turns:
+- ask: Are there any open issues right now?
+  expect:
+    requires_dql: true
+- ask: Let's look at the disk.
+  expect:
+    requires_dql: true
+- ask: Yes, go on.
+  expect:
+    requires_dql: true
+- ask: Yes, go on.
+  expect:
+    requires_dql: true
+- ask: Yes, go on.
+  expect:
+    requires_dql: true
+- ask: Yes, go on.
+  expect:
+    reply_contains:
+    - full picture
+    reply_excludes:
+    - leaving
+    - left out
+    - can't give
+    - I can't
+    - I can’t

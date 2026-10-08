@@ -2,7 +2,6 @@ id: walk-through-opening-live
 tenant: playground
 runs: 3
 status: draft
-forbid: false
 truth:
 - payment-failure
 description: 'DRAFT, unvalidated until the agent exists on the Playground: taking the walk-through gives the

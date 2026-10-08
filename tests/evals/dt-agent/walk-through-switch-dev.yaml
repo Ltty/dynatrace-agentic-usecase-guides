@@ -1,7 +1,6 @@
 id: walk-through-switch-dev
 tenant: dev
 runs: 3
-forbid: false
 description: Mid walk-through, "let me look myself" hands the wheel back, and the reply offers where to look, without naming the mode.
 turns:
 - ask: Are there any open issues right now?

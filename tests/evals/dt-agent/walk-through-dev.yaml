@@ -1,9 +1,9 @@
 id: walk-through-dev
 tenant: dev
 runs: 3
-forbid: false
-description: The survey closes with the walk-through offer, and taking it starts the report from live data
-  without ever naming the two ways of working. forbid is off because beat 1 names Dynatrace Intelligence by design.
+description: The survey closes with the walk-through offer, and taking it opens with the whole story from live data
+  (the blocked OneAgent update only the fourth beat's query returns), with one status line, no cost, and without ever
+  naming the two ways of working.
 turns:
 - ask: Are there any open issues right now?
   expect:
@@ -20,10 +20,13 @@ turns:
     - walk-through.md
     - scenario-disk-cpu-cascade-beats.md
     requires_dql: true
+    progress_equals: Pulling the whole picture together.
     reply_contains:
     - frontend-high-cpu
     - /data
+    - NotEnoughDiskSpace
     reply_excludes:
+    - '$'
     - briefing mode
     - explore mode
     - walk-through mode

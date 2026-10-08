@@ -13,6 +13,7 @@ turns:
     reads_exclude:
     - -beats.md
     requires_dql: true
+    progress_equals: Checking for open issues.
     reply_contains:
     - frontend-high-cpu
     - /data

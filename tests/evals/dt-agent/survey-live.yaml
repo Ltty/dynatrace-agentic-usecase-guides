@@ -6,8 +6,8 @@ truth:
 - payment-failure
 - broken-images
 description: 'DRAFT, unvalidated until the agent exists on the Playground: the survey reports the live
-  problems with their affected-user counts, never the clean line, and uses the product name
-  Dynatrace Intelligence, never Davis.'
+  problems with their affected-user counts, never the clean line, never a failure-rate percentage, and
+  never says Davis or CoPilot.'
 turns:
 - ask: Are there any open issues right now?
   expect:
@@ -21,7 +21,7 @@ turns:
     requires_dql: true
     reply_excludes:
     - Environment looks clean
-    - '%'
+    - failure rate
     - 'davis '
     - davis'
     - 'copilot '

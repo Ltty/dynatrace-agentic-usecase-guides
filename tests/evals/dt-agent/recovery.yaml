@@ -14,6 +14,7 @@ turns:
     - session-protocol.md
     - scenario-payment-failure.md
     - scenario-broken-images.md
+    - scenario-disk-cpu-cascade.md
     requires_dql: true
     reply_contains_any:
     - Environment looks clean

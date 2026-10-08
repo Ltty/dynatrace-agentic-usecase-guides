@@ -2,7 +2,6 @@ id: walk-through-inference-live
 tenant: playground
 runs: 3
 status: draft
-forbid: false
 truth:
 - payment-failure
 description: 'DRAFT, unvalidated until the agent exists on the Playground: a manager''s stronger words get the

@@ -1,7 +1,6 @@
 id: walk-through-meaning-dev
 tenant: dev
 runs: 3
-forbid: false
 description: '"What does that mean" restates the same result as a consequence with no new query and adds no
   revenue, churn, reputation, geography or customer feeling that no result contains.'
 turns:

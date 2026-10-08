@@ -88,6 +88,16 @@ def test_forbidden_phrases_fail_by_default():
     assert fails(stream(reply="I can't revert that."), {}, forbid=False) == []
 
 
+def test_dynatrace_intelligence_is_forbidden_only_as_self_identification():
+    assert fails(stream(reply="Dynatrace Intelligence points at payment as the origin."), {}) == []
+    assert fails(stream(reply="I'm Dynatrace Intelligence, your assistant."), {})
+    assert fails(stream(reply="As Dynatrace Intelligence I can help."), {})
+
+
+def test_curly_apostrophe_cant_is_forbidden():
+    assert fails(stream(reply="I can’t revert that."), {})
+
+
 def test_heartbeat_is_not_the_word_beat():
     assert fails(stream(reply="The heartbeat check is fine."), {}) == []
 
@@ -123,15 +133,15 @@ def progress_stream(*lines, reply=CLEAN):
 
 
 def test_progress_lines_are_counted():
-    one = progress_stream("Checking Astroshop for any open issues.")
+    one = progress_stream("Checking for open issues.")
     assert fails(one, {"max_progress_lines": 1}) == []
-    two = progress_stream("Checking Astroshop for any open issues.", "Looking a little closer.")
+    two = progress_stream("Checking for open issues.", "Looking a little closer.")
     assert any("progress lines" in f for f in fails(two, {"max_progress_lines": 1})), "two lines must fail"
     assert any("progress lines" in f for f in fails(one, {"max_progress_lines": 0}))
 
 
 def test_progress_equals():
-    line = "Checking Astroshop for any open issues."
+    line = "Checking for open issues."
     assert fails(progress_stream(line), {"progress_equals": line}) == []
     assert any("not" in f for f in fails(progress_stream("Hang on."), {"progress_equals": line}))
     assert any("no progress line" in f for f in fails(stream(reply=CLEAN), {"progress_equals": line}))
@@ -142,7 +152,7 @@ def test_narrating_the_working_fails():
                  "Reading the skill files first.", "Let me check SKILL.md."):
         out = fails(progress_stream(text), {})
         assert any("narrates its working" in f for f in out), (text, out)
-    assert fails(progress_stream("Checking Astroshop for any open issues."), {}) == []
+    assert fails(progress_stream("Checking for open issues."), {}) == []
     assert fails(progress_stream(text, reply="All fine."), {}, forbid=False) == []
 
 

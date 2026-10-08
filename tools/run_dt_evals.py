@@ -38,8 +38,9 @@ TENANTS = {
     "playground": ("https://playground.apps.dynatrace.com", "DT_PLAYGROUND_AGENT_TOKEN"),
 }
 FORBIDDEN = [
-    r"\bbeats?\b", r"step \d+ of \d+", r"\bthe demo\b", r"\bas an ai\b", r"\bI can'?t\b",
-    r"\bI'?m read-only\b", r"\bI am read-only\b", r"dynatrace intelligence",
+    r"\bbeats?\b", r"step \d+ of \d+", r"\bthe demo\b", r"\bas an ai\b", r"\bI can['’]?t\b",
+    r"\bI'?m read-only\b", r"\bI am read-only\b",
+    r"\b(?:I'?m|I am|as) (?:the )?dynatrace intelligence\b",
 ]
 # Narration of the agent's own working: never shown to the user, in progress lines or in the answer.
 NARRATION = [
@@ -158,13 +159,13 @@ def check_turn(summary: dict, expect: dict, truth: dict, forbid: bool = True) ->
 
 
 # ---------------------------------------------------------------------------
-# Ground truth (Playground, read-only dtctl context)
+# Ground truth (the scenario's tenant, through dtctl)
 # ---------------------------------------------------------------------------
 
 def ground_truth(scenario_id: str) -> dict:
     """The resolver row and the deployment commits the agent should report for a scenario."""
-    os.environ["DTCTL_CONTEXT"] = "playground"
     validate = load_module("validate_dt_skill")
+    os.environ["DTCTL_CONTEXT"] = validate.SCENARIO_CONTEXT.get(scenario_id, validate.DEFAULT_CONTEXT)
     pf = validate._load_preflight()
     resolver_file, beats_file = validate.SCENARIO_FILES[scenario_id]
 

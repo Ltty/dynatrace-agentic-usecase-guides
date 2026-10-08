@@ -2,7 +2,6 @@ id: walk-through-handoff-live
 tenant: playground
 runs: 3
 status: draft
-forbid: false
 truth:
 - payment-failure
 description: 'DRAFT, unvalidated until the agent exists on the Playground: the handoff block names the real
@@ -19,7 +18,6 @@ turns:
     requires_dql: true
 - ask: Wrap it up for me.
   expect:
-    requires_dql: true
     reply_contains_any:
     - '{truth.payment_failure.commit7s}'
     reply_contains:
@@ -28,4 +26,7 @@ turns:
     - Rate
     - Still open
     reply_excludes:
+    - leaving
+    - left out
+    - can't give
     - briefing mode
