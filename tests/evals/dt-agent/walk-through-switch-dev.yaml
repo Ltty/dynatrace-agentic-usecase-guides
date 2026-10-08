@@ -1,4 +1,4 @@
-id: briefing-switch-dev
+id: walk-through-switch-dev
 tenant: dev
 runs: 3
 forbid: false

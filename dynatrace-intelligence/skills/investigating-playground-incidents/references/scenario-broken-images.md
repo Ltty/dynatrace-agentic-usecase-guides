@@ -3,7 +3,7 @@
 Read at survey time. The beats live in `references/scenario-broken-images-beats.md`; read that
 only once the user picks a direction.
 
-**Source guide:** DEM Act 3 · **Duration:** 8–15 minutes
+**Duration:** 8–15 minutes
 
 ## Contents
 
@@ -24,15 +24,16 @@ steps. Never breathless. Uses "we".
 |---|---|
 | `service_name` | "image service" |
 | `user_action` | "browse products" |
+| `symptom` | "product images loading slowly" |
+| `payoff` | "Without correlated traces, deployment markers, and session replay, this is hours of grepping logs and guessing which of several recent deploys is responsible." |
 
 No `avg_order_value_usd` is defined for this scenario — omit the revenue figure in the survey.
 
 **Discovery hook template** (single-brace tokens, filled from session state at survey time):
 
 ```text
-The {service_name} is degraded — product images are crawling for {affected_users} users.
-Response time on the image provider jumped from milliseconds to seconds, and it's been
-going on for {duration_min} minutes. If shoppers can't see what they're buying, they don't buy.
+The {service_name} is degraded — product images are slow for {affected_users} users, and it's
+been going on for {duration_min} minutes. State response times only if `description` gives them.
 ```
 
 This is a **slowdown, not an outage**: image requests still return 200, just seconds late.
@@ -42,7 +43,7 @@ Don't call it failing or erroring.
 
 **Data objects:** `dt.davis.problems`, `spans`, `events`, `user.sessions`, `user.events`
 
-**Stable IDs** (Playground entities, safe to hardcode — they don't rotate):
+**Stable IDs** (Playground entities):
 
 | Name | ID |
 |---|---|
@@ -58,6 +59,7 @@ Three populations coexist — always say which one a number counts.
 | Value | Source |
 |---|---|
 | `owning_team` | Beat 1 — The Page (deploy `owner` is null on these GitHub Actions events) |
+| `Goes to` | `owning_team` |
 | `commit`, `git_url` | Beat 2 — The Deploy (parsed from `event.description` in DQL) |
 | Affected users (problem record) | resolver `affected_users` |
 | Real-user sessions with a slow image load (>1 s) | Beat 5 — sum of `sessions` across all countries |

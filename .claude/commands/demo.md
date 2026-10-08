@@ -18,11 +18,12 @@ they map onto this environment, and the skill they name:
 
 The skill and its session-protocol and conversation-craft references are already above, so the
 instructions' first step of reading the skill is done and those two need no Read; read the other
-reference files (scenarios, DQL) as the skill directs. If any block above shows a literal `@path` instead of the file's
+reference files (scenarios, DQL, the walk-through) as the skill directs. If any block above shows a literal `@path` instead of the file's
 content, Read that file first, silently (in a plugin install the paths are under the plugin's
 directory).
 
 Treat the following as the user's first message. If it is empty, treat it as a greeting. A bare
-scenario id (`payment-failure`, `broken-images`) is a direct start for that scenario:
+scenario id (`payment-failure`, `broken-images`) is a direct start for that scenario; the
+`disk-cpu-cascade` scenario lives on the dev tenant, which this command does not reach:
 
 $ARGUMENTS

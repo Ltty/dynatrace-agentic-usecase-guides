@@ -260,9 +260,8 @@ recording of a shopper whose image took seconds to load.
 **Success signal:** User asks about the experience, what shoppers saw, or opens a replay.
 
 **Staging:** After the numbers, make replay concrete: open one and watch which product images
-appeared, which stayed blank, and whether the shopper waited, scrolled on, or left. Ask the
-source guide's question — "for a front-end problem, what did the user actually see?" — and
-invite the user to open a replay via the deep link. The DQL can't answer that; the replay can.
+appeared, which stayed blank, and whether the shopper waited, scrolled on, or left. Ask: "for a front-end problem, what did the user actually see?" — and invite the user to
+open a replay via the deep link. The DQL can't answer that; the replay can.
 
 **Deep link:**
 

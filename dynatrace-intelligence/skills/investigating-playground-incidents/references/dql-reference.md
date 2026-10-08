@@ -50,8 +50,8 @@ summarize total = count(), failures = countIf(request.is_failed == true),
 `expand span.events` does **not** flatten `exception.*` onto the row as top-level fields — the
 object stays nested. Project with bracket access.
 
-One incident can carry more than one distinct exception message on the same endpoint. Don't
-assume the first row tells the whole story — skim all returned rows.
+One incident can carry more than one distinct exception message on the same endpoint: the
+result has one row per message.
 
 ---
 
@@ -102,10 +102,8 @@ in DQL rather than by eye, and collapse the repeated re-deploys of one commit:
 | summarize first_deploy = min(timestamp), deploys = count(), by: { commit, git_url }
 ```
 
-A second deploy landing during the incident window appears as a second distinct commit — not
-a second regression: the problem stopping around it reads as the fix landing, though what it
-changed is in the diff, not the telemetry. Its description may read exactly like the
-regression's; tell them apart by timing.
+A second deploy landing during the incident window appears as a second distinct commit. Its
+description may read exactly like the first one's; only the timestamps tell them apart.
 
 ---
 
@@ -123,8 +121,7 @@ Sessions expose `start_time`, not `startTime`.
 `matchesPhrase(useraction.errors, ...)` — that field doesn't exist.
 `session.hasSessionReplay` — use `characteristics.has_replay` instead.
 `user.sessions` is NOT tagged with a service entity ID — do not filter on `dt.entity.service`
-here. Scoping to the incident timeframe is sufficient since the failure is service-wide during
-that window.
+here. Scope by the incident timeframe, and by country, session or user-event fields.
 
 **Slowdowns don't show up as 5xx.** Slow requests still return 200, so
 `error.http_5xx_count > 0` finds almost nobody. Use per-request RUM data in `user.events`

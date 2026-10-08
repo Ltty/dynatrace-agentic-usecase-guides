@@ -105,7 +105,28 @@ Kept out of the skill on purpose: the agent reads the scenario files and would r
 - `now()-48h`: payment-failure fires about twice a day and broken-images once a day (around 03:04 UTC), so 48 hours always spans at least one occurrence.
 - `±15m` window padding catches the culprit deploy just before onset, a clean baseline, and the recovery after the fix.
 - The fallback resolver drops `is_duplicate` and takes the largest-impact problem instead, for cycles where the near-duplicate problems weren't merged.
-- The resolvers hardcode Playground service IDs, so on any other tenant the survey reports a clean environment.
+- The payment and image resolvers hardcode Playground service IDs, and the disk resolvers hardcode dev IDs. On the
+  other tenant a resolver returns nothing and the survey does not list that scenario.
+- The Playground runs the same disk and CPU demo as dev under different IDs (P-26092140, whose record has no root
+  cause). The disk fallback therefore also requires the dev host ID among the affected entities, or a Playground
+  survey listed a dev-only scenario (testruns 12 and 13). Dev records carry no `dt.entity.host`, so the guard is a
+  string test on `smartscape.affected_entities`.
+- A problem is recorded several times (updates and refreshes); only the newest platform-analysed record carries the
+  root cause, which is why the disk primary filters on it.
+- Resolver DQL runs exactly as the file gives it: a hand-trimmed copy dropped fields needed later and cost a second
+  query (testrun 12).
+- Payment beat 1 is pinned to the problem ID, so its 48h range is safe; the incident window would risk cutting off
+  the problem record.
+- Payment beat 3's deployment-marker query returns a strict subset of beat 2's rows, so it is skipped when beat 2
+  ran (testrun 13).
+- Stable entity IDs do not rotate, which is why they are hardcoded in the scenario files.
+- Source guides: payment-failure `96474054-260e-4b94-805e-d10fcbfb8e7a`, broken-images "DEM Act 3", disk-cpu-cascade
+  "cloud-alerts-demo".
+- The walk-through exists because testrun 12 found five correct findings and no story: the answer arrived in turn 5.
+  The opening report fixes that by running every beat's first query up front. The risk it carries is five turns of
+  one template, which `walk-through.md` counters with closing lines that give a reason.
+- `queried_at` comes back from every beat's first query so the close can use the latest one. Before that, only beat 5
+  returned it, which made the elapsed time wrong or missing in both deliveries (testrun 13).
 
 ## Open items
 

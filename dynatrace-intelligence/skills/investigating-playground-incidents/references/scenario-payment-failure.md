@@ -3,7 +3,7 @@
 Read at survey time. The beats live in `references/scenario-payment-failure-beats.md`; read that only once the user
 picks a direction.
 
-**Source guide:** `96474054-260e-4b94-805e-d10fcbfb8e7a` · **Duration:** 8–15 minutes
+**Duration:** 8–15 minutes
 
 ## Contents
 
@@ -25,6 +25,8 @@ steps. Never breathless. Uses "we".
 | `service_name` | "payment service" |
 | `avg_order_value_usd` | 87 |
 | `user_action` | "checkout" |
+| `symptom` | "card payments failing at checkout" |
+| `payoff` | "Without correlated traces, deployment markers, and session replay, this is hours of grepping logs and guessing which of several recent deploys is responsible." |
 
 **Discovery hook template** (single-brace tokens, filled from session state at survey time):
 
@@ -39,7 +41,7 @@ The failure rate comes from the service deep dive, never from the problem record
 
 **Data objects:** `dt.davis.problems`, `spans`, `logs`, `events`, `user.sessions`, `entities`
 
-**Stable IDs** (Playground entities, safe to hardcode — they don't rotate):
+**Stable IDs** (Playground entities):
 
 | Name | ID |
 |---|---|
@@ -56,6 +58,7 @@ which one a number counts.
 | Value | Source |
 |---|---|
 | `owning_team` | Beat 1 — The Page; who to page first |
+| `Goes to` | `owning_team` |
 | `commit`, `git_url`, `owner` | Beat 2 — The Change; `owner` is who shipped it. If it differs from `owning_team`, list both and say which is which |
 | Affected users (problem record) | resolver `affected_users` |
 | Sessions with 5xx errors | Beat 5 — sum of `sessions` across all countries |

@@ -1,4 +1,4 @@
-id: briefing-handoff-live
+id: walk-through-handoff-live
 tenant: playground
 runs: 3
 status: draft
@@ -14,7 +14,7 @@ turns:
 - ask: Take me through the payment failure.
   expect:
     reads_include:
-    - briefing-mode.md
+    - walk-through.md
     - scenario-payment-failure-beats.md
     requires_dql: true
 - ask: Wrap it up for me.

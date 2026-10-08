@@ -39,9 +39,6 @@ fetch dt.davis.problems, from: now()-48h, to: now()
     queried_at    = now()
 ```
 
-Pinned to the resolved problem ID, so the 48h range is safe — the incident window would only
-risk cutting off the problem record.
-
 **Reveal:** The problem record names the payment service as root cause and counts a large
 number of affected users; quote the failing endpoint and the failure rate from `description`.
 Checkout shows as impacted, but `root_cause` points at payment — checkout is listed as affected,
@@ -270,7 +267,7 @@ fetch user.sessions, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 
 No `limit` — the total is the sum of `sessions` across all rows. Never present a top-N sum as
 the full population, and never call it "affected users" (that's the problem record's count).
-`queried_at` is for the session close's elapsed time, not for the table.
+`queried_at` is for the close's elapsed time, not for the table.
 
 **Reveal:** Sessions with 5xx errors span many countries, and nearly all have replay. State the
 actual total, the number of rows as returned (one per country value; a row with no country is
@@ -281,8 +278,8 @@ recording of a real customer hitting a real error.
 **Success signal:** User asks about affected users, customer experience, or replay.
 
 **Staging:** After the numbers, make replay concrete: open a recording and watch exactly what
-the customer saw and clicked, instead of inferring it from logs. Ask the source guide's
-question — "for a front-end problem, what did the user actually see?" — and invite the user to
+the customer saw and clicked, instead of inferring it from logs. Ask: "for a front-end
+problem, what did the user actually see?" — and invite the user to
 open a replay via the deep link to check whether the UI showed any feedback on the failed
 payment or silently did nothing. The DQL can't answer that; the replay can.
 

@@ -1,4 +1,4 @@
-id: briefing-dev
+id: walk-through-dev
 tenant: dev
 runs: 3
 forbid: false
@@ -17,7 +17,7 @@ turns:
 - ask: Yes, walk me through it.
   expect:
     reads_include:
-    - briefing-mode.md
+    - walk-through.md
     - scenario-disk-cpu-cascade-beats.md
     requires_dql: true
     reply_contains:

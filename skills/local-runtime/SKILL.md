@@ -2,15 +2,17 @@
 name: local-runtime
 description: >
   Runs the Dynatrace demo-agent and its skill investigating-playground-incidents locally in
-  Claude Code or OpenCode, with dtctl in place of the Dynatrace runtime's tools. Holds only the
-  tool and path mapping; every behaviour rule lives in the Dynatrace skill and agent instructions.
+  Claude Code or OpenCode, with dtctl in place of the Dynatrace runtime's tools. Use when running
+  /demo locally. Holds only the tool and path mapping; every behaviour rule lives in the Dynatrace
+  skill and agent instructions.
 ---
 
 # Local runtime for the demo-agent
 
 The agent instructions (`dynatrace-intelligence/agents/demo-agent/instructions.md`) and the skill
 they name are written for the Dynatrace agent runtime. Follow them exactly, with these mappings.
-This file adds no behaviour of its own.
+This file adds no behaviour of its own, apart from two local-only lines: how the Bash
+description reads, and the authentication notice.
 
 ## Tool mapping
 

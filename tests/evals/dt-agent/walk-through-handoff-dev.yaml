@@ -1,4 +1,4 @@
-id: briefing-handoff-dev
+id: walk-through-handoff-dev
 tenant: dev
 runs: 3
 forbid: false
