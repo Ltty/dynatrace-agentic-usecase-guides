@@ -101,7 +101,10 @@ carry the exact number.
 
 The **Handoff fields** table says which beat provides each value the agent needs to hand an incident to its
 owner (owning team, commit and link, populations, replay link). If the owning team and the deploy owner
-differ, say which is who.
+differ, say which is who. The row `Goes to` says who the handoff goes to: the team, or the host when there is no
+team. The **Business context** table carries a `symptom` (a short phrase for what is failing) and, optionally,
+`avg_order_value_usd` and a `payoff` sentence for the close; without them a scenario gets no cost line and no
+payoff.
 
 ### 6. Register, validate, evaluate
 
@@ -109,12 +112,15 @@ differ, say which is who.
    `tools/validate_dt_skill.py` (the same dict feeds `run_dt_evals.py` and `preflight.py preflight`).
    A scenario whose entities exist on another tenant (the `disk-cpu-cascade` one is dev-only) also goes in
    `SCENARIO_CONTEXT` there: the validator then uses that dtctl context for it, and `preflight.py preflight`
-   skips it instead of reporting it empty. The local `/demo` is pinned to the Playground and cannot reach it.
+   skips it instead of reporting it empty. The local `/demo` is pinned to the Playground and cannot reach it. Its
+   fallback resolver must also carry a predicate only that tenant's entities satisfy, or a Playground survey lists it
+   (testruns 12 and 13).
 2. `python tools/dt_agent.py check` — layout rules.
 3. `python tools/validate_dt_skill.py --scenario <id>` — runs the resolver and **every** beat query live,
    including chained ones, and fails on a bad field name or `round()` call. Do not call a scenario done
    until it passes clean.
-4. `python tools/preflight.py preflight` — the scenario shows as live.
+4. `python tools/preflight.py preflight` — the scenario shows as live, or as SKIP when its data lives on another
+   tenant.
 5. Upload and evaluate: `docs/DYNATRACE-SKILL.md`. Add an eval case under `tests/evals/dt-agent/` for any new
    behaviour. Run a full `/demo` session and write it up as a `docs/testrun-NN.md`.
 

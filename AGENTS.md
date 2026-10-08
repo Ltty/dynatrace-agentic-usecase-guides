@@ -1,7 +1,8 @@
 # Dynatrace Agentic Use Case Guides
 
 Interactive, CLI-driven incident investigations on the Dynatrace Playground. The user explores real
-Playground data as if responding to a production incident — guided, but explorative.
+Playground data as if responding to a production incident — guided, but explorative — or is walked through
+the incident as a report.
 
 ## One skill, two runtimes
 
@@ -118,6 +119,7 @@ Adding a scenario: `docs/AUTHORING.md`.
 - Field names in this Playground do not always match generic DQL documentation — see
   `references/dql-reference.md` in the skill before trusting an assumption.
 - The Playground is read-only; the agent must never attempt a write (the hook enforces this).
-- No fixture fallback exists — all queries hit the live Playground. The resolver looks back 48h and each
-  problem fires at least once a day, so a live occurrence is almost always available. If nothing is
+- No fixture fallback exists — all queries hit the live Playground. The Playground resolvers look back 48h and
+  each of those problems fires at least once a day, so a live occurrence is almost always available
+  (`disk-cpu-cascade` is one long-running problem on the dev tenant). If nothing is
   found, the agent says the environment is clean and stops.

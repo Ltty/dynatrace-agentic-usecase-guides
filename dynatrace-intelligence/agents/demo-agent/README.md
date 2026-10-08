@@ -1,7 +1,8 @@
 # demo-agent
 
-A Dynatrace `deep-agent` that runs the skill `investigating-playground-incidents` (payment failure and the
-image-service slowdown) as an on-call SRE on the Dynatrace Playground.
+A Dynatrace `deep-agent` that runs the skill `investigating-playground-incidents` (payment failure, the
+image-service slowdown and a dev-tenant disk problem) as an on-call SRE on the Dynatrace Playground, exploring with
+the user or walking them through an incident report.
 
 | File | Purpose |
 |---|---|

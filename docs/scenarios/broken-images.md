@@ -50,7 +50,10 @@ The slowest invocation's trace: ingress and frontend requests of about 8.5 s, th
 S3 `HeadObject` (80 ms), then `Resize original product image` (about 6.1 s) containing `Image resizing`
 (about 6.0 s), and `S3:PutObject` (about 1.5 s). The slowest operation is the longest span that is not a wrapper of another slow span.
 
-## Beat DQL status (all verified live 2026-10-07)
+## Beat DQL status (plugin-era file names, verified live 2026-10-07)
+
+The queries now live in the skill's `scenario-broken-images-beats.md`, one block per beat; the names below are the
+retired plugin edition's.
 
 | Query | Records | Notes |
 |-------|---------|-------|

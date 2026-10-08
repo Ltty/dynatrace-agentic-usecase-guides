@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 validate_dt_skill.py — Validate a Dynatrace skill scenario by running its resolver DQL
-and all beat DQL blocks against the live Playground, including the chained trace query.
+and all beat DQL blocks against the scenario's live tenant, including the chained trace query.
 
 Usage:
     python tools/validate_dt_skill.py --scenario payment-failure
@@ -142,7 +142,7 @@ def assert_window(pf, envelope: dict) -> None:
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Validate Dynatrace skill scenario DQL blocks against the live Playground."
+        description="Validate Dynatrace skill scenario DQL blocks against the scenario's live tenant."
     )
     parser.add_argument(
         "--context", default=None,

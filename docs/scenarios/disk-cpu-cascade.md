@@ -5,9 +5,12 @@ Not read by the agent (it lives outside the skill folder). The scenario is in
 
 ## Where it runs
 
-The `dev` tenant only (`fxz0998d.dev.apps.dynatracelabs.com`), host group `cloud-alerts-demo`. The entities do not
-exist on the Playground, so the resolver returns nothing there and the survey doesn't list it. The local `/demo`
-pins `--context playground` and therefore cannot reach it; `@demo-agent` on the dev tenant can. Validate it with
+The `dev` tenant (`fxz0998d.dev.apps.dynatracelabs.com`), host group `cloud-alerts-demo`. The Playground runs the
+same demo under different IDs (host `HOST-EBC5983479603BE2`, problem `P-26092140`, whose record has no root cause), so
+the beats and links, which hardcode the dev IDs, would not work there. The fallback resolver therefore requires the dev
+host ID among the affected entities (`contains(toString(smartscape.affected_entities), "HOST-A2BABAD05D401471")`), and
+returns nothing on the Playground, so a Playground survey does not list it. Before that guard it did (testruns 12 and
+13). The local `/demo` pins `--context playground` and cannot reach it; `@demo-agent` on the dev tenant can. Validate it with
 `python tools/validate_dt_skill.py --scenario disk-cpu-cascade` (the validator picks the `dev` context from
 `SCENARIO_CONTEXT`); `python tools/preflight.py preflight` skips it.
 
@@ -41,4 +44,4 @@ Other facts, as of 2026-10-08:
 - The problem record has no owner field, so the handoff has no team.
 - Deep links point at the dev tenant. The `dynatrace.infraops/explorer?entityId=` links are carried over from the
   draft and have not been opened.
-- The greeting and the status line in the skill say "Astroshop"; on the dev tenant that wording is generic.
+- The greeting in the skill says "Astroshop"; on the dev tenant that wording is generic.

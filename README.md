@@ -9,7 +9,8 @@ Interactive, AI-guided incident investigations on the
 `/demo` starts a conversation with an on-call SRE for the Astroshop environment. Ask what's going on, pick an
 incident, and the SRE digs in with you on live data: the page, the change that caused it, the failing
 requests, who was affected, and a handoff to the owning team. Every number comes from a query it ran in front
-of you, and it says where the data stops.
+of you, and it says where the data stops. Or ask to be walked through it: you get the whole story first, then
+each claim proved, ending in a handoff block.
 
 It is the same agent as `@demo-agent` in Dynatrace Assist: one skill and one prompt under
 [dynatrace-intelligence/](dynatrace-intelligence/), run locally through `dtctl`.

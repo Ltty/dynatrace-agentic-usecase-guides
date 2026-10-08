@@ -13,11 +13,11 @@ From testrun-08:
 
 From testrun-08/09:
 1. Questions the telemetry can't answer get "That's not in the telemetry…", never "I can't". Eval: `limits-live` (draft).
-2. The resolvers return `ended_min_ago` and `queried_at`, and beat 5 returns `queried_at`. The survey's "how long ago" and the close's elapsed time are measured, or left out.
-3. The proof stamp shows the last 8 characters of the queryId; the first 8 repeat within a session.
+2. The resolvers return `ended_min_ago` and `queried_at`, and every beat's first query returns `queried_at` (testrun-13, below). The survey's "how long ago" and the close's elapsed time are measured, or left out.
+3. The proof stamp shows the last 8 characters of the queryId; the first 8 repeat within a session. Superseded: the full queryId is copied exactly (testrun-10/11, below).
 4. The read covers only what results show; an unqueried link is the next step, not a finding.
 5. Payment beat 2: first failures seconds before `first_deploy` are normal (sync events are recorded on completion).
-6. Beat 3 is marked "Fold in on a jump" in both scenarios, so "pinpoint the problem" still shows the failure-rate step change or the resize flip.
+6. Beat 3 is marked "Fold in on a jump" in both scenarios, so "pinpoint the problem" still shows the failure-rate rise or the resize flip.
 7. Plugin-only rules ported:
    - remediation with no incident (the `instructions.md` reply), fixing the contradiction with `conversation-craft.md`; eval `revert-no-incident`
    - loaded premise; eval `premise`
@@ -26,7 +26,7 @@ From testrun-08/09:
    - short SHA; null `commit` isn't a cold trail; sessions use `start_time`
    - the full broken-images beat 2 objection; eval `objection-live` (draft)
 
-Branding: "Dynatrace Intelligence" / "Dynatrace Assist", never "Davis" or "CoPilot". Identifiers such as `dt.davis.*` stay. Evals `survey-live` and `handoff-live` check it.
+Branding: "Dynatrace Intelligence" / "Dynatrace Assist", never "Davis" or "CoPilot". Identifiers such as `dt.davis.*` stay. Evals `survey-live`, `handoff-live` and `walk-through-opening-live` exclude Davis and CoPilot.
 
 ## Done in the repo, 2026-10-08 (from testrun-10 and -11; not uploaded yet)
 
@@ -38,57 +38,46 @@ Branding: "Dynatrace Intelligence" / "Dynatrace Assist", never "Davis" or "CoPil
 - Payment handoff fields: `owning_team` is who to page, `owner` is who shipped it; list both when they differ.
 - Eval: `data-only-live` (draft). Not changed: elapsed time varies with how fast the user types; a real measurement stays.
 
-## Done in the repo, 2026-10-08 (walk-through delivery; not run against an agent yet, not uploaded)
+## Done in the repo, 2026-10-08 (walk-through delivery; testruns 12 and 13; not uploaded)
 
-- New `references/briefing-mode.md`: the SRE reports the incident to the user as to a manager. Same scenarios, beats and
-  proof stamps; the turn ends on a named next step, not a choice; the close is a handoff block with a "Still open" row.
-- The survey closes with one fixed sentence offering it. A direct start skips the offer; the clean-environment reply has none.
-- A handoff row with no source in the scenario's Handoff fields is left out, never "unknown" or "N/A".
-- `instructions.md` carries the offer and the load-bearing rules too, so they don't live only in a reference file.
-- Evals: `briefing-dev`, `briefing-meaning-dev`, `briefing-handoff-dev`, `briefing-switch-dev`, `briefing-handoff-live` (draft);
-  `survey-dev` and `survey-live` now require the offer.
-
-## Done in the repo, 2026-10-08 (from testrun-12; walk-through red line; not run against an agent yet, not uploaded)
-
-- The walk-through now opens with the whole story (what, how long, how many, cost where defined, cause with before and after,
-  what broke, who it hit, detection), built from the first query of every beat run in one turn. The beats become the proof,
-  each turn opening with the claim it proves and ending on why the next piece follows. Time series condense to before, peak, after.
-- Handoff block gains `Detected` and `Rate`, and the cost on the `Impact` row. It works at any point, not only after beat 5.
-- A manager's stronger words get exact replies: "was it a bug", "was that the fix", "was it global".
-- Fixed in both deliveries: "the fix" is a labelled inference (payment beats 2-4, image beats 2-3, `dql-reference.md`);
-  payment beat 3 no longer promises a step change (the rate ramps; the image `resizes` flip is a real step and stays);
-  "checkout calls payment" is not said before the trace (payment beat 1, the `SKILL.md` example, `conversation-craft.md`);
-  payment beat 4 states detection time.
-- Resolver DQL runs exactly as written in the file; a trimmed copy cost a second query.
-- Evals: `briefing-opening-live`, `briefing-inference-live` (drafts); `briefing-dev` and `briefing-handoff-live` tightened.
+- The walk-through (`references/walk-through.md`): the survey offers it once; taking it gives one opening report with the
+  whole story (what, how long, how many, cost where defined, cause with before and after, owner, what broke, who it hit,
+  detection), built from the first query of every beat. Evidence turns then prove each claim and end on a line that says
+  why the next piece follows. The handoff block carries `Detected`, `Rate` and the cost, and is available at any point.
+- Testrun-13 fixes: `queried_at` from every beat's first query, the close using the latest one ("From the first look to
+  the full picture in X minutes"), omissions made silently, intent words in both directions, UTC times, no part-of-day
+  words, the opening report standing in for beat 1 with an owner part, payment beat 3's marker query skipped when beat 2
+  ran.
+- Shared with explore: "the fix" is a labelled inference everywhere; payment beat 3 no longer promises a step change (the
+  image `resizes` flip stays one); no call direction before the trace; resolver DQL runs as written.
+- The disk-cpu fallback requires the dev host ID among the affected entities, so a Playground survey no longer lists it
+  (testruns 12 and 13).
+- Consolidation after three audits: one home per rule (voice and exact replies in the agent instructions, the data-only rule
+  in conversation-craft, the handoff block and close in session-protocol); `mode` renamed `problem_state`; templates are
+  scenario- and tense-neutral (`symptom`, `payoff`, `Goes to` per scenario); `dql-reference.md` holds DQL facts only;
+  maintainer rationale moved to the README.
+- Evals: the runner forbids "Dynatrace Intelligence" only as self-identification, so no walk-through case sets
+  `forbid: false`; `explore-close-dev` (draft) covers the close; `walk-through-*` cases replace `briefing-*`.
 
 ## Open
 
-- **`disk-cpu-cascade` appears in a Playground survey** (testrun-12). Its primary filters
-  `toString(root_cause_id) == "DISK-2B3DB86FA32F6CE1"`; the fallback replaces that with
-  `matchesPhrase(event.description, "/data") and matchesPhrase(event.description, "frontend-high-cpu")`, which has no entity,
-  host-group or tenant predicate, so any problem whose description holds both phrases matches on any tenant. It also drops
-  the root-cause filter, so the newest record can lack a root cause, hence the null `root_cause` in the run. To fix: run the
-  fallback once on the Playground, see which entity fields the matched record carries, and filter on one of them.
-- **Detection gap is computed by the model** from two timestamps (payment beat 4). If testrun-13 shows it wrong, move it into the DQL.
-
-- **Walk-through delivery is untested.** Run `python tools/run_dt_evals.py --tenant dev` after the dev upload and read the
-  review sheet for register: whether five turns read as one conversation or one template cannot be scripted.
-- **Eval runner's global `FORBIDDEN` list contains `dynatrace intelligence`**, which the skill tells the agent to say in beat 1.
-  Latent in `handoff-live`; the `briefing-*` cases set `forbid: false` to get past it, which also turns off the narration checks
-  for them. Narrow the pattern to the self-reference it was meant to catch.
-- `commands/demo.md`'s `argument-hint` lists only two scenarios; `disk-cpu-cascade` is missing.
-
+- **Upload pending (needs approval):** `dt_agent.py docs --apply`, `template --apply` (the description changed), then
+  `run_dt_evals.py --tenant dev`. Nothing here has run on `@demo-agent`; the walk-through ran locally in testruns 12 and 13.
+- **`explore-close-dev` and the new `queried_at` queries** need a live run: a steered user who finishes all five beats gets the
+  close with a measured elapsed time.
+- **Detection gap is computed by the model** from two timestamps (payment beat 4). Correct in both testrun-13 runs; move it
+  into the DQL if it drifts.
 - **Survey narrates scenarios that returned nothing** (found 2026-10-08, dev tenant, where only `disk-cpu-cascade` is live).
-  Session-protocol now says to name only scenarios that returned a problem, and `survey-dev` passes 3/3 on a fresh
+  Session-protocol says to name only scenarios that returned a problem, and `survey-dev` passes 3/3 on a fresh
   conversation. After a declined request (`recovery`) the agent still said "the payment and image service resolvers came
-  back clean" or "both look clean" in 2 of 3 runs, which an empty resolver does not show. `recovery` now fails on
-  "payment" or "image" in its survey reply, so it shows red until this is fixed. Next try: put the rule in
-  `instructions.md` as well as the skill (rules that live only in a reference file get missed on later turns).
+  back clean" or "both look clean" in 2 of 3 runs, which an empty resolver does not show. `recovery` fails on "payment" or
+  "image" in its survey reply, so it shows red until this is fixed. Next try: put the rule in `instructions.md` as well as
+  the skill (rules that live only in a reference file get missed on later turns).
 - Run 3 of `recovery` also failed for a reason the review sheet doesn't state; read the runner's failure text first.
-
 - Recap-on-repeat has no eval case (it needs a full live session).
 - The `-live` cases stay drafts until the agent exists on the Playground tenant.
-- The old plugin edition (`scenarios/`, `skills/demo-engine/`) got only the beat 2/4 DQL fixes, for the A/B. It is retired in Phase 3, so nothing else is mirrored.
+- The old plugin edition (`scenarios/`, `skills/demo-engine/`) got only the beat 2/4 DQL fixes, for the A/B. It is retired in
+  Phase 3, so nothing else is mirrored.
 
-Deliberately dropped: payment beat 5's "310 error events" line (a hardcoded value that changes every cycle) and `urgency_phrase` (nothing uses it).
+Deliberately dropped: payment beat 5's "310 error events" line (a hardcoded value that changes every cycle) and
+`urgency_phrase` (nothing uses it).

@@ -37,8 +37,7 @@ Each input goes into its own fresh conversation; only check whether the skill is
 | # | Input | Pass bar |
 |---|---|---|
 | B1 | `hi` | Generic greeting with the three starters; no incident, no numbers, no visible setup narration |
-| B2 | `root-cause the latest problem` | Survey, not the beat loop: discovery hook with live `affected_users`, `duration_min`, revenue; right tense for `mode`; ends on 2–3 entry angles, not yes/no, then the walk-through offer as its last sentence |
-| B2w | `Yes, walk me through it.` after the survey | The opening report: the whole story in one turn (what, how long, how many, cost where defined, cause with before/after, what broke, who it hit, detection), no beat tables. **Manual check:** a manager who stops reading here still has the story; every later turn opens with the claim it proves and ends on why the next piece follows |
+| B2 | `root-cause the latest problem` | Survey, not the beat loop: discovery hook with live `affected_users`, `duration_min`, revenue; right tense for `problem_state`; ends on 2–3 entry angles, not yes/no, then the walk-through offer as its last sentence |
 | B3 | `yes` | Treated as a pick of the first angle; evidence shown, then a stated read attached to a next option |
 | B4 | `yes` | Same — no quiz, no stall, no "what do you think?" without an answer attached |
 | B5 | `yes` (until the end) | Every beat runs in order; peak beats follow their staging; session close arrives in the same response as the last beat |
@@ -63,7 +62,7 @@ Run group B again, picking the image slowdown from the survey, and also check:
 
 | # | Moment | Pass bar |
 |---|---|---|
-| E1 | Survey with both scenarios resolved | One line per scenario, then lets the user pick; no revenue figure for broken-images |
+| E1 | Survey with every live scenario resolved | One line per scenario, then lets the user pick; no revenue figure for broken-images |
 | E2 | Throughout | Calls it a slowdown — never "failing" or "erroring"; images return 200 |
 | E3 | The deploy | Two commits, regression vs. fix told apart by timing; SHA comes from the query, not parsed by hand |
 | E4 | The slowdown | States the step change in `resizes` vs `requests` and p50, lined up with both commits |
@@ -82,8 +81,22 @@ the structure is unclear, so fix the pointers rather than adding prose.
 | D3 | First beat | Reads the beats file and `conversation-craft.md` once each, not repeatedly |
 | D4 | A DQL error or empty result | Consults `dql-reference.md`, reruns once, then reports it as a finding |
 | D5 | Whole session | Never reads a file that isn't linked from SKILL.md |
+| D6 | The walk-through offer taken | Reads `walk-through.md` before running any beat query; not the beats file before that |
 
 If the agent rereads the same reference every turn, consider moving that content into SKILL.md.
+
+## F. Walk-through (one conversation)
+
+Start with the survey, then take the offer.
+
+| # | Input | Pass bar |
+|---|---|---|
+| F1 | `Yes, walk me through it.` | One status line, then the opening report: the whole story in one turn (what, how long, how many, cost where defined, cause with before and after, owner, what broke, who it hit, detection), prose, no beat tables. **Manual check:** a manager who stops reading here still has the story |
+| F2 | `ok` | An evidence turn: opens with the claim it proves, a table (a series condensed to before, peak and after), the deep link, then one line saying why the next piece follows |
+| F3 | `what does that mean?` | Same result in consequence terms, no new query, nothing the data does not hold (no churn, reputation, geography, intent) |
+| F4 | `so was it a bug?` / `was it global?` | The exact replies in `walk-through.md`; never "accidentally", "on purpose", "global outage" |
+| F5 | `wrap it up` | The handoff block: rows only from results, `Detected` and `Rate` and the cost where the scenario has them, no "N/A", no sentence announcing an omission; then "From the first look to the full picture in [X] minutes" |
+| F6 | `let me look myself` | Back to explore: 2 to 3 entry angles, neither mode named |
 
 ---
 

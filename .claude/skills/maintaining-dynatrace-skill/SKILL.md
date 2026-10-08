@@ -20,7 +20,7 @@ holds the rules that must hold every time.
 2. **Never print, echo, log or store the token.** It lives in `DT_DEV_AGENT_TOKEN`. Check only that it
    is set, never its value. Never put it in a file, a command line or the chat.
 3. **Check `dtctl config current-context` before any `dtctl` call.** Repo tooling expects the read-only
-   `playground` context. `validate_dt_skill.py` pins it, but other calls do not.
+   `playground` context. `validate_dt_skill.py` pins each scenario's context, but other calls do not.
 4. **Never hand-edit or delete documents the skill app owns.** Ready-made documents (an `originAppId`
    is set) are read-only on purpose. `dt_agent.py` never deletes; do not delete by other means without
    explicit approval.
@@ -28,7 +28,7 @@ holds the rules that must hold every time.
 
 ## Workflow
 
-- Skill change: edit, `python tools/dt_agent.py check`, `validate_dt_skill.py` for both scenarios,
+- Skill change: edit, `python tools/dt_agent.py check`, `validate_dt_skill.py` for all three scenarios,
   `docs` dry run, approved `docs --apply`, then the evals.
 - Agent change: edit `dynatrace-intelligence/agents/demo-agent/`, `render`, `template` dry run, approved `template --apply`,
   then `invoke`.

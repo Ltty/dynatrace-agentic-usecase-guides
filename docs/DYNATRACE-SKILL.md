@@ -11,7 +11,7 @@ This file is procedure.
 | The skill | `dynatrace-intelligence/skills/investigating-playground-incidents/` | `SKILL.md` plus a flat `references/` folder. Three scenarios (payment failure, the image-service slowdown, and the dev-tenant disk and CPU problem), each run as an exploration or a walk-through. Source of truth. |
 | The agent | `dynatrace-intelligence/agents/demo-agent/` | A `deep-agent` template (`template.json`, `instructions.md`) that mounts the skill and may only call `execute-dql`. |
 | The helper | `tools/dt_agent.py` | `check`, `pack`, `docs`, `status`, `render`, `template`, `invoke`. Every write is a dry run unless you pass `--apply`. |
-| The validator | `tools/validate_dt_skill.py` | Runs every DQL block of a scenario live on the Playground. |
+| The validator | `tools/validate_dt_skill.py` | Runs every DQL block of a scenario live, on that scenario's tenant (the Playground, or dev for `disk-cpu-cascade`). |
 
 ## Skill layout rules
 
@@ -32,13 +32,13 @@ These are the app format's rules. `python tools/dt_agent.py check` enforces them
 - **Working tenant:** `https://fxz0998d.dev.apps.dynatracelabs.com`. The AI API base path is `/platform-reserved/ai/v0.1` (no `/platform` prefix). The Swagger UI rejects tokens, so it only opens in a browser session.
 - **Token:** a personal platform token in the `DT_DEV_AGENT_TOKEN` environment variable, set at user level (restart VS Code afterwards). The helper never prints or stores it. Give it a short expiry and delete it when you are done. Never put it in a repo file; `.claude/settings.local.json` is not git-ignored here.
 - **Scopes:** `ai:operator:execute`, `mcp-gateway:servers:read`, `mcp-gateway:servers:invoke`, `document:documents:read`, and the `storage:*:read` scopes the DQL needs (`events`, `spans`, `user.sessions`, `user.events`, `buckets`). `document:documents:write` is only for uploading skill documents on dev. The storage scopes are inferred, not documented; a missing one shows up as a named DQL permission error.
-- **`dtctl` is separate.** It only reads (ground-truth DQL and validation) and cannot deploy. Keep its `playground` context read-only. `validate_dt_skill.py` pins `--context playground`, but other `dtctl` calls use whatever the current context is, so check `dtctl config current-context` first.
+- **`dtctl` is separate.** It only reads (ground-truth DQL and validation) and cannot deploy. Keep its `playground` context read-only. `validate_dt_skill.py` pins each scenario's context (`playground`, or `dev` for `disk-cpu-cascade`), but other `dtctl` calls use whatever the current context is, so check `dtctl config current-context` first.
 
 ## Change the skill
 
 1. Edit files under `dynatrace-intelligence/skills/investigating-playground-incidents/`.
 2. `python tools/dt_agent.py check`
-3. `python tools/validate_dt_skill.py --scenario payment-failure` and `--scenario broken-images` (live, on the Playground).
+3. `python tools/validate_dt_skill.py --scenario payment-failure`, `--scenario broken-images` and `--scenario disk-cpu-cascade` (live, each on its own tenant).
 4. `python tools/dt_agent.py --tenant <dev-url> docs` shows `+` create, `~` update, `=` unchanged, and `?` documents only on the tenant (never deleted).
 5. After approval, `docs --apply`. The agent saw updated content within minutes in our tests.
 6. Run the evals (below), each case at least three times.
@@ -55,7 +55,7 @@ These are the app format's rules. `python tools/dt_agent.py check` enforces them
 
 - **Mount at `/resources/documents/`.** The platform appends each document's full name under the mount path. Mounting at `/resources/documents/skills/<skill>/` buried `SKILL.md` two levels deep and the agent ignored the skill. At `/resources/documents/`, `SKILL.md` lands at `/resources/documents/skills/<skill>/SKILL.md`, directly inside the directory listed in `skills`. The SRE template's per-skill mount form does not transfer.
 - **Name the path in the instructions.** After a document update the agent skipped the skill in three runs in a row. Naming the exact `SKILL.md` path and saying to read it first, before any query, fixed it (3 of 3 runs).
-- **Survey reads resolvers only.** At survey time the agent reads `session-protocol.md` and the two resolver files, never the beats files. Eval group D checks this.
+- **Survey reads resolvers only.** At survey time the agent reads `session-protocol.md` and each scenario's resolver file, never the beats files. Eval group D checks this.
 
 ## Dev and production routes
 
@@ -76,7 +76,7 @@ The route is the `dynatrace.use.case.guides` app (see "Dev and production routes
 4. **Deploy the app to dev first** and look for documents with `originAppId = dynatrace.use.case.guides`. Delete the user-owned dev copies beforehand (needs explicit approval): the mount filter matches by name and would see both sets. Then run `python tools/run_dt_evals.py --tenant dev`.
 5. **Release the app to the Playground** through the app's own pipeline. Documents appear within 5 minutes.
 6. **Create the agent there:** `python tools/dt_agent.py --tenant https://playground.apps.dynatrace.com --token-var DT_PLAYGROUND_AGENT_TOKEN template`, then `--apply` after approval. Needs the token below, write access and the feature flag.
-7. **Run the full suite:** `python tools/run_dt_evals.py --tenant playground --include-draft`. The two Playground cases are drafts until they have run once against live data; tune them, then drop `status: draft`. Open every beat's deep link once. Check that a non-admin visitor can read the documents and run the agent: without the gateway scope the call fails outright.
+7. **Run the full suite:** `python tools/run_dt_evals.py --tenant playground --include-draft`. The Playground cases marked `status: draft` stay drafts until they have run once against live data; tune them, then drop `status: draft`. Open every beat's deep link once. Check that a non-admin visitor can read the documents and run the agent: without the gateway scope the call fails outright.
 8. **Clean up:** expire the token and clear `DT_PLAYGROUND_AGENT_TOKEN`.
 
 The Playground token needs `ai:operator:execute`, `mcp-gateway:servers:read` and `:invoke`, `document:documents:read`, and the `storage:*:read` scopes for events, spans, `user.sessions`, `user.events` and buckets. It needs no document write, because the app ships the documents.
@@ -91,14 +91,14 @@ The Playground token needs `ai:operator:execute`, `mcp-gateway:servers:read` and
 
 ## Test
 
-- **Checks:** `python tools/dt_agent.py check` (skill and template rules), then `python tools/validate_dt_skill.py` for both scenarios (live DQL on the Playground).
+- **Checks:** `python tools/dt_agent.py check` (skill and template rules), then `python tools/validate_dt_skill.py` for all three scenarios (live DQL, each on its own tenant).
 - **Runner tests:** `python tools/tests/test_run_dt_evals.py` (offline) after any change to the runner or the case files.
-- **Behaviour:** `python tools/run_dt_evals.py --tenant dev` runs every ready case on that tenant's agent, **3 runs each** (one run can pass or fail by luck). Cases are one YAML file each in `tests/evals/dt-agent/`: the turns to send, and scripted assertions (skill read first, which files were read, DQL used or not, the exact reply, required and forbidden text, the turn ends on text). The default forbidden list covers "beat", "the demo", "I can't", "I'm read-only", "as an AI" and "Dynatrace Intelligence".
+- **Behaviour:** `python tools/run_dt_evals.py --tenant dev` runs every ready case on that tenant's agent, **3 runs each** (one run can pass or fail by luck). Cases are one YAML file each in `tests/evals/dt-agent/`: the turns to send, and scripted assertions (skill read first, which files were read, DQL used or not, the exact reply, required and forbidden text, the turn ends on text). The default forbidden list covers "beat", "the demo", "I can't", "I'm read-only", "as an AI" and "I'm Dynatrace Intelligence" (the product name itself is allowed: the skill tells the agent to say it).
 - **Review sheet:** every run writes `tests/evals/dt-agent/reports/<timestamp>-<tenant>.md` (git-ignored) with the transcripts, for tone and persona, which a script cannot judge.
 - **Ground truth (Playground):** a case can list `truth: [payment-failure, ...]`. The runner runs the scenario's resolver and deployment DQL itself, pinned to the read-only `playground` `dtctl` context (`python tools/run_dt_evals.py --truth payment-failure` prints it), and `{truth.<scenario>.<field>}` placeholders in a case are replaced with the live values. An empty truth fails the check instead of skipping it.
-- **Tenants:** `--tenant dev` uses `DT_DEV_AGENT_TOKEN`; `--tenant playground` uses `DT_PLAYGROUND_AGENT_TOKEN`. If the tenant has no `demo-agent` template, the runner skips with a message. Cases marked `status: draft` (the two Playground ones) need `--include-draft` and their expectations are unvalidated until the agent exists there.
+- **Tenants:** `--tenant dev` uses `DT_DEV_AGENT_TOKEN`; `--tenant playground` uses `DT_PLAYGROUND_AGENT_TOKEN`. If the tenant has no `demo-agent` template, the runner skips with a message. Cases marked `status: draft` (the Playground ones) need `--include-draft` and their expectations are unvalidated until the agent exists there.
 - **Manual groups:** `docs/dt-skill-evals.md` and `docs/guardrail-probes.md` stay the source for cases that are not automated yet (persistence, deep links).
-- **Dev has no scenario data.** The resolvers hardcode Playground service IDs and RCA is broken on dev, so dev only shows "environment looks clean". Scenario content is tested on the Playground.
+- **Dev has one scenario.** The payment and image resolvers hardcode Playground service IDs, so on dev they return nothing and only `disk-cpu-cascade` is live there. The `*-dev` eval cases run on it; the rest of the scenario content is tested on the Playground.
 
 ## One skill, two runtimes
 
@@ -111,11 +111,11 @@ The Dynatrace agent (`@demo-agent`) and the local `/demo` run the same skill and
 | Tool and path mapping (`read_file`, `execute-dql`) | `skills/local-runtime/SKILL.md` | local only |
 | Entry points | `commands/demo.md` (copied to `.claude/commands/`), `commands/demo-doctor.md` | local only |
 
-Local `/demo` includes the instructions, the adapter, `SKILL.md`, `session-protocol.md` and `conversation-craft.md` with `@`-includes, so no Read rows show before the greeting; the other references are read on demand, as in Dynatrace. The adapter holds no behaviour: if a rule only works locally, it belongs in the skill.
+Local `/demo` includes the instructions, the adapter, `SKILL.md`, `session-protocol.md` and `conversation-craft.md` with `@`-includes, so no Read rows show before the greeting; the other references, `walk-through.md` included, are read on demand, as in Dynatrace. The adapter holds no behaviour: if a rule only works locally, it belongs in the skill.
 
 Because the local runtime reads the repo files and the Dynatrace agent reads the uploaded documents, a skill change reaches `@demo-agent` only after `docs --apply`. Keep the two in step: upload after every merged skill change.
 
-The local runtime has two properties the Dynatrace one does not. `dtctl` returns an envelope whose `metadata` feeds the proof stamp, and every query passes `--context playground`, so a maintainer's saved context cannot redirect the demo.
+The local runtime has two properties the Dynatrace one does not. `dtctl` returns an envelope whose `metadata` feeds the proof stamp, and every query passes `--context playground`, so a maintainer's saved context cannot redirect the demo. It also means local `/demo` cannot reach `disk-cpu-cascade`, which lives on the dev tenant.
 
 Verify an incident's shape on several days before writing its reveal. The Playground's incidents change: the image slowdown looked like a failing-span story on one day and a pure-latency story on another, because one sampled failed span exists only on some days. Anchor the beats on what repeats every cycle.
 

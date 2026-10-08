@@ -27,9 +27,9 @@ dynatrace-intelligence/
     └── investigating-playground-incidents/   — folder name must equal the frontmatter `name`
         ├── SKILL.md                          — entry point, principles, scenario registry, workflow, checklist
         └── references/                       — flat: no subfolders, unique names, linked as references/<name>.md
-            ├── session-protocol.md           — greeting, session state + token table, survey, close
-            ├── conversation-craft.md         — beat loop, divergence, staying in role, pacing rules
-            ├── briefing-mode.md              — the walk-through delivery: turn shape, intent table, handoff block
+            ├── session-protocol.md           — greeting, session state + token table, survey, handoff block, close
+            ├── conversation-craft.md         — beat loop, data-only rule, divergence, staying in role, pacing rules
+            ├── walk-through.md               — the report delivery: opening report, evidence turns, a manager's words
             ├── dql-reference.md              — verified field names, gotchas, chained queries
             ├── scenario-payment-failure.md        — persona, business context, scope, handoff fields, resolvers
             ├── scenario-payment-failure-beats.md  — the 5 beats with DQL, reveals, staging, deep links
@@ -41,9 +41,10 @@ dynatrace-intelligence/
 
 Every scenario runs in two deliveries: the user explores with the SRE as a peer (default), or the SRE
 reports the incident to them as to a manager and ends with a handoff block. The survey offers the second
-once, after the entry angles. `briefing-mode.md` is the only file that knows about it; scenarios author
-nothing extra, but the handoff block draws on their Handoff fields table, so a scenario with no owner or no
-user count must say so there.
+once, after the entry angles. `walk-through.md` holds its rules; SKILL.md, session-protocol and the agent
+instructions only route to it. Scenarios author no walk-through content, but they supply a `symptom`, an optional
+`payoff` and a `Goes to` row, and the handoff block draws on their Handoff fields table, so a scenario with no
+owner or no user count must say so there.
 
 The survey reads only each scenario's resolver file; the beats file is read once the user picks
 a direction. Adding a scenario means adding both files and a row in the SKILL.md registry.
@@ -84,6 +85,7 @@ The strong practice in this repo is *no query ships unexecuted*. Before loading 
 # Runs both resolver DQLs, then all beat DQLs, including the chained trace summary.
 python tools/validate_dt_skill.py --scenario payment-failure
 python tools/validate_dt_skill.py --scenario broken-images
+python tools/validate_dt_skill.py --scenario disk-cpu-cascade   # runs on the dev context
 ```
 
 Also open one deep link with substituted values and confirm the Dynatrace app loads the right view.
@@ -97,12 +99,16 @@ Also open one deep link with substituted values and confirm the Dynatrace app lo
   every image on every request until a fix lands about 30 minutes later. A single sampled failed
   `GET` span with a `SlowDown` throttle exists on some days only, so the beats do not depend on
   it.
+- **disk-cpu-cascade scenario:** complete — a long-running host problem on the dev tenant, rebuilt against live data.
+  It reports entities, not users, and has no owning team, commit or replay.
+- **Walk-through delivery:** complete locally (testruns 12 and 13) — an opening report with the whole story, then
+  evidence turns and a handoff block. Not yet uploaded or evaluated on `@demo-agent`.
 
 ## Resolver notes (maintainers only)
 
 Kept out of the skill on purpose: the agent reads the scenario files and would repeat them to the user.
 
-- `now()-48h`: payment-failure fires about twice a day and broken-images once a day (around 03:04 UTC), so 48 hours always spans at least one occurrence.
+- `now()-48h`: payment-failure fires about twice a day and broken-images once a day (around 03:04 UTC), so 48 hours always spans at least one occurrence. disk-cpu-cascade is one long-running problem, always inside it.
 - `±15m` window padding catches the culprit deploy just before onset, a clean baseline, and the recovery after the fix.
 - The fallback resolver drops `is_duplicate` and takes the largest-impact problem instead, for cycles where the near-duplicate problems weren't merged.
 - The payment and image resolvers hardcode Playground service IDs, and the disk resolvers hardcode dev IDs. On the

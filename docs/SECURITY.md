@@ -67,7 +67,8 @@ wrappers such as `bash -c`, `env` and `Start-Process`; and DQL piped in or read 
 `tools/tests/test_guard_hook.py` covers each of these. The hook runs as
 `$CLAUDE_PROJECT_DIR/tools/guard_dtctl.py`, so it works from any working directory.
 
-Layer 1 protects only the context a call uses. A maintainer's saved context may be a
+Layer 1 protects only the context a call uses. The validator and the eval ground truth also read the `dev` context
+for `disk-cpu-cascade`; it is `readwrite-all`, so they run only `dtctl query`, and the guard hook rejects anything else. A maintainer's saved context may be a
 non-read-only tenant, so the local runtime passes `--context playground` on every query
 (`skills/local-runtime/SKILL.md`).
 
