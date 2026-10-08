@@ -13,6 +13,11 @@ Usage:
     python tools/run_dt_evals.py --truth payment-failure
     python tools/run_dt_evals.py --tenant dev [--case greeting,cost] [--runs 3] [--workers 3]
     python tools/run_dt_evals.py --tenant playground
+    python tools/run_dt_evals.py --local [--tenant playground] [--case survey-live] [--include-draft]
+
+--local runs the cases against the skill on this machine (tools/local_agent.py): a Claude model drives
+the same instructions and skill documents, and each case's DQL runs through dtctl on that case's tenant
+(playground or dev), so no agent has to be deployed. It needs ANTHROPIC_API_KEY.
 
 Tokens: DT_DEV_AGENT_TOKEN (dev) and DT_PLAYGROUND_AGENT_TOKEN (playground); never printed.
 """
@@ -248,6 +253,11 @@ def main(argv: list[str]) -> int:
         sys.stdout.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--tenant", choices=list(TENANTS), help="which tenant's agent to test")
+    parser.add_argument("--local", action="store_true",
+                        help="run the cases on this machine instead of on a deployed agent")
+    parser.add_argument("--model", help="with --local: the model (default: the one in template.json)")
+    parser.add_argument("--metadata", choices=["keep", "strip"], default="keep",
+                        help="with --local: strip the queryId from results, as the Dynatrace runtime often does")
     parser.add_argument("--case", help="comma-separated case ids (default: all for the tenant)")
     parser.add_argument("--runs", type=int, help="override runs per case")
     parser.add_argument("--workers", type=int, default=3)
@@ -265,21 +275,34 @@ def main(argv: list[str]) -> int:
         for c in cases:
             print(f"  {c['id']:24} tenant={c['tenant']:10} runs={c.get('runs', 3)} status={c.get('status', 'ready')}")
         return 0
-    if not args.tenant:
-        parser.error("--tenant is required to run cases")
+    if not args.tenant and not args.local:
+        parser.error("--tenant or --local is required to run cases")
 
     wanted = set(args.case.split(",")) if args.case else None
-    selected = [c for c in cases if c["tenant"] == args.tenant and (wanted is None or c["id"] in wanted)
+    selected = [c for c in cases if (args.tenant is None or c["tenant"] == args.tenant)
+                and (wanted is None or c["id"] in wanted)
                 and (args.include_draft or c.get("status", "ready") != "draft")]
     if not selected:
         print("no cases selected")
         return 0
-    agent_mod = load_module("dt_agent")
-    url, token_var = TENANTS[args.tenant]
-    tenant = agent_mod.Tenant(url, token_var)
-    if agent_mod.deployed_template(tenant, AGENT) is None:
-        print(f"SKIP all: no {AGENT} template on {args.tenant} ({url})")
-        return 0
+    if args.local:
+        local = load_module("local_agent")
+        try:
+            backends = {name: local.LocalAgent(name, args.model, metadata=args.metadata)
+                        for name in sorted({c["tenant"] for c in selected})}
+        except RuntimeError as e:
+            print(f"--local: {e}")
+            return 2
+        label = f"local, {next(iter(backends.values())).model}, metadata={args.metadata}"
+        agent_for, tenant = (lambda c: backends[c["tenant"]]), None
+    else:
+        agent_mod = load_module("dt_agent")
+        url, token_var = TENANTS[args.tenant]
+        tenant = agent_mod.Tenant(url, token_var)
+        if agent_mod.deployed_template(tenant, AGENT) is None:
+            print(f"SKIP all: no {AGENT} template on {args.tenant} ({url})")
+            return 0
+        label, agent_for = args.tenant, (lambda c: agent_mod)
 
     truth: dict = {}
     for scenario in sorted({s for c in selected for s in c.get("truth", [])}):
@@ -294,7 +317,7 @@ def main(argv: list[str]) -> int:
 
     jobs = [(c, n) for c in runnable for n in range(1, (args.runs or c.get("runs", 3)) + 1)]
     with cf.ThreadPoolExecutor(max_workers=args.workers) as pool:
-        results = list(pool.map(lambda j: run_case(agent_mod, tenant, j[0], j[1], truth), jobs))
+        results = list(pool.map(lambda j: run_case(agent_for(j[0]), tenant, j[0], j[1], truth), jobs))
 
     print(f"\n{'case':26} runs  pass  failures")
     exit_code = 0
@@ -305,8 +328,8 @@ def main(argv: list[str]) -> int:
         print(f"{case['id']:26} {len(mine):<5} {passed}/{len(mine):<3} {first[:90]}")
         exit_code |= int(passed != len(mine))
     stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    sheet = Path(args.out) if args.out else REPORTS_DIR / f"{stamp}-{args.tenant}.md"
-    write_sheet(sheet, results, args.tenant, stamp)
+    sheet = Path(args.out) if args.out else REPORTS_DIR / f"{stamp}-{'local' if args.local else args.tenant}.md"
+    write_sheet(sheet, results, label, stamp)
     print(f"\nreview sheet: {sheet}")
     return exit_code
 

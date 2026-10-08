@@ -25,6 +25,8 @@ jobs:
         run: python tools/tests/test_guard_hook.py
       - name: Eval runner
         run: python tools/tests/test_run_dt_evals.py
+      - name: Local agent harness
+        run: python tools/tests/test_local_agent.py
       # .claude/commands/ is what a cloned repo uses, commands/ what the plugin ships.
       - name: Slash commands in sync
         run: diff -r commands .claude/commands

@@ -77,6 +77,9 @@ Branding: "Dynatrace Intelligence" / "Dynatrace Assist", never "Davis" or "CoPil
     now 0 to 1 of 3 on `survey-dev`, even with the sentence forbidden by example in the instructions and the protocol.
   - One `HTTP 500` ("technical error") from the platform in the third round; transient.
   - `explore-close-dev` is a draft and has not run.
+- **Local eval harness built, not yet run against a model** (`run_dt_evals.py --local`, `tools/local_agent.py`): the
+  harness logic, the dtctl path on both tenants and the write guard are tested; the first model call needs
+  `ANTHROPIC_API_KEY`. Run `--local --include-draft` for the payment and image cases, then compare against the dev agent.
 - **`explore-close-dev` and the new `queried_at` queries** need a live run: a steered user who finishes all five beats gets the
   close with a measured elapsed time.
 - **Detection gap is computed by the model** from two timestamps (payment beat 4). Correct in both testrun-13 runs; move it

@@ -94,6 +94,16 @@ The Playground token needs `ai:operator:execute`, `mcp-gateway:servers:read` and
 - **Checks:** `python tools/dt_agent.py check` (skill and template rules), then `python tools/validate_dt_skill.py` for all three scenarios (live DQL, each on its own tenant).
 - **Runner tests:** `python tools/tests/test_run_dt_evals.py` (offline) after any change to the runner or the case files.
 - **Behaviour:** `python tools/run_dt_evals.py --tenant dev` runs every ready case on that tenant's agent, **3 runs each** (one run can pass or fail by luck). Cases are one YAML file each in `tests/evals/dt-agent/`: the turns to send, and scripted assertions (skill read first, which files were read, DQL used or not, the exact reply, required and forbidden text, the turn ends on text). The default forbidden list covers "beat", "the demo", "I can't", "I'm read-only", "as an AI" and "I'm Dynatrace Intelligence" (the product name itself is allowed: the skill tells the agent to say it).
+- **Locally, with no agent deployed:** `python tools/run_dt_evals.py --local [--tenant playground] [--case <id>] [--include-draft] [--metadata strip]`
+  runs the same cases on this machine (`tools/local_agent.py`). A Claude model gets the agent instructions and reads the
+  skill documents from this repo; its `execute-dql` runs through `dtctl` on each case's own tenant (`playground` for the
+  payment and image cases, `dev` for the disk ones), behind the same write-construct check as the guard hook. Needs
+  `ANTHROPIC_API_KEY` in the environment (user level, then restart VS Code; never in a repo file) and nothing else: no
+  deployed agent, no Dynatrace token. It tests the skill and the instructions, not the Dynatrace runtime: there is no
+  platform guardrail, and results carry a `queryId` unless you pass `--metadata strip`, which approximates the runtime
+  that often returns none. Tool text written between calls appears here but not in the API stream, so progress-line
+  assertions can differ. The `-live` cases that wait for an agent on the Playground can run this way today with
+  `--include-draft`. Offline tests: `python tools/tests/test_local_agent.py`.
 - **Review sheet:** every run writes `tests/evals/dt-agent/reports/<timestamp>-<tenant>.md` (git-ignored) with the transcripts, for tone and persona, which a script cannot judge.
 - **Ground truth (Playground):** a case can list `truth: [payment-failure, ...]`. The runner runs the scenario's resolver and deployment DQL itself, pinned to the read-only `playground` `dtctl` context (`python tools/run_dt_evals.py --truth payment-failure` prints it), and `{truth.<scenario>.<field>}` placeholders in a case are replaced with the live values. An empty truth fails the check instead of skipping it.
 - **Tenants:** `--tenant dev` uses `DT_DEV_AGENT_TOKEN`; `--tenant playground` uses `DT_PLAYGROUND_AGENT_TOKEN`. If the tenant has no `demo-agent` template, the runner skips with a message. Cases marked `status: draft` (the Playground ones) need `--include-draft` and their expectations are unvalidated until the agent exists there.
