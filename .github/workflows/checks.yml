@@ -31,8 +31,3 @@ jobs:
       - name: Eval cases parse
         run: |
           python -c "import glob, yaml; fs = sorted(glob.glob('tests/evals/dt-agent/*.yaml')); [yaml.safe_load(open(f, encoding='utf-8'))['turns'] for f in fs]; print(len(fs), 'eval cases parse')"
-      # Plugin edition, retired in Phase 3 of the port; drop these two steps with it.
-      - name: Waterfall renderer
-        run: python tools/tests/test_render_waterfall.py
-      - name: Scenario manifests (static)
-        run: python tools/validate_scenarios.py

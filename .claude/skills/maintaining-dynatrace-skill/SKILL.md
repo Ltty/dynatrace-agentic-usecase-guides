@@ -3,8 +3,8 @@ name: maintaining-dynatrace-skill
 description: >
   Maintains the Dynatrace-native skill and the demo-agent in this repo. Use when editing
   dynatrace-intelligence/ (the skill and its agent) or tools/dt_agent.py, or when asked to check, pack,
-  upload, deploy, test or evaluate the Dynatrace skill or agent. Not for the Claude Code plugin
-  under skills/ or scenarios/.
+  upload, deploy, test or evaluate the Dynatrace skill or agent. The local /demo runs on the same
+  skill; the only local-only piece is the adapter in skills/local-runtime/.
 ---
 
 # Maintaining the Dynatrace skill and demo-agent
