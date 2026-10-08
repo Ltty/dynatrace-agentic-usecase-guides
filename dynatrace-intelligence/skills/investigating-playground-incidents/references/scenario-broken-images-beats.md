@@ -247,9 +247,10 @@ different population from the problem's affected users; label each. `queried_at`
 session close's elapsed time, not for the table.
 
 **Reveal:** Real-user sessions across many countries hit image loads of several seconds, and
-nearly all have replay. State the actual session total, the top countries, and the worst load
-time. The point isn't the number — each one is a recording of a shopper staring at an empty
-image slot.
+nearly all have replay. State the actual session total, the number of rows as returned (one per
+country value; a row with no country is reported as exactly that), the top rows, and the worst
+load time. Don't add geography the rows don't contain. The point isn't the number — each one is a
+recording of a shopper whose image took seconds to load.
 
 **Success signal:** User asks about the experience, what shoppers saw, or opens a replay.
 

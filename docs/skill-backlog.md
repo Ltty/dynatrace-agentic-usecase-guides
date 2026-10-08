@@ -28,6 +28,16 @@ From testrun-08/09:
 
 Branding: "Dynatrace Intelligence" / "Dynatrace Assist", never "Davis" or "CoPilot". Identifiers such as `dt.davis.*` stay. Evals `survey-live` and `handoff-live` check it.
 
+## Done in the repo, 2026-10-08 (from testrun-10 and -11; not uploaded yet)
+
+- Proof stamp: one per turn, for the first query, with the **full queryId copied exactly**. Cutting the last 8 characters produced wrong or short IDs in 8 of 8 stamps; the old first-8 rule was accurate but not useful.
+- New rule "Data is the only source of conclusions": counts and nulls exactly as returned, no added geography, intent, validity or cause. Payment beat 4 no longer says "validation regression (rejecting input that should be valid)"; intent is the owning team's call.
+- Beat 3 reveal matches the buckets: the first failures fall in the deploy's bucket, the full rate shows in the next.
+- Beat 5 (both scenarios): report the row count as returned; a row with no country is reported as such, not counted as a country.
+- A chained query is one turn with nothing written between its calls.
+- Payment handoff fields: `owning_team` is who to page, `owner` is who shipped it; list both when they differ.
+- Eval: `data-only-live` (draft). Not changed: elapsed time varies with how fast the user types; a real measurement stays.
+
 ## Open
 
 - Recap-on-repeat has no eval case (it needs a full live session).

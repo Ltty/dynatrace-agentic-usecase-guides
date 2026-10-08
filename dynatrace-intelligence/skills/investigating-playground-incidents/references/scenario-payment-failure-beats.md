@@ -133,9 +133,11 @@ fetch events, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 Returns every deployment in the window — typically the culprit and the fix. `sort desc | limit 1`
 would return only the fix.
 
-**Reveal:** A step change from near-zero to a sustained elevated failure rate, with the culprit
-deployment inside the same 5-minute bucket as the jump. State the actual before/after
-percentages and the bucket timestamp. A later deploy that brings the rate back down is the fix,
+**Reveal:** A step change from near-zero to a sustained elevated failure rate. The first
+failures fall in the bucket that holds the culprit's `first_deploy`, and the rate reaches its full
+level in the next bucket. Read it from the rows: a bucket that holds the deploy can still show a
+low rate. State the actual before/after percentages, with failures and totals, and the bucket
+timestamps. A later deploy that brings the rate back down is the fix,
 not a second regression.
 
 **Success signal:** User connects the deploy to the spike, or asks for the failing requests.
@@ -200,9 +202,10 @@ One row per service in call order. Failure propagates: the ingress, frontend, an
 also show `failed > 0` because they return the error payment raised — checkout's own exception
 wraps payment's message. Payment is the origin; the rows with `failed == 0` are the clean calls.
 
-**Reveal:** The failing payment spans carry a specific exception — quote it verbatim. It reads
-as a business-logic validation regression (rejecting input that should be valid), not an
-infrastructure fault. Note the file and line, `failed_spans` (a span count, not users), and how
+**Reveal:** The failing payment spans carry a specific exception — quote it verbatim. Say what
+the data shows: the service itself raises it, at the file and line returned, with a message that
+names the rejected input — not an infrastructure error. Whether the rejection was intended is
+the owning team's call, not something the telemetry shows. Note the file and line, `failed_spans` (a span count, not users), and how
 `first_seen` lines up with the culprit's `first_deploy` (seconds before it is normal — see
 beat 2). If more than one distinct message
 appears, say so — that's a second finding; one first seen after the fix is likely ordinary bad
@@ -215,7 +218,8 @@ input, not the regression.
 1. The exception alone on its own line, before any commentary:
    `Exception: [verbatim exception_msg]`
 2. Blank line.
-3. What kind of bug it is (validation regression, not infrastructure), with file and line.
+3. What the exception says and where it is raised (file and line) — an error the service
+   itself raises, not an infrastructure fault.
 4. The trace as a short chain plus one summary line:
 
    ```text
@@ -260,7 +264,9 @@ the full population, and never call it "affected users" (that's the problem reco
 `queried_at` is for the session close's elapsed time, not for the table.
 
 **Reveal:** Sessions with 5xx errors span many countries, and nearly all have replay. State the
-actual total and top countries. The point isn't the number — each failure is a replayable
+actual total, the number of rows as returned (one per country value; a row with no country is
+reported as exactly that, never folded into a country), and the top rows. Don't add geography the
+rows don't contain. The point isn't the number — each failure is a replayable
 recording of a real customer hitting a real error.
 
 **Success signal:** User asks about affected users, customer experience, or replay.

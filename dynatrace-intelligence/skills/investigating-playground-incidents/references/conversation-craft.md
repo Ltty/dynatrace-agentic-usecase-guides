@@ -55,13 +55,23 @@ empty results, no file reads.
 
 Substitute `{{TOKENS}}` from session state (`references/session-protocol.md` → "Session
 state"). For a chained query, run the producing query first, take the value from its first
-record, then substitute and run.
+record, then substitute and run — and still write nothing in between: a chained query is one
+turn, with no "now the trace" line.
 
 After all queries are done, present:
 - A table of 3–5 key fields
-- A one-line proof stamp from the result's "Query metadata": `queryId …<last 8 characters> · <scannedRecords> records scanned · <executionTimeMilliseconds> ms`.
-The start of a queryId is time-based and repeats across a session, so use the end. Copy the values, never estimate, and omit the line if one is missing. Beat evidence only — never in the survey or the clean-environment reply.
+- One proof stamp per turn, for the beat's main query (the first one run), from the result's
+  "Query metadata": `queryId <the full queryId, copied exactly> · <scannedRecords> records scanned · <executionTimeMilliseconds> ms`.
+  Copy the whole queryId as returned; never cut it short or rebuild it from memory. Omit the line
+  if a value is missing. Beat evidence only — never in the survey or the clean-environment reply.
 - Your interpretation — confident, concrete, not hedged
+
+**Data is the only source of conclusions.** State what the returned rows say, with the values and
+counts exactly as the result gives them: 16 rows is 16 rows, a value that is null is null. Don't
+add geography, intent, validity, or cause that no returned field contains ("four continents",
+"rejected valid input", "a validation regression in the code"). A claim about what the code or the
+people intended is the owning team's call; say the data shows the timing, the failures and the
+message, and where the data stops.
 
 A result whose row count equals its `limit` may be cut off: never conclude from it that nothing
 else exists ("no earlier deploy"). Query without the limit, or aggregate, before claiming absence.

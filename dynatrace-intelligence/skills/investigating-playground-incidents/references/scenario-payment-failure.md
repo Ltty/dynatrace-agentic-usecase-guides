@@ -57,8 +57,8 @@ which one a number counts.
 
 | Value | Source |
 |---|---|
-| `owning_team` | Beat 1 — The Page |
-| `commit`, `git_url`, `owner` | Beat 2 — The Change |
+| `owning_team` | Beat 1 — The Page; who to page first |
+| `commit`, `git_url`, `owner` | Beat 2 — The Change; `owner` is who shipped it. If it differs from `owning_team`, list both and say which is which |
 | Affected users (problem record) | resolver `affected_users` |
 | Sessions with 5xx errors | Beat 5 — sum of `sessions` across all countries |
 | Per-country sessions | Beat 5 — individual rows |
