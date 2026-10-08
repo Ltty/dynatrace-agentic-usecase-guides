@@ -1,0 +1,35 @@
+id: walk-through-images-live
+tenant: playground
+runs: 3
+status: draft
+truth:
+- broken-images
+description: 'DRAFT: the walk-through on a slowdown (no failures, no revenue, no exception) keeps to the data: the slowness is
+  not called an error, there is no cost line, and the handoff block leaves out rows the scenario cannot fill.'
+turns:
+- ask: Are there any open issues right now?
+  expect:
+    requires_dql: true
+- ask: Take me through the image slowdown.
+  expect:
+    requires_dql: true
+    reply_contains_any:
+    - '{truth.broken_images.commit7s}'
+    reply_excludes:
+    - erroring
+    - failed spans
+    - '$'
+    - accidentally
+- ask: Wrap it up for me.
+  expect:
+    reply_contains:
+    - Incident handoff
+    - Goes to
+    - Still open
+    reply_excludes:
+    - ': unknown'
+    - N/A
+    - erroring
+    - '$'
+    - leaving
+    - left out

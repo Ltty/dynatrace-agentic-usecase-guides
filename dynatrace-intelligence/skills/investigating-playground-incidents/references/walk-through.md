@@ -57,17 +57,18 @@ order of the beats' Objectives:
    returned), how many it affected and which population that counts, the cost, and whether it is
    resolved. The cost is `affected_users × avg_order_value_usd`, said as an estimate from the
    average order value, and only when the scenario defines `avg_order_value_usd`.
-2. **Cause:** when the change shipped against when the errors began, and the before and after of
-   the rate, from the results. A later deploy after which the problem stops is stated as an
+2. **Cause:** the commit (short SHA, 7 characters), when it shipped against when the errors began, and the
+   before and after of the rate, from the results. A later deploy after which the problem stops is stated as an
    inference (see the data-only rule in conversation-craft).
 3. **Owner:** who owns the service, and who shipped the change when that is someone else.
 4. **What broke:** what the failing call does, in plain words. State no call direction between
    services: the trace has not run yet. The verbatim exception, file, line and trace chain wait for
    their evidence turn.
 5. **Who it hit:** the count, labelled, and how many countries as returned. A row with no country is
-   reported as exactly that, and its sessions are part of the count, not extra.
-6. **Detection:** the first failure against when the problem opened, both times and the gap, as a
-   fact.
+   reported as exactly that, and its sessions are part of the count: "[T] sessions, [M] of them with no country
+   recorded", never "plus [M]".
+6. **Detection:** the first failure against when the problem opened: both times and the gap, said
+   plainly.
 7. **The offer, exactly:** "I can show you how we know each of these, starting with [the second
    beat's subject, in plain words]."
 

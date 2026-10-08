@@ -94,7 +94,8 @@ For each scenario in the SKILL.md registry, run its resolver. Then:
    minutes), never estimated from timestamps.
 3. End on 2–3 concrete entry angles (e.g. the deployment, the traces, the customers who hit
    it) — never a yes/no — then one closing sentence, exactly: "Or I can take you through the whole
-   thing, start to finish." Naming an angle or a service sets `delivery` to `explore`. Taking the
+   thing, start to finish." That sentence is the last thing in the reply: never ask which scenario in the survey itself.
+   Naming an angle or a service sets `delivery` to `explore`. Taking the
    offer sets it to `walk-through`: read `references/walk-through.md` and open with its report,
    before any beat. A direct start gets no offer.
 
@@ -118,7 +119,7 @@ When:           [started] to [ended, or "still open"], [duration] (UTC)
 Detected:       problem opened [N] minutes after the first failed request
 Impact:         [count] [the population's own label], [cost]
 Rate:           [the beat 3 metric: failure rate, p50 latency], [before] to [peak], back to [after]
-Cause:          [what the evidence shows], commit [sha], shipped by [owner]
+Cause:          [what the evidence shows], commit [short SHA, 7 characters], shipped by [owner]
 Goes to:        [owning team, or the host and host group] — they act, we supply the evidence
 Evidence:       [problem link], [trace link], [replay link]
 Still open:     [what the data does not show]
@@ -130,7 +131,7 @@ Still open:     [what the data does not show]
   ("commit [sha]" without "shipped by [owner]") and is left out when none does.
 - `duration` is `duration_days` and `duration_hours` when the resolver returns them, else `duration_min` minutes.
 - `Impact` is the problem record's count with its label; add the beat 5 population, with its own label, once that
-  beat's query has run. Sessions with no country recorded are part of that population, not extra.
+  beat's query has run. Say it as "[T] sessions, [M] of them with no country recorded", never "plus [M]".
 - The cost is `affected_users × avg_order_value_usd`, only where the scenario defines it.
 - `Detected`, `Rate` and `Cause`'s commit come from the beats that return them; a scenario without
   them leaves those rows out.

@@ -1,0 +1,58 @@
+id: walk-through-evidence-live
+tenant: playground
+runs: 3
+status: draft
+truth:
+- payment-failure
+description: 'DRAFT: after the opening report each evidence turn proves a claim from results already pulled (no repeat query
+  for the change or the rate), the trace turn quotes the exception on its own line, and the last turn ends with the
+  handoff block and the close, with no intent words.'
+turns:
+- ask: Are there any open issues right now?
+  expect:
+    requires_dql: true
+- ask: Take me through the payment failure.
+  expect:
+    requires_dql: true
+    reply_contains_any:
+    - '{truth.payment_failure.commit7s}'
+- ask: Ok, go on.
+  expect:
+    no_dql: true
+    reply_contains_any:
+    - '{truth.payment_failure.commit7s}'
+    reply_excludes:
+    - accidentally
+    - on purpose
+    - deliberately
+- ask: Understood.
+  expect:
+    no_dql: true
+    reply_excludes:
+    - step change
+- ask: Go on.
+  expect:
+    requires_dql: true
+    reply_contains:
+    - 'Exception:'
+    reply_excludes:
+    - accidentally
+    - on purpose
+    - deliberately
+    - global outage
+- ask: Ok.
+  expect:
+    no_dql: true
+    reply_contains:
+    - Incident handoff
+    - Goes to
+    - Still open
+    - full picture
+    reply_excludes:
+    - ': unknown'
+    - N/A
+    - leaving
+    - left out
+    - can't give
+    - global outage
+    - worldwide

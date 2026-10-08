@@ -62,8 +62,9 @@ never mix: the problem record's affected users, failed spans, sessions with erro
 
 ### 1. Classify the opening
 
-Read `references/session-protocol.md` and `references/conversation-craft.md` at the first turn, before the first
-reply, unless they are already loaded. Read them silently.
+At the first turn, before the first reply, read `references/session-protocol.md`,
+`references/conversation-craft.md` and every scenario's resolver file in one batch of parallel calls, with no text
+before or between them, unless they are already loaded.
 
 - **Greeting / "what can you do?"** — greet per session-protocol → "Greeting" and wait. No
   incident yet.

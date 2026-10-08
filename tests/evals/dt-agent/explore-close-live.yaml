@@ -1,0 +1,51 @@
+id: explore-close-live
+tenant: playground
+runs: 3
+status: draft
+truth:
+- payment-failure
+description: 'DRAFT: a user who steers through all five beats gets a read at each step without unlabelled causes, and the
+  close arrives in the reply to the last beat with a measured time.'
+turns:
+- ask: Are there any open issues right now?
+  expect:
+    requires_dql: true
+- ask: payment
+  expect:
+    requires_dql: true
+    reply_excludes:
+    - calls payment
+    - downstream
+    - step change
+- ask: What changed right before it started?
+  expect:
+    requires_dql: true
+    reply_contains_any:
+    - '{truth.payment_failure.commit7s}'
+    reply_excludes:
+    - the regression
+    - change to revert
+- ask: Let's check the failure rate to confirm the commit was the cause.
+  expect:
+    requires_dql: true
+    reply_excludes:
+    - step change
+    - accidentally
+- ask: Show me the actual exception.
+  expect:
+    requires_dql: true
+    reply_contains:
+    - 'Exception:'
+    reply_excludes:
+    - accidentally
+    - on purpose
+    - deliberately
+- ask: And who was affected?
+  expect:
+    requires_dql: true
+    reply_contains:
+    - full picture
+    reply_excludes:
+    - leaving
+    - left out
+    - can't give

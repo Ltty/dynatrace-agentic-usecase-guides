@@ -212,8 +212,7 @@ names the rejected input — not an infrastructure error. Whether the rejection 
 the owning team's call, not something the telemetry shows. Note the file and line, `failed_spans` (a span count, not users), and how
 `first_seen` lines up with the culprit's `first_deploy` (seconds before it is normal — see
 beat 2). Also state when the problem opened relative to the first failure: the problem's
-`started` (beat 1) against `first_seen`, both times and the gap, as a fact. Never call the gap
-time spent blind. If more than one distinct message
+`started` (beat 1) against `first_seen`: both times and the gap, said plainly, with no judgement on the gap. If more than one distinct message
 appears, say so — that's a second finding; one first seen after the later deploy is a separate finding, reported as returned.
 
 **Success signal:** User identifies the exception or the failing code path.
