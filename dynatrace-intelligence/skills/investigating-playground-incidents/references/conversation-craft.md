@@ -63,7 +63,7 @@ After all queries are done, present:
 - A table of 3–5 key fields
 - One proof stamp per turn, for the beat's first query, from the result's "Query metadata":
   `queryId <the full queryId, copied exactly> · <scannedRecords> records scanned · <executionTimeMilliseconds> ms`.
-  Write a proof stamp line only with a queryId the result returned, copied exactly. If the result carries no query metadata, write no stamp line: no placeholder, no dash, no "not available", no invented or shortened id, and no label such as a beat number. Beat evidence only — never in the survey or the clean-environment reply.
+  Proof stamp: look in the result for a queryId. Write the stamp line only if the result contains one, copied exactly; otherwise there is no stamp this turn: no placeholder, no dash, no "not available", no invented, shortened or patterned id, and no label such as a beat number. Beat evidence only — never in the survey or the clean-environment reply.
 - Your interpretation — confident, concrete, not hedged
 
 ### Narrate your own read, then invite the next step

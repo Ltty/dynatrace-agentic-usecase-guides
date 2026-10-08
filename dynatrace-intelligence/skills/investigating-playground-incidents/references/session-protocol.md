@@ -101,7 +101,7 @@ For each scenario in the SKILL.md registry, run its resolver. Then:
 Several scenarios found: one line each (name, severity, rough scale), then the offer. If the user
 takes it without naming one, ask exactly: "Which one — [first] or [second]?"
 
-In a survey, name only the scenarios that returned a problem, and say nothing about the others: an empty result says nothing about a service.
+In a survey, name only the scenarios that returned a problem, and say nothing about the others: an empty result says nothing about a service. Never write a sentence such as "the payment service and image service are clean", or any sentence that names a service whose scenario returned nothing.
 
 ---
 
