@@ -69,10 +69,14 @@ echo "[3/5] Installing dtctl..."
 DTCTL_INSTALL_DIR="$HOME/.local/bin"
 mkdir -p "$DTCTL_INSTALL_DIR"
 
-if DTCTL_VERSION=$(curl -fsSL https://api.github.com/repos/dynatrace-oss/dtctl/releases/latest \
-    | python3 -c "import json,sys; print(json.load(sys.stdin)['tag_name'].lstrip('v'))" 2>/tmp/dtctl-install.log); then
+# The version comes from the /releases/latest redirect, not api.github.com: the unauthenticated API
+# is rate-limited per IP, and Codespaces share egress IPs, so it answers 403 for some users.
+if DTCTL_TAG_URL=$(curl -fsSL --retry 3 -o /dev/null -w '%{url_effective}' \
+    https://github.com/dynatrace-oss/dtctl/releases/latest 2>/tmp/dtctl-install.log) \
+    && [[ "${DTCTL_TAG_URL}" == */releases/tag/v* ]]; then
+  DTCTL_VERSION="${DTCTL_TAG_URL##*/releases/tag/v}"
   DTCTL_URL="https://github.com/dynatrace-oss/dtctl/releases/download/v${DTCTL_VERSION}/dtctl_${DTCTL_VERSION}_linux_amd64.tar.gz"
-  if curl -fsSL "${DTCTL_URL}" -o /tmp/dtctl.tar.gz 2>>/tmp/dtctl-install.log \
+  if curl -fsSL --retry 3 "${DTCTL_URL}" -o /tmp/dtctl.tar.gz 2>>/tmp/dtctl-install.log \
       && tar -xzf /tmp/dtctl.tar.gz -C /tmp \
       && mv /tmp/dtctl "${DTCTL_INSTALL_DIR}/dtctl" \
       && chmod +x "${DTCTL_INSTALL_DIR}/dtctl"; then
