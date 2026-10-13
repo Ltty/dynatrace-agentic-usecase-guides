@@ -156,7 +156,7 @@ Still open:     [what the data does not show]
 - *Explore:* in the same response as the turn that completes the last beat (all five completed,
   folded-in beats included), after its deep link — not in a new turn, and not only when asked.
 - *Walk-through:* with the handoff block, in the same response as the last evidence turn.
-- *Either delivery, on request:* the handoff block, then steps 2–4.
+- *Either delivery, on request:* the handoff block, then the rest of the template below (without the timeline line, unless it is an explore session).
 
 **What it contains.** Fill this template, in this order, from this conversation's results. The payoff
 line is part of the close, never optional, and the way out is one of the exact lines below: do not

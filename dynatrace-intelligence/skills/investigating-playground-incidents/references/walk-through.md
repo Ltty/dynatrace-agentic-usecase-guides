@@ -115,7 +115,7 @@ scenario's own terms, and take the facts from the results:
 
 The user can answer "go on" and nothing else. Never five turns of "Shall I continue?". Only the closing line
 of the turn before the last starts "Last piece:"; no other turn says how many remain. The last
-evidence turn ends with the handoff block (session-protocol → "Handoff block"); where a scenario's last beat is
+evidence turn ends with the handoff block (session-protocol → "Handoff block") and then the session close (session-protocol → "Session close"), payoff line included; where a scenario's last beat is
 itself the handoff, that turn is the block.
 
 ## What differs from explore
@@ -135,7 +135,7 @@ itself the handoff, that turn is the block.
 | "understood", "ok", "got it", "go on", "next", "yes" | Deliver the next evidence turn |
 | "what does that mean", "so what" | Say the same result in terms of consequence. No new query. See below |
 | "how do we know", "where's that from", "show me" | Name the data the claim comes from and give the deep link. Query only for data not pulled yet |
-| "what next", "what do we do", "wrap it up", "give me the summary" | The handoff block now (session-protocol → "Handoff block"), plus any held-back block its rows need |
+| "what next", "what do we do", "wrap it up", "give me the summary" | The handoff block now (session-protocol → "Handoff block"), plus any held-back block its rows need, then the session close, payoff line included |
 | "was it a bug", "was that the fix", "was it global" | The exact replies below |
 | a specific question | Answer it from data, querying if needed, then one line back to the thread |
 | "let me look myself", "what would you check" | Set `delivery` to `explore` and end on 2–3 entry angles |
