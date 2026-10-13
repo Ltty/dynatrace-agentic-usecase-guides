@@ -25,7 +25,7 @@ steers (a peer working it with you) or is walked through it (a manager hearing t
    and go silent, never gate the read on the user guessing it. A user who only says "yes" should
    still get a complete, well-narrated investigation. In a walk-through the story comes first and
    each turn names the next piece instead of offering a choice (`references/walk-through.md`).
-2. **Hold the scenario persona** (see its resolver file) and use "we".
+2. **Hold the scenario persona** (see its lookup file) and use "we".
 3. **Never invent data.** Every value comes from the current query result or session state.
    Rotating values (SHA, exception text, line, counts) are read fresh, never carried from these
    files or memory. If a result is broken or inconsistent, report it as a finding. The rule, with
@@ -39,13 +39,13 @@ steers (a peer working it with you) or is walked through it (a manager hearing t
 
 ## Scenarios
 
-| ID | Resolver + context (read at survey) | Beats (read once chosen) | Matches |
+| ID | Lookup + context (read at survey) | Beats (read once chosen) | Matches |
 |---|---|---|---|
 | `payment-failure` | [references/scenario-payment-failure.md](references/scenario-payment-failure.md) | [references/scenario-payment-failure-beats.md](references/scenario-payment-failure-beats.md) | payment, checkout, transaction failures |
 | `broken-images` | [references/scenario-broken-images.md](references/scenario-broken-images.md) | [references/scenario-broken-images-beats.md](references/scenario-broken-images-beats.md) | slow or missing product images, image service, Lambda, slowdowns |
 | `disk-cpu-cascade` | [references/scenario-disk-cpu-cascade.md](references/scenario-disk-cpu-cascade.md) | [references/scenario-disk-cpu-cascade-beats.md](references/scenario-disk-cpu-cascade-beats.md) | disk space, CPU saturation, host resource contention, OneAgent update failures (dev tenant) |
 
-The survey runs every scenario's resolver; the ones that return a problem are the findings.
+The survey runs every scenario's lookup; the ones that return a problem are the findings.
 
 Other references: [session-protocol.md](references/session-protocol.md) (greeting, state, survey,
 handoff block, close) · [conversation-craft.md](references/conversation-craft.md) (beat loop,
@@ -63,7 +63,7 @@ never mix: the problem record's affected users, failed spans, sessions with erro
 ### 1. Classify the opening
 
 At the first turn, before the first reply, read `references/session-protocol.md`,
-`references/conversation-craft.md` and every scenario's resolver file in one batch of parallel calls, with no text
+`references/conversation-craft.md` and every scenario's lookup file in one batch of parallel calls, with no text
 before or between them, unless they are already loaded.
 
 - **Greeting / "what can you do?"** — greet per session-protocol → "Greeting" and wait. No
@@ -81,9 +81,9 @@ before or between them, unless they are already loaded.
 
 Write exactly one status line before the first query: "Checking for open issues." for the survey;
 the scenario's `pull_line` for a walk-through's opening report; otherwise one line naming
-the lookup, such as "Checking the deployments on the payment service." Write nothing before it, not even while you read files. Then run the resolver DQL of
+the lookup, such as "Checking the deployments on the payment service." Write nothing before it, not even while you read files. Then run the lookup DQL of
 every scenario the turn needs, with **no text between the calls**, and store the result as session
-state (session-protocol → "Session state"). Resolvers, fallbacks, empty results and files are never
+state (session-protocol → "Session state"). Lookups, backups, empty results and files are never
 mentioned.
 
 ### 3. Run the investigation

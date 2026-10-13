@@ -43,7 +43,7 @@ turn must still know what happened, what it cost, why, and who it hit.
 
 **Queries.** Before writing anything, run the first Evidence DQL block of every beat in the
 scenario's beats file, in one turn, with no text between the calls. Skip any block that needs a
-value from another block (`{{TRACE_ID}}`); it runs in its evidence turn. Do not run the resolver
+value from another block (`{{TRACE_ID}}`); it runs in its evidence turn. Do not run the lookup
 again if it ran in this conversation. This is the one turn that may exceed the budget of two
 queries per beat.
 

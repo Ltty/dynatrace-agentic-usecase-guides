@@ -1,4 +1,4 @@
-# Scenario: Payment Failure — Resolver and Context
+# Scenario: Payment Failure — Lookup and Context
 
 Read at survey time. The beats live in `references/scenario-payment-failure-beats.md`; read that only once the user
 picks a direction.
@@ -11,7 +11,7 @@ picks a direction.
 - [Business context](#business-context)
 - [Scope](#scope)
 - [Handoff fields](#handoff-fields)
-- [Resolver DQL](#resolver-dql)
+- [Lookup DQL](#lookup-dql)
 
 ## Persona
 
@@ -60,16 +60,16 @@ which one a number counts.
 | `owning_team` | Beat 1 — The Page; who to page first |
 | `Goes to` | `owning_team` |
 | `commit`, `git_url`, `owner` | Beat 2 — The Change; `owner` is who shipped it. If it differs from `owning_team`, list both and say which is which |
-| Affected users (problem record) | resolver `affected_users` |
+| Affected users (problem record) | lookup `affected_users` |
 | Sessions with 5xx errors | Beat 5 — sum of `sessions` across all countries |
 | Per-country sessions | Beat 5 — individual rows |
 | Session replay link | Beat 5 deep link |
 
-## Resolver DQL
+## Lookup DQL
 
-Contract and fallback logic: `references/session-protocol.md` → "Session state".
+Contract and backup logic: `references/session-protocol.md` → "Session state".
 
-### Primary resolver
+### Main lookup
 
 ```dql
 fetch dt.davis.problems, from: now()-48h, to: now()
@@ -101,9 +101,9 @@ fetch dt.davis.problems, from: now()-48h, to: now()
          tf_to_ms
 ```
 
-### Fallback resolver
+### Backup lookup
 
-Run only if the primary returns zero rows.
+Run only if the main lookup returns zero rows.
 
 ```dql
 fetch dt.davis.problems, from: now()-48h, to: now()

@@ -1,6 +1,6 @@
 # Scenario: Disk / CPU Cascade — Beats
 
-Read once the user has picked a direction from the survey. Resolver, scope, and handoff fields:
+Read once the user has picked a direction from the survey. Lookup, scope, and handoff fields:
 `references/scenario-disk-cpu-cascade.md`. Reveals describe the *shape* of a finding, never its values.
 Timestamps, percentages, and version strings rotate every cycle — read them from the live result.
 
@@ -230,7 +230,7 @@ fetch dt.davis.problems, from: now()-48h, to: now()
 `queried_at` is for the session close's elapsed time, not for the table.
 
 **Reveal:** Summarise from the live data and the earlier beats: the root cause entity, the host, how long the
-problem has been open (the resolver's `duration_days` and `duration_hours`; still open if the status says so), `affected_count`, and
+problem has been open (the lookup's `duration_days` and `duration_hours`; still open if the status says so), `affected_count`, and
 the blocked OneAgent version from beat 4. The data supports one action: free space on `/data`, which is what the
 update failure's message asks for. Say plainly that the data does not show whether that also resolves the CPU
 saturation. The record has no owner, so hand off by host name and host group; do not name a team.

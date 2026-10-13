@@ -1,4 +1,4 @@
-# Scenario: Disk / CPU Cascade — Resolver and Context
+# Scenario: Disk / CPU Cascade — Lookup and Context
 
 Read at survey time. The beats live in `references/scenario-disk-cpu-cascade-beats.md`; read that only once the user
 picks a direction.
@@ -11,7 +11,7 @@ picks a direction.
 - [Business context](#business-context)
 - [Scope](#scope)
 - [Handoff fields](#handoff-fields)
-- [Resolver DQL](#resolver-dql)
+- [Lookup DQL](#lookup-dql)
 
 ## Persona
 
@@ -40,7 +40,7 @@ disk space on {root_cause}, with CPU saturation on the same host. It affects {af
 ```
 
 The problem stays open until someone acts, so it can be weeks old: use `duration_days` and `duration_hours` from
-the resolver (computed in DQL; never convert `duration_min` yourself), and for an active problem say it is
+the lookup (computed in DQL; never convert `duration_min` yourself), and for an active problem say it is
 still open.
 
 "Cascade" is the scenario's name, not a finding. Don't say the disk cascades into, causes or drives the CPU: say the
@@ -51,7 +51,7 @@ in its own words, the OneAgent update failure (beat 4).
 
 **Data objects:** `dt.davis.problems`, `events`, and `timeseries` on `dt.host.*` metrics
 
-**Tenant:** this scenario's entities exist on the `dev` tenant only. On any other tenant the resolver returns
+**Tenant:** this scenario's entities exist on the `dev` tenant only. On any other tenant the lookup returns
 nothing and the survey does not list it.
 
 **Stable IDs** (cloud-alerts-demo entities):
@@ -78,21 +78,21 @@ nothing and the survey does not list it.
 |---|---|
 | `owning_team` | None: the problem record has no owner. Hand off by host (`frontend-high-cpu`) and host group; never name a team |
 | `Goes to` | The host `frontend-high-cpu` and its host group `cloud-alerts-demo`; never a team |
-| `root_cause` | Resolver (`root_cause` = the `/data` disk) |
+| `root_cause` | Lookup (`root_cause` = the `/data` disk) |
 | Disk and CPU thresholds | Beat 1 — the problem `description` ("lower than 3%", "above 95%") |
 | Blocked OneAgent version | Beat 4 — the newest update-failure event, not the problem description (see Beat 4) |
-| Entities in the problem | Resolver `affected_count` |
+| Entities in the problem | Lookup `affected_count` |
 | Disk free space | Beat 2 |
 | CPU and I/O wait | Beat 3 |
 
-## Resolver DQL
+## Lookup DQL
 
-Contract and fallback logic: `references/session-protocol.md` → "Session state".
+Contract and backup logic: `references/session-protocol.md` → "Session state".
 
-The primary filters on the root cause's id. It is a smartscape-typed value: compare it as
+The main lookup filters on the root cause's id. It is a smartscape-typed value: compare it as
 `toString(root_cause_id)`, or the filter silently matches nothing.
 
-### Primary resolver
+### Main lookup
 
 ```dql
 fetch dt.davis.problems, from: now()-48h, to: now()
@@ -129,9 +129,9 @@ fetch dt.davis.problems, from: now()-48h, to: now()
          tf_to_ms
 ```
 
-### Fallback resolver
+### Backup lookup
 
-Run only if the primary returns zero rows.
+Run only if the main lookup returns zero rows.
 
 ```dql
 fetch dt.davis.problems, from: now()-48h, to: now()

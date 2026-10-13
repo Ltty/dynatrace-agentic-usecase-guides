@@ -1,4 +1,4 @@
-# Scenario: Broken Images (Slowdown) — Resolver and Context
+# Scenario: Broken Images (Slowdown) — Lookup and Context
 
 Read at survey time. The beats live in `references/scenario-broken-images-beats.md`; read that
 only once the user picks a direction.
@@ -11,7 +11,7 @@ only once the user picks a direction.
 - [Business context](#business-context)
 - [Scope](#scope)
 - [Handoff fields](#handoff-fields)
-- [Resolver DQL](#resolver-dql)
+- [Lookup DQL](#lookup-dql)
 
 ## Persona
 
@@ -61,16 +61,16 @@ Three populations coexist — always say which one a number counts.
 | `owning_team` | Beat 1 — The Page (deploy `owner` is null on these GitHub Actions events) |
 | `Goes to` | `owning_team` |
 | `commit`, `git_url` | Beat 2 — The Deploy (parsed from `event.description` in DQL) |
-| Affected users (problem record) | resolver `affected_users` |
+| Affected users (problem record) | lookup `affected_users` |
 | Real-user sessions with a slow image load (>1 s) | Beat 5 — sum of `sessions` across all countries |
 | Per-country sessions | Beat 5 — individual rows |
 | Session replay link | Beat 5 deep link |
 
-## Resolver DQL
+## Lookup DQL
 
-Contract and fallback logic: `references/session-protocol.md` → "Session state".
+Contract and backup logic: `references/session-protocol.md` → "Session state".
 
-### Primary resolver
+### Main lookup
 
 ```dql
 fetch dt.davis.problems, from: now()-48h, to: now()
@@ -102,9 +102,9 @@ fetch dt.davis.problems, from: now()-48h, to: now()
          tf_to_ms
 ```
 
-### Fallback resolver
+### Backup lookup
 
-Run only if the primary returns zero rows.
+Run only if the main lookup returns zero rows.
 
 ```dql
 fetch dt.davis.problems, from: now()-48h, to: now()

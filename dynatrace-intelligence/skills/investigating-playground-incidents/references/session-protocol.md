@@ -30,9 +30,9 @@ One first move, not a menu.
 
 ## Session state
 
-Each scenario provides a **primary** and a **fallback** resolver DQL. Run each exactly as the file
+Each scenario provides a **main** and a **backup** lookup DQL. Run each exactly as the file
 gives it, never with fields removed: the later fields are needed, and a trimmed copy costs a second
-query. Run the primary; if it returns zero rows, run the fallback; use the first row. If both are
+query. Run the main lookup; if it returns zero rows, run the backup; use the first row. If both are
 empty, `problem_state` is `no_live_problem`.
 
 Store the result in conversation context (never a file). This is the single source for every
@@ -40,23 +40,23 @@ Store the result in conversation context (never a file). This is the single sour
 
 | Key | Source | Token | Used in |
 |---|---|---|---|
-| `problem_id` | resolver | `{{PROBLEM_ID}}` | Beat DQL (inside `"..."`), deep links |
-| `display_id` | resolver | — | User-facing label |
-| `status` | resolver | — | `problem_state` |
-| `started`, `ended` | resolver | — | Timeline; `ended` is null while active |
-| `duration_min` | resolver | — | Survey; computed in DQL, don't recompute |
-| `ended_min_ago` | resolver | — | "how long ago" for a closed problem, in minutes; null while active |
-| `affected_users` or `affected_count` | resolver | — | Survey math; the scenario says which (users, or entities) |
-| `root_cause`, `description`, `duration_days`, `duration_hours` | resolver | — | The scenario's discovery hook, where it uses them |
-| `window_from`, `window_to` | resolver | `{{DQL_FROM}}`, `{{DQL_TO}}` | Beat DQL `from:`/`to:` only, ISO8601 inside `"..."` |
-| `tf_from_ms`, `tf_to_ms` | resolver | `{{TF_FROM_MS}}`, `{{TF_TO_MS}}` | Deep-link URLs only, epoch ms |
-| `queried_at` | resolver and every beat's first query | — | Elapsed time in the close; never shown in a table |
+| `problem_id` | lookup | `{{PROBLEM_ID}}` | Beat DQL (inside `"..."`), deep links |
+| `display_id` | lookup | — | User-facing label |
+| `status` | lookup | — | `problem_state` |
+| `started`, `ended` | lookup | — | Timeline; `ended` is null while active |
+| `duration_min` | lookup | — | Survey; computed in DQL, don't recompute |
+| `ended_min_ago` | lookup | — | "how long ago" for a closed problem, in minutes; null while active |
+| `affected_users` or `affected_count` | lookup | — | Survey math; the scenario says which (users, or entities) |
+| `root_cause`, `description`, `duration_days`, `duration_hours` | lookup | — | The scenario's discovery hook, where it uses them |
+| `window_from`, `window_to` | lookup | `{{DQL_FROM}}`, `{{DQL_TO}}` | Beat DQL `from:`/`to:` only, ISO8601 inside `"..."` |
+| `tf_from_ms`, `tf_to_ms` | lookup | `{{TF_FROM_MS}}`, `{{TF_TO_MS}}` | Deep-link URLs only, epoch ms |
+| `queried_at` | lookup and every beat's first query | — | Elapsed time in the close; never shown in a table |
 | runtime values (e.g. `trace_id`) | a prior query's first record | e.g. `{{TRACE_ID}}` | Chained beat DQL |
 | `problem_state` | derived | — | Tense and framing |
 | `delivery` | conversation | — | `explore` (default) or `walk-through`; see `references/walk-through.md` |
 | `beats_completed`, `current_beat` | conversation | — | Progress; a folded-in beat counts as completed |
 
-A resolver row missing any window field is broken — every beat query depends on them.
+A lookup row missing any window field is broken — every beat query depends on them.
 
 The discovery hook uses single-brace `{lower_snake_case}` tokens — prose only, a separate namespace
 from `{{TOKENS}}`.
@@ -67,7 +67,7 @@ from `{{TOKENS}}`.
 |---|---|---|
 | `live_active` | `status == "ACTIVE"` or `ended` is null | Present tense, real urgency |
 | `live_recent` | `status == "CLOSED"` and `ended` set | Past tense, same investigation — "the full picture is still here". Never apologise that it's closed. |
-| `no_live_problem` | both resolvers empty | The clean-environment reply, see "Problem survey" |
+| `no_live_problem` | both lookups empty | The clean-environment reply, see "Problem survey" |
 
 ---
 
@@ -80,11 +80,11 @@ If no scenario returned a problem, the whole answer after the status line is exa
 "Environment looks clean — nothing I'd page on right now." Nothing in between and nothing after it:
 no offer, no question, no suggestions, no scenario or service names, patterns, schedules or timings.
 
-For each scenario in the SKILL.md registry, run its resolver. Then:
+For each scenario in the SKILL.md registry, run its lookup. Then:
 
 1. `revenue_impact = affected_users × avg_order_value_usd`, from the scenario's business context,
    said as "roughly $X". Omit it if the scenario doesn't define `avg_order_value_usd`. Never state a
-   failure-rate percentage here — the resolver doesn't return one.
+   failure-rate percentage here — the lookup doesn't return one.
 2. Open on the impact, not the status. The first sentence has this form, and its first word is the number
    of incidents: "[Two incidents] in the last 48 hours, [both resolved]: [what the first affected, and how
    many], and [what the second affected, and how many]." Never open on what is or is not open ("Nothing is
@@ -135,7 +135,7 @@ Still open:     [what the data does not show]
   table for who it goes to and which population label to use. A row with no such value is left out:
   never "unknown", never "N/A", never a guessed team, and never a sentence saying it is left out. A row keeps the parts that have a source
   ("commit [sha]" without "shipped by [owner]") and is left out when none does.
-- `duration` is `duration_days` and `duration_hours` when the resolver returns them, else `duration_min` minutes.
+- `duration` is `duration_days` and `duration_hours` when the lookup returns them, else `duration_min` minutes.
 - `Impact` is the problem record's count with its label; add the beat 5 population, with its own label, once that
   beat's query has run. Say it as "[T] sessions, [M] of them with no country recorded", never "plus [M]".
 - The cost is `affected_users × avg_order_value_usd`, only where the scenario defines it.

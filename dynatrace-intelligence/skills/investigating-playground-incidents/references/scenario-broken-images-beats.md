@@ -1,6 +1,6 @@
 # Scenario: Broken Images (Slowdown) — Beats
 
-Read once the user has picked a direction from the survey. Resolver, scope, and handoff fields:
+Read once the user has picked a direction from the survey. Lookup, scope, and handoff fields:
 `references/scenario-broken-images.md`.
 
 Reveals describe the *shape* of a finding, never its values. Commit SHAs, timestamps, latencies,
