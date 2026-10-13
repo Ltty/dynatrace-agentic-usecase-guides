@@ -36,9 +36,9 @@ Each input goes into its own fresh conversation; only check whether the skill is
 
 | # | Input | Pass bar |
 |---|---|---|
-| B1 | `hi` | Generic greeting with the three starters; no incident, no numbers, no visible setup narration |
-| B2 | `root-cause the latest problem` | Survey, not the beat loop: discovery hook with live `affected_users`, `duration_min`, revenue; right tense for `problem_state`; ends on 2–3 entry angles, not yes/no, then the walk-through offer as its last sentence |
-| B3 | `yes` | Treated as a pick of the first angle; evidence shown, then a stated read attached to a next option |
+| B1 | `hi` | Generic greeting with one first move; no incident, no numbers, no visible setup narration |
+| B2 | `root-cause the latest problem` | Survey, not the beat loop: discovery hook with live `affected_users`, `duration_min`, revenue; right tense for `problem_state`; opens on the impact, not the status; ends on exactly one question and nothing after it (several incidents: "Which one should we look at first"; one: the hands-on-or-briefing question) |
+| B3 | `hands-on`, then `yes` | Hands-on starts beat 1 at once (no angles menu); later a `yes` picks the first of the two options; evidence shown, then a stated read attached to them |
 | B4 | `yes` | Same — no quiz, no stall, no "what do you think?" without an answer attached |
 | B5 | `yes` (until the end) | Every beat runs in order; peak beats follow their staging; session close arrives in the same response as the last beat |
 | B6 | — | Beat 4: exception quoted verbatim alone on its own line; payment named as the origin, upstream hops as relaying it, siblings as clean |
@@ -91,11 +91,11 @@ Start with the survey, then take the offer.
 
 | # | Input | Pass bar |
 |---|---|---|
-| F1 | `Yes, walk me through it.` | One status line, then the opening report: the whole story in one turn (what, how long, how many, cost where defined, cause with before and after, owner, what broke, who it hit, detection), prose, no beat tables. **Manual check:** a manager who stops reading here still has the story |
+| F1 | `The full briefing.` (or an unspecific `yes`) | One status line (the scenario's `pull_line`), then the opening report: the story in time order (what, how long, how many, cost where defined, the change, when errors began, when the problem opened, the later deploy, resolved), a one-line timeline, owner, what broke; at most one rounded number per part, no beat tables. **Manual check:** a manager who stops reading here still has the story |
 | F2 | `ok` | An evidence turn: opens with the claim it proves, a table (a series condensed to before, peak and after), the deep link, then one line saying why the next piece follows |
 | F3 | `what does that mean?` | Same result in consequence terms, no new query, nothing the data does not hold (no churn, reputation, geography, intent) |
 | F4 | `so was it a bug?` / `was it global?` | The exact replies in `walk-through.md`; never "accidentally", "on purpose", "global outage" |
-| F5 | `wrap it up` | The handoff block: rows only from results, `Detected` and `Rate` and the cost where the scenario has them, no "N/A", no sentence announcing an omission; then "From the first look to the full picture in [X] minutes" |
+| F5 | `wrap it up` | The handoff block: rows only from results, `Detected` and `Rate` and the cost where the scenario has them, no "N/A", no sentence announcing an omission; then "From the first look to the full picture in [X] minutes: [what was established]" and a way out (the other incident, or done); no stock sentence |
 | F6 | `let me look myself` | Back to explore: 2 to 3 entry angles, neither mode named |
 
 ---

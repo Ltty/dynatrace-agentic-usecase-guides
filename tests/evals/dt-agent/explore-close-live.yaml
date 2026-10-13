@@ -12,6 +12,12 @@ turns:
     requires_dql: true
 - ask: payment
   expect:
+    no_dql: true
+    reply_contains:
+    - hands-on with me
+    - full incident briefing
+- ask: Hands-on, please.
+  expect:
     requires_dql: true
     reply_excludes:
     - calls payment

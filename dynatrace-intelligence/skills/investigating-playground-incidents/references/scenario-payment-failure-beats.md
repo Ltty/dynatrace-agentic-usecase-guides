@@ -275,8 +275,8 @@ recording of a real customer hitting a real error.
 
 **Success signal:** User asks about affected users, customer experience, or replay.
 
-**Staging:** After the numbers, make replay concrete: open a recording and watch exactly what
-the customer saw and clicked, instead of inferring it from logs. Ask: "for a front-end
+**Staging:** After the numbers, make replay concrete with one customer: open one recording and watch exactly what
+that customer saw and clicked at the failed payment, instead of inferring it from logs. Ask: "for a front-end
 problem, what did the user actually see?" — and invite the user to
 open a replay via the deep link to check whether the UI showed any feedback on the failed
 payment or silently did nothing. The DQL can't answer that; the replay can.

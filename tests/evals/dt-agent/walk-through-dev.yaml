@@ -9,12 +9,12 @@ turns:
   expect:
     first_read_contains: /SKILL.md
     requires_dql: true
-    reply_contains_any:
-    - take you through
-    - through the whole thing
+    reply_contains:
+    - hands-on with me
+    - full incident briefing
     reply_excludes:
     - Environment looks clean
-- ask: Yes, walk me through it.
+- ask: The full briefing.
   expect:
     reads_include:
     - walk-through.md

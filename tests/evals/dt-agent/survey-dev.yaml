@@ -17,9 +17,9 @@ turns:
     reply_contains:
     - frontend-high-cpu
     - /data
-    reply_contains_any:
-    - take you through
-    - through the whole thing
+    reply_contains:
+    - hands-on with me
+    - full incident briefing
     reply_excludes:
     - Environment looks clean
     - queryId

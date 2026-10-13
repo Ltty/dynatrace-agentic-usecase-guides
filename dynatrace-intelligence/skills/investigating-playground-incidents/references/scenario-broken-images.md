@@ -25,7 +25,7 @@ steps. Never breathless. Uses "we".
 | `service_name` | "image service" |
 | `user_action` | "browse products" |
 | `symptom` | "product images loading slowly" |
-| `payoff` | "Without correlated traces, deployment markers, and session replay, this is hours of grepping logs and guessing which of several recent deploys is responsible." |
+| `pull_line` | "Pulling the deploys, the response times, the slow requests and the affected sessions together." |
 
 No `avg_order_value_usd` is defined for this scenario — omit the revenue figure in the survey.
 

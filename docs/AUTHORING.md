@@ -103,8 +103,8 @@ The **Handoff fields** table says which beat provides each value the agent needs
 owner (owning team, commit and link, populations, replay link). If the owning team and the deploy owner
 differ, say which is who. The row `Goes to` says who the handoff goes to: the team, or the host when there is no
 team. The **Business context** table carries a `symptom` (a short phrase for what is failing) and, optionally,
-`avg_order_value_usd` and a `payoff` sentence for the close; without them a scenario gets no cost line and no
-payoff.
+`avg_order_value_usd`; without it a scenario gets no cost line. It also carries a `pull_line`: the one status
+line the walk-through shows while it pulls the first query of every beat, naming what those queries fetch.
 
 ### 6. Register, validate, evaluate
 

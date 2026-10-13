@@ -23,12 +23,14 @@ turns:
     - Environment looks clean
     - failure rate
     - queryId
+    - take you through
+    - hands-on
+    - Nothing is open
     - 'davis '
     - davis'
     - 'copilot '
     reply_contains:
     - '{truth.payment_failure.affected_users}'
     - '{truth.broken_images.affected_users}'
-    reply_contains_any:
-    - take you through
-    - through the whole thing
+    reply_contains:
+    - Which one should we look at first

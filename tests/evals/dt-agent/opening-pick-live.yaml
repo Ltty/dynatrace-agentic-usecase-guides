@@ -1,0 +1,33 @@
+id: opening-pick-live
+tenant: playground
+runs: 3
+status: draft
+truth:
+- payment-failure
+description: 'DRAFT: with several incidents the survey asks only which one; the pick gets the hands-on-or-briefing question
+  and no query; an unspecific yes then means the briefing.'
+turns:
+- ask: Are there any open issues right now?
+  expect:
+    requires_dql: true
+    reply_contains:
+    - Which one should we look at first
+    reply_excludes:
+    - hands-on
+    - take you through
+- ask: payment
+  expect:
+    no_dql: true
+    reply_contains:
+    - hands-on with me
+    - full incident briefing
+    reply_excludes:
+    - Which one should we look at first
+- ask: yes
+  expect:
+    requires_dql: true
+    reply_contains_any:
+    - '{truth.payment_failure.commit7s}'
+    reply_excludes:
+    - hands-on with me
+    - Which one

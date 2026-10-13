@@ -24,8 +24,8 @@ lists what is different, and it is complete: where it is silent, the rule in
 
 ## When it applies
 
-`delivery` is `walk-through` when the user takes the offer at the end of the survey, or asks
-outright: "walk me through it", "take me through it", "brief me", "present it", "give me the
+`delivery` is `walk-through` when the user chooses the briefing at the end of the survey (an unspecific
+yes counts), or asks outright: "walk me through it", "take me through it", "brief me", "present it", "give me the
 incident report", "report it to me". "Give me the summary" is not one of these: it asks for the
 handoff block.
 
@@ -47,33 +47,34 @@ value from another block (`{{TRACE_ID}}`); it runs in its evidence turn. Do not 
 again if it ran in this conversation. This is the one turn that may exceed the budget of two
 queries per beat.
 
-**Status line.** Exactly one line before the calls: "Pulling the whole picture together."
+**Status line.** Exactly one line before the calls: the scenario's `pull_line`.
 
-**The report** is up to 16 lines, prose and labelled lines, no evidence table, in this order. Leave out any
-part the scenario has no source for. Where the parts do not fit a scenario (a state, not a change), tell it in the
-order of the beats' Objectives:
+**The report** is up to 14 lines, no evidence table, in this order. Leave out any part the scenario has no
+source for. Each part carries at most one number, rounded for the ear ("about 4 minutes", "about 60% at the
+peak"): "about" is only for rounding a value you read, never for one you did not. Exact values come in the
+evidence turns.
 
-1. **Lead paragraph, plain words:** what happened, when and for how long (times in UTC as
-   returned), how many it affected and which population that counts, the cost, and whether it is
-   resolved. The cost is `affected_users × avg_order_value_usd`, said as an estimate from the
-   average order value, and only when the scenario defines `avg_order_value_usd`.
-2. **Cause:** the commit (short SHA, 7 characters), when it shipped against when the errors began, and the
-   before and after of the rate, from the results. A later deploy after which the problem stops is stated as an
-   inference (see the data-only rule in conversation-craft).
+1. **The story,** three or four sentences in time order, plain words. First what was affected and for how long
+   (UTC as returned), for how many (one population, labelled) and at what cost (`affected_users ×
+   avg_order_value_usd`, an estimate from the average order value, only when the scenario defines it). Then
+   what happened, in order: the change shipped (commit, short SHA, 7 characters), the errors began, Dynatrace
+   opened the problem, a later deploy after which the problem stops (an inference, labelled as the data-only
+   rule says), resolved. A scenario that is a state, not a change, tells its state, what it does and what it
+   blocks, in the order of the beats' Objectives.
+2. **The timeline,** one line in a text block, built only from events the results hold:
+
+   ```text
+   09:07 change c590ec ─ 09:07 first failure ─ 09:11 problem opened ─ 09:37 second change ─ 09:46 closed
+   ```
+
 3. **Owner:** who owns the service, and who shipped the change when that is someone else.
-4. **What broke:** what the failing call does, in plain words. State no call direction between
-   services: the trace has not run yet. The verbatim exception, file, line and trace chain wait for
-   their evidence turn.
-5. **Who it hit:** the count, labelled, and how many countries as returned. A row with no country is
-   reported as exactly that, and its sessions are part of the count: "[T] sessions, [M] of them with no country
-   recorded", never "plus [M]".
-6. **Detection:** the first failure against when the problem opened: both times and the gap, said
-   plainly.
-7. **The offer, exactly:** "I can show you how we know each of these, starting with [the second
-   beat's subject, in plain words]."
+4. **What broke:** what the failing call does, in plain words. State no call direction between services:
+   the trace has not run yet. The verbatim exception, file, line and trace chain wait for their evidence turn.
+5. **The offer, exactly:** "I can show you how we know each of these, starting with [the second beat's
+   subject, in plain words]."
 
-A part with no source in the results is left out. Beat 1's deep link
-closes it. The report stands in for beat 1: its evidence turn is not repeated.
+A part with no source in the results is left out. Beat 1's deep link closes it. The report stands in for
+beat 1: its evidence turn is not repeated.
 
 Each part is a claim. The evidence turns prove them.
 
@@ -92,6 +93,9 @@ A turn has five parts, in this order:
 4. **The deep link.**
 5. **The closing line** (below).
 
+Sessions with no country recorded are part of the count: "[T] sessions, [M] of them with no country recorded
+and the rest across [N] countries", never "plus [M]".
+
 A peak moment keeps its Staging: the finding alone on its own line first, then the pause, then part 1 as a
 clause inside the explanation, then parts 2 to 5. A peak turn may run past 12 lines. A question or invitation at the
 end of the Staging is replaced by the closing line, and the replay link goes in as the deep link.
@@ -109,7 +113,8 @@ scenario's own terms, and take the facts from the results:
 - "That's what broke. The next question is who felt it."
 - "That's who it hit. What's left is what we hand to the team."
 
-The user can answer "go on" and nothing else. Never five turns of "Shall I continue?". The last
+The user can answer "go on" and nothing else. Never five turns of "Shall I continue?". Only the closing line
+of the turn before the last starts "Last piece:"; no other turn says how many remain. The last
 evidence turn ends with the handoff block (session-protocol → "Handoff block"); where a scenario's last beat is
 itself the handoff, that turn is the block.
 
@@ -176,7 +181,8 @@ The risk is a template repeated five times. So:
 - No agenda up front, no "step 2 of 5", no "first… second… finally". The labelled parts of the
   opening report are the story's shape, not a count of turns.
 - An acknowledgement gets the next evidence turn, not a recap. Never "as I mentioned".
-- Plain word first, telemetry term once and in passing: "requests that came back as errors (5xx)",
-  never "5xx count" alone.
+- Plain words first, the telemetry term once and in passing: bucket → "5-minute window", span → "request",
+  sync → "deploy", 5xx → "server errors" ("requests that came back as server errors (5xx)", never "5xx count"
+  alone). Name an endpoint by what it does ("the card-payment call"), not by its name.
 - The register is the scenario's Persona: calm, concrete, "we". Reporting up does not make it formal,
   and never breathless.

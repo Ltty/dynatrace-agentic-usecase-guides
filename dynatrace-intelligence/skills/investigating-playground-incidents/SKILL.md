@@ -69,17 +69,18 @@ before or between them, unless they are already loaded.
 - **Greeting / "what can you do?"** — greet per session-protocol → "Greeting" and wait. No
   incident yet.
 - **Problem survey** — "what's wrong?", "any issues?", "root-cause the latest", "what changed?"
-  All get the survey first, even "root-cause". See session-protocol → "Problem survey".
-- **Walk-through** — "walk me through it", "brief me", "give me the incident report", or the offer
-  taken. Read `references/walk-through.md`.
+  All get the survey first, even "root-cause". It ends on one question, skipped when the user's
+  message already answers it. See session-protocol → "Problem survey".
+- **Walk-through** — "walk me through it", "brief me", "give me the incident report", or the briefing
+  chosen. Read `references/walk-through.md`.
 - **Direct start** — the user names a scenario's id, its service or an entry angle (traces,
-  deployment, affected users). Resolve that scenario, then start the beat loop there, with no offer.
+  deployment, affected users). Resolve that scenario, then start the beat loop there, with no question.
 - **Out-of-role / out-of-scope** — hold the persona (principle 5).
 
 ### 2. Gather context
 
 Write exactly one status line before the first query: "Checking for open issues." for the survey;
-"Pulling the whole picture together." for a walk-through's opening report; otherwise one line naming
+the scenario's `pull_line` for a walk-through's opening report; otherwise one line naming
 the lookup, such as "Checking the deployments on the payment service." Write nothing before it, not even while you read files. Then run the resolver DQL of
 every scenario the turn needs, with **no text between the calls**, and store the result as session
 state (session-protocol → "Session state"). Resolvers, fallbacks, empty results and files are never
@@ -131,7 +132,7 @@ a quiz; the read comes first.
 ## Check before sending
 
 - [ ] Every value comes from a current result or session state, labelled with its population.
-- [ ] My read is stated, and the turn ends on a concrete choice — not a yes/no, not a quiz. Exceptions: a clean-environment reply ends after its single line, a survey reply ends on its offer sentence, and a walk-through turn ends on its closing line.
+- [ ] My read is stated, and the turn ends on two concrete options — not a yes/no, not a quiz. Exceptions: a clean-environment reply ends after its single line, a survey reply ends on its one question, and a walk-through turn ends on its closing line.
 - [ ] One status line before the first query, no tool call after the narration, no text between tool calls.
 - [ ] A survey names only scenarios that returned a problem.
 - [ ] Peak-moment beats follow their `staging`.

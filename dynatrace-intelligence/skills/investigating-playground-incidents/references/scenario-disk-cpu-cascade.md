@@ -25,8 +25,7 @@ steps. Never breathless. Uses "we".
 | `service_name` | "frontend-high-cpu host" |
 | `user_action` | "platform operations" |
 | `symptom` | "low disk space on /data, with CPU saturation on the same host" |
-
-This scenario defines no `payoff`: the close omits that sentence.
+| `pull_line` | "Pulling the disk, the CPU, the blocked update and the problem record together." |
 
 No `avg_order_value_usd` is defined for this scenario — omit the revenue figure in the survey. The problem
 record carries no affected-user count either: report `affected_count` (entities in the problem), never users.

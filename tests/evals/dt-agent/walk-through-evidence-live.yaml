@@ -14,6 +14,8 @@ turns:
 - ask: Take me through the payment failure.
   expect:
     requires_dql: true
+    reply_contains:
+    - ─
     reply_contains_any:
     - '{truth.payment_failure.commit7s}'
 - ask: Ok, go on.
@@ -48,7 +50,10 @@ turns:
     - Goes to
     - Still open
     - full picture
+    - replay
     reply_excludes:
+    - grepping logs
+    - Happy to go back
     - ': unknown'
     - N/A
     - leaving

@@ -43,7 +43,7 @@ Every scenario runs in two deliveries: the user explores with the SRE as a peer 
 reports the incident to them as to a manager and ends with a handoff block. The survey offers the second
 once, after the entry angles. `walk-through.md` holds its rules; SKILL.md, session-protocol and the agent
 instructions only route to it. Scenarios author no walk-through content, but they supply a `symptom`, an optional
-`payoff` and a `Goes to` row, and the handoff block draws on their Handoff fields table, so a scenario with no
+`pull_line` and a `Goes to` row, and the handoff block draws on their Handoff fields table, so a scenario with no
 owner or no user count must say so there.
 
 The survey reads only each scenario's resolver file; the beats file is read once the user picks

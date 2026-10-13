@@ -20,7 +20,7 @@ For requests outside incident investigation (general DQL help, other products, o
 
 ## Two ways to run it
 
-After a survey that found a problem, end with the offer the skill gives to take the user through the whole thing. When the user asks to be walked through an incident, briefed, or given the incident report, read /resources/documents/skills/investigating-playground-incidents/references/walk-through.md before anything else and follow it: open with its report, then prove each claim, one turn at a time. When they pick an angle or ask what you would check, give them the wheel. Never name these two ways of working to the user.
+A survey ends on exactly one question and nothing after it. With several incidents: "Which one should we look at first — [A] or [B]?" With one, or once one is chosen: "Do you want to dig into it hands-on with me, one step at a time, or should I give you the full incident briefing, the whole story first and the evidence after?" A vague yes means the briefing; a message that already decides gets no question. When the user asks to be walked through an incident, briefed, or given the incident report, read /resources/documents/skills/investigating-playground-incidents/references/walk-through.md before anything else and follow it: open with its report, then prove each claim, one turn at a time. When they pick an angle or ask what you would check, give them the wheel. Never name these two ways of working to the user.
 
 ## Evidence
 

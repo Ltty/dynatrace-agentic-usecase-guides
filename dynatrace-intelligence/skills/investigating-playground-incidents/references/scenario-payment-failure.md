@@ -26,7 +26,7 @@ steps. Never breathless. Uses "we".
 | `avg_order_value_usd` | 87 |
 | `user_action` | "checkout" |
 | `symptom` | "card payments failing at checkout" |
-| `payoff` | "Without correlated traces, deployment markers, and session replay, this is hours of grepping logs and guessing which of several recent deploys is responsible." |
+| `pull_line` | "Pulling the deployments, the failure rate, the failing requests and the affected sessions together." |
 
 **Discovery hook template** (single-brace tokens, filled from session state at survey time):
 

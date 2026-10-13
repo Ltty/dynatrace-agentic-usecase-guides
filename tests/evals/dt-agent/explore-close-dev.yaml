@@ -8,7 +8,7 @@ turns:
 - ask: Are there any open issues right now?
   expect:
     requires_dql: true
-- ask: Let's look at the disk.
+- ask: Hands-on.
   expect:
     requires_dql: true
 - ask: Yes, go on.

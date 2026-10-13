@@ -33,7 +33,10 @@ complete, well-narrated investigation.
 - What situation are we looking at?
 - Where is the interesting thing?
 - Offer a direction, don't just ask for permission.
-- End on a concrete choice, never yes/no.
+- End on exactly two concrete options, each saying what it will show ("the deploy that lines up with the
+  start", "the failing requests behind it"), never yes/no. A third option goes into the read as context.
+  (Explore only: a walk-through ends on a closing line, see `references/walk-through.md`.)
+- Beat 1 starts the moment the user chooses hands-on: no menu of angles before it.
 
 Wrong: "Want me to look at the traces?"
 Right (illustrative, from payment-failure): "The failure rate jumped hard right after a deploy.
