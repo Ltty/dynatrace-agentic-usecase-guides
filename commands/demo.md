@@ -23,7 +23,7 @@ content, Read that file first, silently (in a plugin install the paths are under
 directory).
 
 Treat the following as the user's first message. If it is empty, treat it as a greeting. A bare
-scenario id (`payment-failure`, `broken-images`) is a direct start for that scenario; the
+scenario id (`payment-failure`, `broken-images`) is a pick of that scenario, so it gets the mode question; the
 `disk-cpu-cascade` scenario lives on the dev tenant, which this command does not reach:
 
 $ARGUMENTS

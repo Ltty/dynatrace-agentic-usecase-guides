@@ -101,9 +101,10 @@ For each scenario in the SKILL.md registry, run its lookup. Then:
    unspecific yes ("yes", "ok", "sure", "go ahead"): `delivery` is `walk-through`; read
    `references/walk-through.md` and open with its report, before any beat. An answer that decides
    neither ("both?", "what's the difference?") gets five words: "Hands-on, or the full briefing?"
-5. Never ask a question the user's message already answered. Naming an angle or a service in the first message
-   is a direct start (`explore`); "walk me through…" or "brief me on…" is a walk-through. Neither gets the
-   survey's questions.
+5. Never ask a question the user's message already answered. Naming an angle (traces, the deployment, the
+   affected users) is a direct start (`explore`); "walk me through…" or "brief me on…" is a walk-through.
+   Neither gets the survey's questions. Naming only an incident, a service or a scenario id is a pick, not
+   an answer to the mode question: reply "[A] it is." and the mode question, and run no query.
 
 In a survey, name only the scenarios that returned a problem, and say nothing about the others: an empty result says nothing about a service. Never write a sentence such as "the payment service and image service are clean", or any sentence that names a service whose scenario returned nothing.
 

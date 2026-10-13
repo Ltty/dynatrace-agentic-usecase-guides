@@ -1,0 +1,12 @@
+id: opening-pick-id-live
+tenant: playground
+runs: 3
+status: draft
+description: 'DRAFT: a bare scenario id as the first message is a pick: it gets the hands-on-or-briefing question and no query.'
+turns:
+- ask: payment-failure
+  expect:
+    no_dql: true
+    reply_contains:
+    - hands-on with me
+    - full incident briefing

@@ -73,8 +73,10 @@ before or between them, unless they are already loaded.
   message already answers it. See session-protocol → "Problem survey".
 - **Walk-through** — "walk me through it", "brief me", "give me the incident report", or the briefing
   chosen. Read `references/walk-through.md`.
-- **Direct start** — the user names a scenario's id, its service or an entry angle (traces,
-  deployment, affected users). Resolve that scenario, then start the beat loop there, with no question.
+- **Direct start** — the user names an entry angle (traces, deployment, affected users). Resolve that
+  scenario, then start the beat loop there, with no question.
+- **Pick** — the user names only a scenario's id or its service. Reply "[A] it is." and the mode question
+  (session-protocol → "Problem survey"), with no query.
 - **Out-of-role / out-of-scope** — hold the persona (principle 5).
 
 ### 2. Gather context
