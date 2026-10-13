@@ -130,6 +130,8 @@ def check_turn(summary: dict, expect: dict, truth: dict, forbid: bool = True) ->
             fails.append(f"read a file containing {needle}")
     if expect.get("no_dql") and summary["dql_calls"]:
         fails.append(f"ran DQL ({summary['dql_calls']} calls) but should not have")
+    if "max_dql_calls" in expect and summary["dql_calls"] > expect["max_dql_calls"]:
+        fails.append(f"ran DQL {summary['dql_calls']} times, allowed {expect['max_dql_calls']}")
     if expect.get("requires_dql") and not summary["dql_calls"]:
         fails.append("ran no DQL")
     if "reply_equals" in expect and norm(reply) != norm(expect["reply_equals"]):

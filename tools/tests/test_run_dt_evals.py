@@ -72,6 +72,12 @@ def test_missing_dql_fails():
     assert any("ran no DQL" in f for f in out), out
 
 
+def test_max_dql_calls_assertion():
+    assert fails(stream(dql=1, reply="x"), {"max_dql_calls": 1}, forbid=False) == []
+    assert fails(stream(dql=0, reply="x"), {"max_dql_calls": 1}, forbid=False) == []
+    assert any("allowed 1" in f for f in fails(stream(dql=2, reply="x"), {"max_dql_calls": 1}, forbid=False))
+
+
 def test_no_dql_assertion():
     assert fails(stream(dql=0, reply="x"), {"no_dql": True}, forbid=False) == []
     assert any("ran DQL" in f for f in fails(stream(dql=1, reply="x"), {"no_dql": True}, forbid=False))
@@ -161,7 +167,7 @@ def test_case_files_are_well_formed():
     assert len(cases) >= 9
     known = {"first_read_contains", "reads_include", "reads_exclude", "no_dql", "requires_dql", "ends_on_text",
              "reply_equals", "reply_contains", "reply_contains_any", "reply_excludes",
-             "max_progress_lines", "progress_equals"}
+             "max_progress_lines", "progress_equals", "max_dql_calls"}
     ids = [c["id"] for c in cases]
     assert len(ids) == len(set(ids)), "duplicate case ids"
     for case in cases:
