@@ -45,27 +45,37 @@ Clone the repo, open in VS Code, click **Reopen in Container**, then follow step
 
 ### OpenCode (free-tier alternative)
 
-OpenCode lets you run the same demos with a hosted free-tier model instead of Claude Code.
+OpenCode runs the same demos with a hosted free-tier model instead of Claude Code.
 Zero per-demo cost, same skill and scenarios.
 
-1. **Install OpenCode and configure the free bundled model:**
-   ```bash
-   npm install -g opencode-ai
-   mkdir -p ~/.config/opencode
-   echo '{"model":"opencode/nemotron-3-ultra-free"}' > ~/.config/opencode/opencode.json
-   ```
-2. **Authenticate against the Dynatrace Playground** (same as above):
+**In the devcontainer or a Codespace, OpenCode is pre-installed** and already set to the free bundled model.
+Two steps:
+
+1. **Authenticate against the Dynatrace Playground** (once; it needs a browser, so it is not automatic):
    ```bash
    python tools/preflight.py login
    ```
-3. **Run:**
+2. **Run:**
    ```bash
    opencode
    /demo-doctor   # verify everything is wired
    /demo          # start an incident investigation
    ```
 
-   In the devcontainer, steps 1 and 2 happen automatically — just run `opencode`.
+`dtctl` commands are pre-approved in `opencode.json`, so OpenCode does not ask before each one.
+Anything that would change data is denied, and a guard plugin blocks it as well.
+Other shell commands still ask.
+More in [docs/OPENCODE.md](docs/OPENCODE.md).
+
+**Outside the container**, install OpenCode and the free model first:
+
+```bash
+npm install -g opencode-ai
+mkdir -p ~/.config/opencode
+echo '{"model":"opencode/nemotron-3-ultra-free"}' > ~/.config/opencode/opencode.json
+```
+
+Then follow steps 1 and 2 above.
 
 ---
 
