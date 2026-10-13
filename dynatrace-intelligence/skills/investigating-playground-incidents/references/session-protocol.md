@@ -158,20 +158,24 @@ Still open:     [what the data does not show]
 - *Walk-through:* with the handoff block, in the same response as the last evidence turn.
 - *Either delivery, on request:* the handoff block, then steps 2–4.
 
-**What it contains.**
+**What it contains.** Fill this template, in this order, from this conversation's results. The payoff
+line is part of the close, never optional, and the way out is one of the exact lines below: do not
+replace either with a question of your own ("Want me to check whether anything else is open?").
 
-1. *Explore only:* the timeline, one sentence per beat, chronological, with the actual values you
-   showed.
-2. Elapsed time: the latest `queried_at` seen in this conversation minus the survey's, in whole
-   minutes. If either is missing, leave the number out and say nothing about it. In a walk-through the number measures the opening report, which
-   pulls the whole picture at once.
-3. The payoff, from this conversation's results: "From the first look to the full picture in [X] minutes:
-   [the two or three things established, such as the change, the exact error and the sessions with a replay]."
-   Without a measured X: "The full picture: …". No stock sentence about what the alternative would have cost.
-4. The replay link, when the scenario's Handoff fields table has one and the handoff block has not already given it.
-5. The way out. *Explore:* ask what they'd want to dig into next: two options, one of them the other incident
-   when there is one; this replaces the beat's own closing question. *Walk-through:* with another incident,
-   "That's [A]. [B] is still there if you want it; otherwise we're done." Otherwise "That's [A]; we're done
-   unless you want me to go back over any of it."
+```text
+[Explore only] Timeline: one sentence per beat, chronological, with the actual values you showed.
+From the first look to the full picture in [X] minutes: [the two or three things established, such as the change, the exact error and the sessions with a replay].
+[The replay link, when the scenario's Handoff fields table has one and the handoff block has not already given it.]
+[The way out, below.]
+```
+
+- **[X]:** the latest `queried_at` seen in this conversation minus the survey's, in whole minutes (in a
+  walk-through it measures the opening report, which pulls the whole picture at once). If either is missing,
+  write "The full picture: …" in place of the first half of the line and say nothing about the number.
+  No stock sentence about what the alternative would have cost.
+- **The way out, explore:** "Which would you rather dig into next — [option one] or [option two]?" One option
+  is the other incident when there is one; this replaces the beat's own closing question.
+- **The way out, walk-through:** with another incident, "That's [A]. [B] is still there if you want it;
+  otherwise we're done." Otherwise "That's [A]; we're done unless you want me to go back over any of it."
 
 Asked for a recap after the close was already delivered: give a shorter version.
