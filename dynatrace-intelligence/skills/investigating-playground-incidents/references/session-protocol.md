@@ -85,11 +85,13 @@ For each scenario in the SKILL.md registry, run its resolver. Then:
 1. `revenue_impact = affected_users × avg_order_value_usd`, from the scenario's business context,
    said as "roughly $X". Omit it if the scenario doesn't define `avg_order_value_usd`. Never state a
    failure-rate percentage here — the resolver doesn't return one.
-2. Open on the impact, not the status: the first sentence says what was affected and how many ("Two
-   incidents in the last 48 hours, both resolved: card payments failed for 350 customers, and product images
-   were slow for 273."). Then fill each finding's discovery hook, said like a human SRE reporting to a peer,
-   in the right tense. For a closed problem, "how long ago" comes from `ended_min_ago` (round to hours
-   above 90 minutes), never estimated from timestamps.
+2. Open on the impact, not the status. The first sentence has this form, and its first word is the number
+   of incidents: "[Two incidents] in the last 48 hours, [both resolved]: [what the first affected, and how
+   many], and [what the second affected, and how many]." Never open on what is or is not open ("Nothing is
+   open", "No open issues"): the user asked what happened, and the answer is the incidents. Then one sentence
+   per incident, from its discovery hook, in the right tense, with its duration, status and cost; for a closed
+   problem "how long ago" comes from `ended_min_ago` (round to hours above 90 minutes), never estimated from
+   timestamps. List each incident once: no bullets that repeat those sentences.
 3. End on exactly one question, and nothing after it:
    - **One finding:** the mode question, exactly: "Do you want to dig into it hands-on with me, one step at a time, or should I give you the full incident briefing, the whole story first and the evidence after?"
    - **Several findings:** one line each (name, severity, rough scale), then exactly: "Which one should we look at first — [A] or [B]?"

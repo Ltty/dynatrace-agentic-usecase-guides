@@ -22,6 +22,7 @@ turns:
     - full incident briefing
     reply_excludes:
     - Environment looks clean
+    - Nothing is open
     - queryId
     - payment
     - image

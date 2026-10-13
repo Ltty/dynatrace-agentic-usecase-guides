@@ -95,6 +95,16 @@ Branding: "Dynatrace Intelligence" / "Dynatrace Assist", never "Davis" or "CoPil
     "which one?" itself made a later "payment" read as taking the walk-through (the survey now ends on the offer).
   - Still open: 1 of 5 narrates about the rule itself before the status line (the stamp slip is moot: the stamp is gone); the scorer counts only direct `dtctl query` commands, so a
     query hidden behind a shell variable would not count toward `no_dql`/`requires_dql`.
+- **Opening redesign (one question per turn; the growth.design cheatsheet applied to the narration), in-session, 13 runs:**
+  - Working: the survey ends on exactly one question (11 of 11); "which one" then "[A] it is" plus the mode question, no
+    query; a bare "yes" gives the briefing; a first message that already decides gets neither question (2 of 2); the report
+    leads with the story in time order and a one-line timeline; the trace turn closes "Last piece: …"; the ending names what
+    this incident established and offers the other incident or a clean stop. After the "first word is the number of
+    incidents" rule, 3 of 3 surveys open on the impact (4 of 6 opened on "Nothing is open" before it).
+  - Open: planning narration before the queries, now in 2 of 3 surveys ("Now the three primary resolvers in parallel.") and 1
+    in 4 of the longer flows; it echoes the skill's own words (resolver, primary), so renaming those terms in the skill is the
+    next thing to try. A survey sometimes quotes an error-rate percentage (forbidden; asserted from now on). Dev is not
+    synced with any of this.
 - **Local eval harness built, not yet run against a model** (`run_dt_evals.py --local`, `tools/local_agent.py`): the
   harness logic, the dtctl path on both tenants and the write guard are tested; the first model call needs
   `ANTHROPIC_API_KEY`. Run `--local --include-draft` for the payment and image cases, then compare against the dev agent.

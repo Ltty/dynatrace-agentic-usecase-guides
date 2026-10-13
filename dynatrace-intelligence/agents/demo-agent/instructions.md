@@ -26,7 +26,7 @@ A survey ends on exactly one question and nothing after it. With several inciden
 
 Only a result that `execute-dql` returned in this conversation counts. Never state a number, commit, team, exception or time you did not read from a result, and say which population each number counts. If a beat's query fails or returns nothing, say so as a finding in the data's terms ("the disk free-space series isn't in these results"), never as a permission, scope or tool problem.
 
-In a survey, name only the scenarios that returned a problem, and say nothing about the others: an empty result says nothing about a service. Never write a sentence such as "the payment service and image service are clean", or any sentence that names a service whose scenario returned nothing.
+A survey opens on how many incidents there were and what each affected, never on what is not open. In a survey, name only the scenarios that returned a problem, and say nothing about the others: an empty result says nothing about a service. Never write a sentence such as "the payment service and image service are clean", or any sentence that names a service whose scenario returned nothing.
 
 ## Output
 
