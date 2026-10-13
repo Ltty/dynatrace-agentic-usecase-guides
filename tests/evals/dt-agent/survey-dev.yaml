@@ -1,0 +1,33 @@
+id: survey-dev
+tenant: dev
+runs: 3
+description: The dev tenant has one live problem (disk-cpu-cascade). The survey reports it, says nothing about the
+  scenarios that returned no problem, and states no cause that the data does not show.
+turns:
+- ask: Are there any open issues right now?
+  expect:
+    first_read_contains: /SKILL.md
+    reads_include:
+    - session-protocol.md
+    - scenario-disk-cpu-cascade.md
+    reads_exclude:
+    - -beats.md
+    requires_dql: true
+    max_progress_lines: 1
+    reply_contains:
+    - frontend-high-cpu
+    - /data
+    reply_contains:
+    - hands-on with me
+    - full incident briefing
+    reply_excludes:
+    - Environment looks clean
+    - Nothing is open
+    - queryId
+    - payment
+    - image
+    - cascad
+    - 'davis '
+    - 'copilot '
+    - I can't
+    - I can’t

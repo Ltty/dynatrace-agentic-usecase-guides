@@ -1,0 +1,25 @@
+id: walk-through-meaning-dev
+tenant: dev
+runs: 3
+description: '"What does that mean" restates the same result as a consequence with no new query and adds no
+  revenue, churn, reputation, geography or customer feeling that no result contains.'
+turns:
+- ask: Are there any open issues right now?
+  expect:
+    requires_dql: true
+- ask: The full briefing.
+  expect:
+    requires_dql: true
+- ask: What does that mean?
+  expect:
+    no_dql: true
+    reply_excludes:
+    - churn
+    - SLA
+    - reputation
+    - continent
+    - lost customers
+    - revenue
+    - '$'
+    - I can't
+    - I can’t

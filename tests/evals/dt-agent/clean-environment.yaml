@@ -1,0 +1,20 @@
+id: clean-environment
+tenant: dev
+runs: 3
+status: draft
+description: 'DRAFT: needs a tenant with no live problem; the dev tenant has had one open since 2026-09-12 (disk-cpu-cascade), so this fails there for that reason. With no live problem the whole reply is one line; the survey reads SKILL.md first, then only
+  the resolver files.'
+turns:
+- ask: Are there any open issues right now?
+  expect:
+    first_read_contains: /SKILL.md
+    reads_include:
+    - session-protocol.md
+    - scenario-payment-failure.md
+    - scenario-broken-images.md
+    - scenario-disk-cpu-cascade.md
+    reads_exclude:
+    - -beats.md
+    requires_dql: true
+    reply_equals: Environment looks clean — nothing I'd page on right now.
+    max_progress_lines: 1

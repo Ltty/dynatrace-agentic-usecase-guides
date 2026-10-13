@@ -1,7 +1,19 @@
 # Dynatrace Agentic Use Case Guides
 
-A Claude Code plugin for interactive, AI-guided incident investigations on the
-[Dynatrace Playground](https://playground.apps.dynatrace.com) — real live data, no fixtures.
+Interactive, AI-guided incident investigations on the
+[Dynatrace Playground](https://playground.apps.dynatrace.com) — real live data, no fixtures. Runs in Claude Code
+(as a plugin), OpenCode, and as an agent inside Dynatrace.
+
+## How it works
+
+`/demo` starts a conversation with an on-call SRE for the Astroshop environment. Ask what's going on, pick an
+incident, and the SRE digs in with you on live data: the page, the change that caused it, the failing
+requests, who was affected, and a handoff to the owning team. Every number comes from a query it ran in front
+of you, and it says where the data stops. Or ask to be walked through it: you get the whole story first, then
+each claim proved, ending in a handoff block.
+
+It is the same agent as `@demo-agent` in Dynatrace Assist: one skill and one prompt under
+[dynatrace-intelligence/](dynatrace-intelligence/), run locally through `dtctl`.
 
 ## Quickstart
 
@@ -33,27 +45,37 @@ Clone the repo, open in VS Code, click **Reopen in Container**, then follow step
 
 ### OpenCode (free-tier alternative)
 
-OpenCode lets you run the same demos with a hosted free-tier model instead of Claude Code.
-Zero per-demo cost, same skills and scenarios.
+OpenCode runs the same demos with a hosted free-tier model instead of Claude Code.
+Zero per-demo cost, same skill and scenarios.
 
-1. **Install OpenCode and configure the free bundled model:**
-   ```bash
-   npm install -g opencode-ai
-   mkdir -p ~/.config/opencode
-   echo '{"model":"opencode/nemotron-3-ultra-free"}' > ~/.config/opencode/opencode.json
-   ```
-2. **Authenticate against the Dynatrace Playground** (same as above):
+**In the devcontainer or a Codespace, OpenCode is pre-installed** and already set to the free bundled model.
+Two steps:
+
+1. **Authenticate against the Dynatrace Playground** (once; it needs a browser, so it is not automatic):
    ```bash
    python tools/preflight.py login
    ```
-3. **Run:**
+2. **Run:**
    ```bash
    opencode
    /demo-doctor   # verify everything is wired
    /demo          # start an incident investigation
    ```
 
-   In the devcontainer, steps 1 and 2 happen automatically — just run `opencode`.
+`dtctl` commands are pre-approved in `opencode.json`, so OpenCode does not ask before each one.
+Anything that would change data is denied, and a guard plugin blocks it as well.
+Other shell commands still ask.
+More in [docs/OPENCODE.md](docs/OPENCODE.md).
+
+**Outside the container**, install OpenCode and the free model first:
+
+```bash
+npm install -g opencode-ai
+mkdir -p ~/.config/opencode
+echo '{"model":"opencode/nemotron-3-ultra-free"}' > ~/.config/opencode/opencode.json
+```
+
+Then follow steps 1 and 2 above.
 
 ---
 
@@ -67,6 +89,7 @@ Reports exactly which piece is missing and how to fix it.
 
 ---
 
-- **Add a demo:** [docs/AUTHORING.md](docs/AUTHORING.md)
+- **Add a scenario:** [docs/AUTHORING.md](docs/AUTHORING.md)
+- **Change the skill or agent:** [docs/DYNATRACE-SKILL.md](docs/DYNATRACE-SKILL.md)
 - **Security model:** [docs/SECURITY.md](docs/SECURITY.md)
 - **OpenCode setup:** [docs/OPENCODE.md](docs/OPENCODE.md)

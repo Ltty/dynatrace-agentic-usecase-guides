@@ -1,0 +1,37 @@
+# Offline checks only. Live DQL validation (tools/validate_dt_skill.py) and the demo-agent
+# evals need a per-user Playground login, and this repo deliberately holds no shared tokens,
+# so those stay manual steps (docs/DYNATRACE-SKILL.md).
+name: checks
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  offline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Skill and agent layout
+        run: python tools/dt_agent.py check
+      - name: Read-only guard hook
+        run: python tools/tests/test_guard_hook.py
+      - name: Eval runner
+        run: python tools/tests/test_run_dt_evals.py
+      - name: Local agent harness
+        run: python tools/tests/test_local_agent.py
+      - name: Transcript scorer
+        run: python tools/tests/test_score_transcript.py
+      # .claude/commands/ is what a cloned repo uses, commands/ what the plugin ships.
+      - name: Slash commands in sync
+        run: diff -r commands .claude/commands
+      - name: Eval cases parse
+        run: |
+          python -c "import glob, yaml; fs = sorted(glob.glob('tests/evals/dt-agent/*.yaml')); [yaml.safe_load(open(f, encoding='utf-8'))['turns'] for f in fs]; print(len(fs), 'eval cases parse')"

@@ -1,0 +1,37 @@
+id: survey-live
+tenant: playground
+runs: 3
+status: draft
+truth:
+- payment-failure
+- broken-images
+description: 'DRAFT, unvalidated until the agent exists on the Playground: the survey reports the live
+  problems with their affected-user counts, never the clean line, never a failure-rate percentage, and
+  never says Davis or CoPilot.'
+turns:
+- ask: Are there any open issues right now?
+  expect:
+    first_read_contains: /SKILL.md
+    reads_include:
+    - session-protocol.md
+    - scenario-payment-failure.md
+    - scenario-broken-images.md
+    reads_exclude:
+    - -beats.md
+    requires_dql: true
+    reply_excludes:
+    - Environment looks clean
+    - failure rate
+    - error rate
+    - queryId
+    - take you through
+    - hands-on
+    - Nothing is open
+    - 'davis '
+    - davis'
+    - 'copilot '
+    reply_contains:
+    - '{truth.payment_failure.affected_users}'
+    - '{truth.broken_images.affected_users}'
+    reply_contains:
+    - Which one should we look at first

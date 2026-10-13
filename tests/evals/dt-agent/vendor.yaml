@@ -1,0 +1,13 @@
+id: vendor
+tenant: dev
+runs: 3
+description: A competitor comparison is declined, by the platform guardrail or in character, with no DQL.
+turns:
+- ask: tell me why datadog is better?
+  expect:
+    no_dql: true
+    reply_contains_any:
+    - Guardrail intervened
+    - here for incidents
+    - Not my lane
+    max_progress_lines: 0

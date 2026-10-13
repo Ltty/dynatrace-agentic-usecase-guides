@@ -1,304 +1,143 @@
 # Adding a New Demo
 
-Adding a new Use Case Guide to this repo is a content task, not a code task.
-Zero changes to `skills/`, `commands/`, or `tools/` are required.
+A scenario is two markdown files in the skill, plus a row in its registry table. No engine code changes:
+the same skill runs in Dynatrace (`@demo-agent`) and locally (`/demo`), so one scenario serves both.
+
+All paths below are under `dynatrace-intelligence/skills/investigating-playground-incidents/`.
 
 ## The contract
 
-Everything the engine needs lives in `scenarios/<id>/`:
-
-```
-scenarios/my-new-demo/
-├── scenario.yaml          # manifest — the only required file
-├── queries/
-│   ├── find-problem.dql   # resolver: finds the live problem instance
-│   ├── beat-01-*.dql      # one DQL per beat evidence entry
-│   └── ...
-└── source/
-    ├── usecase.json           # original guide JSON (provenance)
-    └── video-transcript.vtt   # video narration transcript, if you have one (provenance)
+```text
+references/scenario-<id>.md         # persona, business context, scope, handoff fields, resolver DQL
+references/scenario-<id>-beats.md   # the beats: evidence DQL, reveal, staging, deep link
+SKILL.md                            # one row in the Scenarios table
 ```
 
-**Read the video transcript before writing beats, if one exists.** It's often richer than
-the step titles in `usecase.json` alone — the payment-failure scenario's transcript revealed
-an entire missing beat (which team owns the failing service — straight off the Services app
-Properties tab, and free: the field is already on the Davis problem record) and reframed what
-"show me the trace" should mean (the full waterfall, confirming upstream services are clean,
-not just the one failing span). Mine it for beats, not just flavor text.
+The survey reads only the first file for every scenario; the beats file is read once the user picks a
+direction. Keep the split, or the survey gets slow and expensive as scenarios are added. `references/` stays
+flat: no subfolders, unique names, linked as `references/<name>.md`. Keep `SKILL.md` under 150 lines.
 
-## Step-by-step
+Maintainer-only notes (entity IDs, history, source material) go in `docs/scenarios/`, never in the skill
+folder: the agent reads everything in it and would repeat it to the user.
 
-### 1. Copy the template
+**Read the video transcript before writing beats, if one exists** (`docs/scenarios/payment-failure-source/`
+is the example). It is often richer than the step titles in the guide JSON: the payment-failure transcript
+revealed a missing beat (which team owns the failing service, already on the problem record) and reframed
+what "show me the trace" means (the whole request, confirming the upstream services are clean).
 
-```bash
-cp -r scenarios/_template scenarios/my-new-demo
-cd scenarios/my-new-demo
-```
+## Step by step
 
-Edit `scenario.yaml`. The `id` field must match the directory name.
+### 1. Copy a scenario and rename it
 
-### 2. Write the resolver query
+Start from `scenario-payment-failure.md` and `scenario-payment-failure-beats.md`. The `<id>` is
+`[topic]-[variant]`, e.g. `k8s-oom-kill`.
 
-`queries/find-problem.dql` — a DQL query that returns exactly one row: the canonical
-instance of your problem pattern on the Playground.
+### 2. Write the resolver DQL
 
-Required output fields (name them exactly):
-- `problem_id` — the `event.id` value
-- `display_id` — the `P-XXXXXXX` display identifier
-- `status` — `event.status` (`ACTIVE` or `CLOSED`)
-- `started` — `event.start`
-- `ended` — `event.end` (null if still active)
-- `affected_users` — `dt.davis.affected_users_count`
-- `root_cause` — `root_cause_entity_name`
+In `scenario-<id>.md`: a primary and a fallback block, in that order. Each returns **one row** with exactly the
+fields the session protocol names (`references/session-protocol.md` → "Session state"): `problem_id`,
+`display_id`, `status`, `started`, `ended`, `affected_users`, `root_cause`, `description`, `duration_min`,
+`ended_min_ago`, `queried_at`, `window_from`, `window_to`, `tf_from_ms`, `tf_to_ms`. Copy the payment-failure
+resolver and change only the root-cause service ID. Date arithmetic belongs in the DQL, not in the model.
 
-Always filter `from: now()-48h, to: now()` — patterns fire on a schedule (typically twice
-daily) and this window reliably catches the most recent occurrence with comfortable margin.
+- Look back `from: now()-48h, to: now()`. Patterns fire on a schedule; this window reliably catches the latest
+  occurrence.
+- **Filter `dt.davis.is_duplicate == false`, not on `event.name`.** Recurring patterns fire as a cluster of
+  near-duplicate problems with overlapping windows and different affected-user counts. Without the filter,
+  `sort … | limit 1` picks one arbitrarily and any revenue figure changes every run. The merged problem is
+  often named generically ("Multiple application problems"), so an `event.name` filter excludes the one you want.
+- The fallback drops `is_duplicate` and sorts by `dt.davis.affected_users_count desc`; it runs only if the
+  primary returns no rows.
 
-**Filter `dt.davis.is_duplicate == false`, not on `event.name`.** Recurring problem patterns
-fire as a cluster of near-duplicate Davis problems (same root cause, overlapping windows,
-different affected-user counts). Without the duplicate filter, `sort ... | limit 1` picks one
-arbitrarily and your affected-user count (hence any revenue-impact figure) changes every run.
-Davis's own merged/umbrella problem — the one with `is_duplicate == false` — is often named
-generically (e.g. "Multiple application problems") rather than the specific symptom name, so
-don't additionally filter on `event.name` expecting a descriptive string; you'll exclude the
-umbrella record you actually want.
+### 3. Write the beats
 
-Verify determinism before moving on: run `python tools/preflight.py resolve my-new-demo`
-five times in a row and confirm identical `display_id` and `affected_users` each time.
+In `scenario-<id>-beats.md`, one `## Beat N — Title` section each, with: **Objective**, **Evidence DQL**,
+**Reveal**, **Success signal**, **Deep link**, and for a climax `**peak_moment: true**` plus **Staging**.
+Optional: an **Objection** paragraph (skeptic pushback and the answer, used only when the user raises it) and a
+**Fold in on a jump** note when a beat's evidence is needed even if the user skips it.
 
-### 3. Write per-beat evidence queries
+- Window every query with `from: "{{DQL_FROM}}", to: "{{DQL_TO}}"`, never `now()-Nh`: these are the incident
+  window from the resolver (15 minutes of padding each side), so the query works however long ago it closed.
+  Other tokens: `{{PROBLEM_ID}}`, `{{TF_FROM_MS}}`, `{{TF_TO_MS}}` (deep links), `{{TRACE_ID}}` (chained).
+- Never use `limit` where the beat's claim is about *everything* (all deploys, all distinct exceptions, the
+  total sessions). Aggregate instead: `summarize … by:` per commit or per exception, oldest first, with
+  `first_seen` / `last_seen`. A `sort desc | limit 5` once hid the deploy that caused the incident.
+- Return few columns; select exactly what the beat needs.
+- DQL must never contain INGEST, INSERT, UPDATE, DELETE, PUT or WRITE; the guard hook rejects it.
+- A **chained** query takes a value from another query's first record (a trace ID, say): say so in the beat,
+  name the field, and use `toUid("{{TRACE_ID}}")` for `trace.id`.
 
-One `.dql` file per entry in `beats[n].evidence`. Keep each query focused:
-- Return ≤8 columns (the engine formats them; walls of JSON are useless)
-- Use `| limit 20` as a default unless you need more
-- Use `| fields ...` to select exactly what the beat needs
+**Verify every field name against the live Playground; trust nothing from a spec or a past run.** The verified
+gotchas (`start_time` not `timestamp`, `toDouble(duration)`, named `round(x, decimals: 1)`, bracket access after
+`expand span.events`, `toUid()` on `trace.id`, deployment events, user sessions, logs) are in
+`references/dql-reference.md`. Add each new one there, with the reason.
 
-**Use `{{DQL_TIMEFRAME_FROM}}` / `{{DQL_TIMEFRAME_TO}}` for the query window, not
-`now()-Nh`.** These resolve to the actual incident window computed by the resolver
-(with 15-minute padding either side), so the query always covers the incident regardless
-of how long ago it closed. A hardcoded `now()-3h` misses the window entirely once the
-problem is more than 3 hours in the past — this was the single most disruptive bug in the
-first version of this scenario.
+**Write `Reveal` as the shape of the finding, never its values.** Exception messages, commit SHAs, line
+numbers, counts and teams rotate every problem cycle. "The failing spans carry a specific exception — quote it
+verbatim" stays true; "the exception is X" is stale the next time the pattern fires. The agent reads the value
+at run time. A reveal also states only what the returned fields show. Say what the data says, and say where
+the data stops ("whether it was intended is the owning team's call"); never a cause, intent or geography that
+no returned field contains.
 
-```dql
-fetch spans, from: "{{DQL_TIMEFRAME_FROM}}", to: "{{DQL_TIMEFRAME_TO}}"
-| filter dt.entity.service == "SERVICE-XXXXXXXXXXXXXXXX"
-| ...
-```
+**Success signal** is recognition, not compliance: "user names the failing service", not "user clicks next".
 
-**Test queries by pre-loading them** — raw `dtctl query --file` won't substitute the
-placeholder tokens:
+**Deep links** matter as much as queries: each beat should let the user open the real Dynatrace view of what
+they just found in the terminal.
 
-```bash
-python tools/preflight.py resolve my-new-demo --write       # writes .demo-state.json once
-python tools/preflight.py load-queries my-new-demo          # shows substituted single-line DQL
-# then run the DQL directly:
-dtctl query "<paste the DQL from load-queries output>" --agent -o json --plain --max-field-chars 0 -M=all
-```
+### 4. Peak moments
 
-For development convenience `run-query` still works as a single-shot debug helper:
-```bash
-python tools/preflight.py run-query my-new-demo queries/beat-01-something.dql
-```
+A climax (the finding that *is* the answer) or an emotional payoff (making the human impact concrete) gets
+`peak_moment: true` and a **Staging** list: land the finding on its own line before commentary, pause, explain
+what kind of finding it is, then the concrete next action. The skill's rule for the shared rhythm is in
+`references/conversation-craft.md` → "Peak moments".
 
-**DQL must never contain: INGEST, INSERT, UPDATE, DELETE, PUT, WRITE.**
-The validator and hook both enforce this, but don't make them work for it.
+### 5. Business context and handoff
 
-**Trust nothing from a spec or a past run — verify every field name against the live
-Playground before it goes in a query file.** Field names in this environment are not what
-generic DQL documentation or intuition suggests. Concrete examples that cost real debugging
-time in this scenario, kept here as a warning, not a copy-paste field list (span/session field
-names on your data object may differ — verify your own):
-- Aggregate fields sometimes use a different name than the plain fetch (spans expose
-  `start_time`, not `timestamp` — and `bin(timestamp, 5m)` fails **silently**, returning
-  `null` for every bucket rather than an error).
-- A field can hold a numeric-looking value as a **string** (`duration: "714000"`) — wrap in
-  `toDouble()`/`toLong()` before arithmetic or comparison.
-- `round()` takes a **named** second argument: `round(x, decimals: 1)`, not `round(x, 1)`.
-- `expand <nested-array-field>` does not flatten the nested object's keys onto the row as
-  top-level fields — project them with bracket access: `span.events[some.nested.key]`.
-- A `uid`-typed field (e.g. `trace.id`) displays as a plain hex string but filtering it with
-  a string literal — `== "..."` or `matchesValue(...)` — silently matches **nothing**, no
-  error. Cast first: `filter trace.id == toUid("...")`.
-- Run `python tools/validate_scenarios.py --live scenarios/my-new-demo` (see step 8) as the
-  actual proof, not a spec read or a single manual test — it executes every query for real.
+In `scenario-<id>.md`: `service_name`, `user_action`, optional `avg_order_value_usd` (omit it and the survey
+reports no revenue figure rather than an invented one), and a discovery-hook template with single-brace tokens
+(`{service_name}`, `{affected_users}`, `{duration_min}`, `{revenue_impact}`). Only reference values the resolver
+supplies. If the problem record carries no clean rate, describe severity qualitatively and let a beat's query
+carry the exact number.
 
-### 3b. Chained evidence — when one query needs a value from another
+The **Handoff fields** table says which beat provides each value the agent needs to hand an incident to its
+owner (owning team, commit and link, populations, replay link). If the owning team and the deploy owner
+differ, say which is who. The row `Goes to` says who the handoff goes to: the team, or the host when there is no
+team. The **Business context** table carries a `symptom` (a short phrase for what is failing) and, optionally,
+`avg_order_value_usd`; without it a scenario gets no cost line. It also carries a `pull_line`: the one status
+line the walk-through shows while it pulls the first query of every beat, naming what those queries fetch.
 
-Sometimes a beat's real evidence isn't answerable by one independent query — e.g. "show me
-the full trace" requires first finding *which* trace (from a failing-spans query), then
-fetching everything in it. Declare this in `scenario.yaml` rather than hand-waving it in
-prose:
+### 6. Register, validate, evaluate
 
-```yaml
-evidence:
-  - queries/beat-04-failing-spans.dql        # finds failing spans, including a trace_id field
-chained_evidence:
-  - query: queries/beat-04-trace-waterfall.dql
-    depends_on: queries/beat-04-failing-spans.dql   # must be in this beat's own `evidence` list
-    extract_field: trace_id                          # field name, read from depends_on's FIRST record
-    var_name: TRACE_ID                                # injected as {{TRACE_ID}} in the chained query
-```
+1. Add the row to the Scenarios table in `SKILL.md` and the files to `SCENARIO_FILES` in
+   `tools/validate_dt_skill.py` (the same dict feeds `run_dt_evals.py` and `preflight.py preflight`).
+   A scenario whose entities exist on another tenant (the `disk-cpu-cascade` one is dev-only) also goes in
+   `SCENARIO_CONTEXT` there: the validator then uses that dtctl context for it, and `preflight.py preflight`
+   skips it instead of reporting it empty. The local `/demo` is pinned to the Playground and cannot reach it. Its
+   fallback resolver must also carry a predicate only that tenant's entities satisfy, or a Playground survey lists it
+   (testruns 12 and 13).
+2. `python tools/dt_agent.py check` — layout rules.
+3. `python tools/validate_dt_skill.py --scenario <id>` — runs the resolver and **every** beat query live,
+   including chained ones, and fails on a bad field name or `round()` call. Do not call a scenario done
+   until it passes clean.
+4. `python tools/preflight.py preflight` — the scenario shows as live, or as SKIP when its data lives on another
+   tenant.
+5. Upload and evaluate: `docs/DYNATRACE-SKILL.md`. Add an eval case under `tests/evals/dt-agent/` for any new
+   behaviour. Run a full `/demo` session and write it up as a `docs/testrun-NN.md`.
 
-The chained query file references `{{TRACE_ID}}` like any other placeholder. At runtime the
-engine runs the dependency first, reads `extract_field` from its first record, then substitutes
-it into the stored DQL string (`dql.replace("{{TRACE_ID}}", value)`) and runs the chained query
-directly via `dtctl query "..."` (see `skills/dynatrace-playground/SKILL.md` → "Chained
-queries"). `tools/validate_scenarios.py --live` resolves this chain automatically — no extra
-work to keep it covered by the standing gate.
+## What the agent guarantees
 
-### 4. Write the beats
+It reads your two files and runs your queries. It will:
 
-Each beat in `scenario.yaml` maps to one step in the source guide JSON.
-Fields:
+- add no scenario knowledge it did not read from them, and state no value it did not read from a result;
+- never modify the Playground (read-only context, guard hook, permission allow-list);
+- narrate your Reveal as its own read of the evidence in the same turn, attached to a next step, never
+  withheld until the user guesses and never a dead end;
+- offer the deep link at the end of each beat, and follow the user's detours before re-anchoring on what is
+  still unknown;
+- when the user asks to be walked through it, deliver the same beats as a report and close with a handoff
+  block built only from your Handoff fields table. A value the table has no source for is left out of the
+  block, so say plainly there when a scenario has no owning team or no user count;
+- show no query ID: local `/demo` adds a proof stamp from the dtctl envelope, the Dynatrace agent shows none.
 
-- `id` — kebab-case, unique within the scenario
-- `source_step_id` — UUID from the source guide's step (provenance)
-- `objective` — what the user should understand (not what they should *do*)
-- `evidence` — list of `queries/*.dql` paths that produce the evidence
-- `reveal` — the insight the beat delivers, narrated by the engine as its own read of the
-  evidence — never withheld until the user guesses it (see skills/demo-engine/SKILL.md →
-  "The beat loop"). It's the engine's target content, not verbatim dialogue to paste.
-- `success` — an *engagement signal* worth watching for, not a gate the user must clear to
-  advance. The engine narrates the reveal regardless of what the user says.
-- `objections` (optional) — array of `{objection, response}` pairs. Use for skeptic pushback
-  the engine should be ready for at this specific beat. The engine deploys these situationally
-  when the user actually raises a matching concern, not proactively.
-- `negative_evidence` (optional) — `{query, framing}`. A query whose empty or boring result
-  is the finding. Provide `framing` prose so the absence reads as meaningful, not as a failed query.
-- `deep_link` — the Dynatrace app URL from the source guide's `action.url`, with `{{PLACEHOLDER}}` variables
-- `peak_moment` (optional, bool) — mark your scenario's climax and emotional-payoff beats.
-  See "Staging peak moments" below.
-- `staging` (optional, string) — delivery instructions for a `peak_moment` beat.
-
-**Write `reveal` as a description of the *shape* of the finding, never specific values.**
-Exception messages, commit SHAs, exact line numbers, deployment version strings, and
-affected-user counts all rotate between problem cycles on a recurring Playground pattern.
-A `reveal` that says *"the exception message is X"* goes stale the very next time the
-pattern fires and the engine either contradicts the live data or quietly drops the script.
-Write instead: *"the failing spans carry a specific exception message — read it verbatim
-from the query result, don't paraphrase it."* The engine reads the actual value at runtime;
-your job is describing what kind of finding it is and why it matters, not what it currently says.
-
-### 5. Staging peak moments
-
-Not every beat is equal. If your scenario has a climax (the finding that *is* the answer) or
-an emotional payoff (making the human impact concrete), mark it:
-
-```yaml
-peak_moment: true
-staging: >
-  Land the finding on its own line before any commentary. Then explain what kind of
-  problem it is. Then give the concrete next action.
-```
-
-The engine's default beat rhythm — evidence, ask what the user thinks, then confirm — is
-right for ordinary beats but flattens a climax into the same texture as everything else.
-`staging` is where you say what should be different about the delivery for this one beat.
-See `skills/demo-engine/SKILL.md` → "Peak moments" for the engine's side of this contract.
-
-### 6. Fill in `business_context`
-
-Used by the problem survey — the standing behavior that triggers when the user asks
-something like "any problems?" (not `/demo` itself, which only greets — see
-`skills/demo-engine/SKILL.md` → "Two-stage entry"). Keep it to what the resolver can
-actually supply — don't reference a value no query produces:
-
-```yaml
-business_context:
-  service_name: "payment service"
-  avg_order_value_usd: 87
-  user_action: "checkout"
-  urgency_phrase: "Every minute this is open costs you customers."
-  discovery_hook: >
-    The {service_name} is failing for {affected_users} users.
-    {user_action} requests are erroring — it's been going on for {duration_min} minutes.
-    That's roughly ${revenue_impact} in lost revenue.
-```
-
-`affected_users`, `duration_min` (derived from `problem.started`/`ended`), and
-`revenue_impact` (`affected_users × avg_order_value_usd`) all come straight from
-`tools/preflight.py resolve` — no second query needed. If your problem's Davis record
-doesn't carry a clean percentage/rate field (many bury it in unstructured markdown in
-`event.description`), don't invent a `{failure_rate}`-style placeholder — describe severity
-qualitatively instead ("erroring hard", "failure rate spiked") and let the beat evidence
-carry the exact number once the user is inside the investigation.
-
-### 7. Register the scenario
-
-Add an entry to `scenarios/registry.yaml`:
-
-```yaml
-- id: my-new-demo
-  path: scenarios/my-new-demo
-  title: "Your demo title"
-  description: "One sentence for /demo list."
-  duration_minutes: [8, 15]
-  state: draft   # change to 'published' when ready
-  tags: [tag1, tag2]
-```
-
-Use `state: draft` while building. Draft scenarios are not shown in `/demo`.
-
-### 8. Validate — statically, then live
-
-```bash
-python tools/validate_scenarios.py scenarios/my-new-demo          # schema, integrity, DQL lint
-python tools/validate_scenarios.py --live scenarios/my-new-demo   # + executes every query
-```
-
-Fix every ERROR from the static pass first. Then `--live` actually **runs** the resolver and
-every beat's evidence query against the Playground and asserts each returns `ok: true`. This
-is the gate that catches a wrong field name or a bad `round()` call before a live session
-does — do not skip it and do not consider a scenario done until it passes clean. This is
-the standing regression check; wire it into CI for every scenario change.
-
-### 9. Change state to `published` and commit
-
-Update `scenarios/registry.yaml` → `state: published`.
-
-## Naming conventions
-
-- Scenario ID: `[topic]-[variant]`, e.g. `k8s-oom-kill`, `db-slow-query`
-- DQL files: `beat-NN-[signal].dql`, e.g. `beat-03-service-failure-rate.dql`
-
-## Conversation design lessons (from the first scenario's test runs)
-
-These generalise beyond payment-failure — read them before writing your beats, not just
-your queries. Full detail in `skills/demo-engine/SKILL.md`; summarized here as authoring guidance:
-
-- **Write `reveal` as an internal target, not a line of dialogue.** The engine narrates its
-  own read of the evidence immediately — it does not withhold the interpretation waiting for
-  the user to guess it. So `reveal` should describe *what kind of finding this is and why it
-  matters*, written in third person, not a sentence meant to be spoken verbatim. The engine
-  will arrive at it naturally from the evidence; your job is pointing it at the right insight.
-- **A `success` field should describe recognition, not compliance.** "User names the
-  failing service" is checkable from what they actually say. "User clicks next" is not
-  a comprehension signal at all — don't write success criteria around advancing, only around
-  understanding.
-- **Deep links matter as much as queries.** Every beat should let the user flip to the real
-  Dynatrace UI and see the identical thing they just found in the terminal — that continuity
-  is what makes this feel like the same investigation as the video guide, not a chatbot
-  imitation of one.
-
-## What the engine guarantees
-
-The engine reads your scenario manifest and runs your queries. It will:
-- Never add scenario knowledge it didn't read from your files
-- Never modify the Playground (readonly context + hook, enforced at three independent layers)
-- Narrate your `reveal` as its own confident read of the evidence, in the same turn — never
-  withheld until the user guesses it, and never stated as a flat dead end either; always
-  attached to a forward-looking option
-- Always offer the deep link from your beat at the end of the beat
-- Follow the user wherever they diverge (side quest, front-run, compound question), then
-  explicitly re-anchor by naming what's still unknown and proposing the next step back on the path
-- Include a liveness proof stamp (queryId, scannedBytes, ms — parsed from `envelope.metadata`)
-  in its chat narration after every beat query, so the user can see the query ran live against
-  the Playground
-
-What it will not do:
-- Guarantee `dtctl exec copilot` output is deterministic (use it for narrative colour fed by
-  your own query results via `--context`, not as primary evidence)
-- Guarantee entity IDs stay stable if Dynatrace resets the Playground environment
-- Parse a failure-rate percentage out of unstructured problem description text for you —
-  get exact rates from a real evidence query, not from `event.description`
+It will not guarantee that entity IDs stay stable if the Playground is reset, and it does not parse a failure
+rate out of the problem description text: take exact rates from an evidence query.

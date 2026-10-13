@@ -59,7 +59,18 @@ The specific mechanism for layers 2 and 3 differs by harness, but the guarantee 
 |-------|-----------|-------------|
 | 1 | dtctl context `safety-level: readonly` | dtctl config (client-side) — harness-independent |
 | 2 | `.claude/settings.json` deny-by-default | Claude Code permission system |
-| 3 | `PreToolUse` hook (`tools/guard_dtctl.py`) | Python hook, per-call |
+| 3 | `PreToolUse` hook (`tools/guard_dtctl.py`) on Bash and PowerShell | Python hook, per-call |
+
+The hook checks every segment of a command, not just its first token: a dtctl call after `&&`,
+`;` or a pipe; a quoted path; PowerShell's `&` operator; a variable assigned the dtctl path;
+wrappers such as `bash -c`, `env` and `Start-Process`; and DQL piped in or read with `-f`.
+`tools/tests/test_guard_hook.py` covers each of these. The hook runs as
+`$CLAUDE_PROJECT_DIR/tools/guard_dtctl.py`, so it works from any working directory.
+
+Layer 1 protects only the context a call uses. The validator and the eval ground truth also read the `dev` context
+for `disk-cpu-cascade`; it is `readwrite-all`, so they run only `dtctl query`, and the guard hook rejects anything else. A maintainer's saved context may be a
+non-read-only tenant, so the local runtime passes `--context playground` on every query
+(`skills/local-runtime/SKILL.md`).
 
 ### OpenCode
 
@@ -90,8 +101,9 @@ the relevant scopes are:
 
 - `storage:logs:read`, `storage:spans:read`, `storage:events:read` — DQL data access
 - `storage:entities:read`, `storage:user.sessions:read` — entity and session queries
-- `davis:analyzers:read` — Davis CoPilot read
-- `davis-copilot:conversations:execute` — Davis CoPilot chat
+- `davis:analyzers:read` — Dynatrace Intelligence analyzers, read
+- `davis-copilot:conversations:execute` — Dynatrace Intelligence chat (the demo no longer calls it; the
+  login flow still requests it)
 - `app-engine:apps:run` — Playground app access
 
 The `readonly` safety level instructs dtctl to request only read scopes. If the Playground
@@ -100,7 +112,7 @@ restricts the set of scopes available to a user's account, the effect is tighter
 ## What a user can do
 
 - Query the Playground's Grail data store (read-only)
-- Chat with Davis CoPilot
+- Ask Dynatrace Intelligence (`dtctl exec copilot`; the demo itself no longer uses it)
 - View entity inventory
 - Open Dynatrace apps via the deep links presented in each beat
 
@@ -111,7 +123,7 @@ Hard limits (enforced by the three layers above — cannot be prompted away):
 - Create, modify, or delete Dynatrace resources (workflows, dashboards, settings)
 - Issue curl/wget requests to non-Dynatrace hosts
 
-Soft limits (enforced by the engine skill prompt — can be overridden by a sufficiently
+Soft limits (enforced by the agent instructions and skill — can be overridden by a sufficiently
 creative user prompt, but not by accident):
 - Query data outside the scenario's `scope.data_objects` list
 - Exfiltrate data by asking the engine to summarise and send it somewhere
@@ -122,7 +134,7 @@ creative user prompt, but not by accident):
 
 ## Dynatrace runtime (skill edition)
 
-The `dynatrace-skill/` folder ports the engine to Dynatrace's native agentic skill format.
+The `dynatrace-intelligence/` folder ports the engine to Dynatrace's native agentic skill format.
 The security posture in that runtime differs from the Claude Code plugin.
 
 ### What stays the same
@@ -147,7 +159,7 @@ The Claude Code plugin enforces three independent layers:
 
 In the Dynatrace runtime, layer 1 is replaced by the platform's own execution constraint
 (DQL fetch → read-only). Layers 2–3 have no equivalent; the data-object scope list in
-`scenario-payment-failure.md` is instruction-only, not enforced.
+`references/scenario-payment-failure.md` is instruction-only, not enforced.
 
 ### Honest summary
 

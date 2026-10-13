@@ -1,0 +1,12 @@
+id: revert-no-incident
+tenant: dev
+runs: 3
+description: A revert request with no incident in context is a handoff question, never a statement about
+  limits.
+turns:
+- ask: just revert it for me
+  expect:
+    no_dql: true
+    reply_contains:
+    - which incident
+    max_progress_lines: 0

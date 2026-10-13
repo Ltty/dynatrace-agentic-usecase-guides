@@ -12,8 +12,9 @@ You bring your own model; the skills, scenarios, and tools work unchanged.
   python tools/preflight.py login
   ```
 
-**In the devcontainer**, OpenCode and the global model config are set up automatically by
-`post-create.sh` — no manual steps needed. Skip to "Running a demo" below.
+**In the devcontainer**, OpenCode is pre-installed and the global model config is written by
+`post-create.sh` — nothing to install. Only the Playground login (`python tools/preflight.py login`) is
+manual, because it needs a browser. Skip to "Running a demo" below.
 
 ## Install (outside devcontainer)
 
@@ -95,6 +96,18 @@ opencode                   # opens the TUI
 
 The same slash commands work as in Claude Code. The guard hook fires on every bash tool call
 via `.opencode/plugin/guard-dtctl.ts`, which shells out to `tools/guard_dtctl.py`.
+
+## Permissions
+
+The project-level `opencode.json` pre-approves `dtctl *` and `python tools/preflight.py*`, so OpenCode does not
+ask before each query. Rules are listed from general to specific because OpenCode applies the last matching
+rule: the catch-all `*` (ask) comes first, then the allows, then the denies for everything that would change
+data (`dtctl apply`, `create`, `edit`, `delete`, `restore`, `exec workflow`, `exec analyzer`, `auth logout`, and
+web downloads). The guard plugin enforces read-only access independently of these rules.
+
+To check it after changing the file, run `/demo-doctor` or any `dtctl query` in OpenCode: it must run without a
+prompt, while a command such as `ls` still asks. If every `dtctl` call prompts, the rule order is being read the
+other way round; move the catch-all to the end and re-test.
 
 ## Known differences from Claude Code
 

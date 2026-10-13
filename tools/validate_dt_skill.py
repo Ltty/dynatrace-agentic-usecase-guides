@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """
-validate_dt_skill.py — Validate a dynatrace-skill scenario by running its resolver DQL
-and all beat DQL blocks against the live Playground, including the chained waterfall.
+validate_dt_skill.py — Validate a Dynatrace skill scenario by running its resolver DQL
+and all beat DQL blocks against the scenario's live tenant, including the chained trace query.
 
 Usage:
     python tools/validate_dt_skill.py --scenario payment-failure
-    python tools/validate_dt_skill.py dynatrace-skill/references/scenario-payment-failure.md
+    python tools/validate_dt_skill.py <resolver-file>.md <beats-file>.md
+
+Files are read in order; the resolver file must come first so its result feeds the beats.
 
 Reuses run_dtctl(), parse_envelope(), _flatten_records(), and substitute_placeholders()
 from tools/preflight.py.
@@ -15,16 +17,35 @@ from __future__ import annotations
 
 import argparse
 import importlib.util
+import os
 import re
 import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).parent.parent
-SCENARIO_DIR = REPO_ROOT / "dynatrace-skill" / "references"
+SCENARIO_DIR = (REPO_ROOT / "dynatrace-intelligence" / "skills"
+                / "investigating-playground-incidents" / "references")
 
 SCENARIO_FILES = {
-    "payment-failure": SCENARIO_DIR / "scenario-payment-failure.md",
+    "payment-failure": (
+        SCENARIO_DIR / "scenario-payment-failure.md",
+        SCENARIO_DIR / "scenario-payment-failure-beats.md",
+    ),
+    "broken-images": (
+        SCENARIO_DIR / "scenario-broken-images.md",
+        SCENARIO_DIR / "scenario-broken-images-beats.md",
+    ),
+    "disk-cpu-cascade": (
+        SCENARIO_DIR / "scenario-disk-cpu-cascade.md",
+        SCENARIO_DIR / "scenario-disk-cpu-cascade-beats.md",
+    ),
 }
+
+# dtctl context each scenario's data lives on; anything not listed is on the Playground.
+SCENARIO_CONTEXT = {
+    "disk-cpu-cascade": "dev",
+}
+DEFAULT_CONTEXT = "playground"
 
 # Runtime-only tokens: present in DQL until a live query result supplies the value.
 RUNTIME_ONLY = {"TRACE_ID"}
@@ -121,7 +142,12 @@ def assert_window(pf, envelope: dict) -> None:
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Validate dynatrace-skill scenario DQL blocks against the live Playground."
+        description="Validate Dynatrace skill scenario DQL blocks against the scenario's live tenant."
+    )
+    parser.add_argument(
+        "--context", default=None,
+        help="dtctl context to query (default: the scenario's own, else playground). Set per run, "
+             "never saved, so a different current context cannot redirect the validation."
     )
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument(
@@ -129,32 +155,36 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         help=f"Scenario ID to validate. Choices: {', '.join(SCENARIO_FILES)}"
     )
     group.add_argument(
-        "md_file", nargs="?", metavar="FILE",
-        help="Direct path to a scenario reference markdown file."
+        "md_files", nargs="*", default=[], metavar="FILE",
+        help="Direct paths to scenario markdown files, resolver file first."
     )
     return parser.parse_args(argv[1:])
 
 
 def main(argv: list[str]) -> int:
     args = parse_args(argv)
+    args.context = args.context or SCENARIO_CONTEXT.get(args.scenario, DEFAULT_CONTEXT)
+    os.environ["DTCTL_CONTEXT"] = args.context
 
     if args.scenario:
-        md_path = SCENARIO_FILES[args.scenario]
+        md_paths = list(SCENARIO_FILES[args.scenario])
     else:
-        md_path = Path(args.md_file)
+        md_paths = [Path(p) for p in args.md_files]
 
-    if not md_path.exists():
-        print(f"error: {md_path} not found", file=sys.stderr)
-        return 2
+    for md_path in md_paths:
+        if not md_path.exists():
+            print(f"error: {md_path} not found", file=sys.stderr)
+            return 2
 
     pf = _load_preflight()
 
-    blocks = extract_dql_blocks(md_path)
+    blocks = [b for md_path in md_paths for b in extract_dql_blocks(md_path)]
+    names = ", ".join(p.name for p in md_paths)
     if not blocks:
-        print(f"No ```dql blocks found in {md_path.name}")
+        print(f"No ```dql blocks found in {names}")
         return 0
 
-    print(f"Validating {md_path.name} — {len(blocks)} DQL block(s)")
+    print(f"Validating {names} — {len(blocks)} DQL block(s) on dtctl context '{args.context}'")
     print("=" * 60)
 
     placeholders: dict[str, str] = {}

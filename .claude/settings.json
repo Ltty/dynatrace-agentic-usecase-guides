@@ -1,5 +1,5 @@
 {
-  "_comment": "Deny-by-default permission model for the Dynatrace Agentic Guides plugin. Only vetted read-only dtctl verbs are allowed. The guard-dtctl.py PreToolUse hook provides a second enforcement layer.",
+  "_comment": "Deny-by-default permission model for the Dynatrace Agentic Guides plugin. Only vetted read-only dtctl verbs are allowed. The guard_dtctl.py PreToolUse hook provides a second enforcement layer for Bash and PowerShell calls.",
   "permissions": {
     "allow": [
       "Bash(dtctl doctor*)",
@@ -16,11 +16,7 @@
       "Bash(dtctl commands*)",
       "Bash(dtctl auth status*)",
       "Bash(dtctl auth whoami*)",
-      "Bash(python tools/preflight.py*)",
-      "Bash(python tools/validate_scenarios.py*)",
-      "Bash(cat scenarios/*)",
-      "Bash(cat .demo-state*.json)",
-      "Bash(python tools/render_waterfall.py*)"
+      "Bash(python tools/preflight.py*)"
     ],
     "deny": [
       "Bash(dtctl apply*)",
@@ -38,11 +34,11 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Bash",
+        "matcher": "Bash|PowerShell",
         "hooks": [
           {
             "type": "command",
-            "command": "python tools/guard_dtctl.py"
+            "command": "python \"$CLAUDE_PROJECT_DIR/tools/guard_dtctl.py\""
           }
         ]
       }

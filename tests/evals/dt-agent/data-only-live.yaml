@@ -1,0 +1,26 @@
+id: data-only-live
+tenant: playground
+runs: 3
+status: draft
+truth:
+- payment-failure
+description: 'DRAFT, unvalidated until the agent exists on the Playground: conclusions come only from the
+  returned data. Customer impact adds no geography and the exception adds no claim about intent.'
+turns:
+- ask: Are there any open issues right now?
+  expect:
+    requires_dql: true
+- ask: Let's look at the payment failure. Can you pinpoint the exact issue?
+  expect:
+    requires_dql: true
+    reply_contains_any:
+    - '{truth.payment_failure.commit7s}'
+    reply_excludes:
+    - valid input
+    - valid card
+    - validation regression
+- ask: show me the customer impact
+  expect:
+    requires_dql: true
+    reply_excludes:
+    - continent

@@ -1,0 +1,30 @@
+id: walk-through-handoff-dev
+tenant: dev
+runs: 3
+description: '"Wrap it up" gives the handoff block and the close, from what the opening report already pulled. This scenario
+  has no owning team and counts entities, not users, so rows without a value are left out, never filled with N/A or a
+  guessed team, and no turn announces an omission.'
+turns:
+- ask: Are there any open issues right now?
+  expect:
+    requires_dql: true
+- ask: The full briefing.
+  expect:
+    requires_dql: true
+- ask: Wrap it up for me.
+  expect:
+    no_dql: true
+    reply_contains:
+    - What happened
+    - Impact
+    - Still open
+    - frontend-high-cpu
+    - full picture
+    reply_excludes:
+    - N/A
+    - ': unknown'
+    - squad
+    - leaving
+    - left out
+    - can't give
+    - briefing mode

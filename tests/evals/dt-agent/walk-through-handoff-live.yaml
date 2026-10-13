@@ -1,0 +1,32 @@
+id: walk-through-handoff-live
+tenant: playground
+runs: 3
+status: draft
+truth:
+- payment-failure
+description: 'DRAFT, unvalidated until the agent exists on the Playground: the handoff block names the real
+  commit and the team it goes to, and states what is still open.'
+turns:
+- ask: Are there any open issues right now?
+  expect:
+    requires_dql: true
+- ask: Take me through the payment failure.
+  expect:
+    reads_include:
+    - walk-through.md
+    - scenario-payment-failure-beats.md
+    requires_dql: true
+- ask: Wrap it up for me.
+  expect:
+    reply_contains_any:
+    - '{truth.payment_failure.commit7s}'
+    reply_contains:
+    - Goes to
+    - Detected
+    - Rate
+    - Still open
+    reply_excludes:
+    - leaving
+    - left out
+    - can't give
+    - briefing mode

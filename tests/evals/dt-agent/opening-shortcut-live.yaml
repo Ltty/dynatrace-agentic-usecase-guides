@@ -1,0 +1,17 @@
+id: opening-shortcut-live
+tenant: playground
+runs: 3
+status: draft
+truth:
+- payment-failure
+description: 'DRAFT: a first message that already decides gets no survey question and no mode question: the report, at once.'
+turns:
+- ask: Walk me through the payment failure.
+  expect:
+    requires_dql: true
+    reply_contains_any:
+    - '{truth.payment_failure.commit7s}'
+    reply_excludes:
+    - Which one should we look at first
+    - hands-on with me
+    - full incident briefing
