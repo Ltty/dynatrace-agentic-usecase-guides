@@ -13,7 +13,7 @@ turns:
 - ask: Let's look at the payment failure. What changed right before it started?
   expect:
     reads_include:
-    - scenario-payment-failure-beats.md
+    - scenario-payment-failure.md
     requires_dql: true
     reply_contains_any:
     - '{truth.payment_failure.commit7s}'

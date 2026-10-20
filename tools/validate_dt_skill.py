@@ -27,19 +27,11 @@ SCENARIO_DIR = (REPO_ROOT / "dynatrace-intelligence" / "skills"
                 / "investigating-playground-incidents" / "references")
 
 SCENARIO_FILES = {
-    "payment-failure": (
-        SCENARIO_DIR / "scenario-payment-failure.md",
-        SCENARIO_DIR / "scenario-payment-failure-beats.md",
-    ),
-    "broken-images": (
-        SCENARIO_DIR / "scenario-broken-images.md",
-        SCENARIO_DIR / "scenario-broken-images-beats.md",
-    ),
-    "disk-cpu-cascade": (
-        SCENARIO_DIR / "scenario-disk-cpu-cascade.md",
-        SCENARIO_DIR / "scenario-disk-cpu-cascade-beats.md",
-    ),
+    "payment-failure": SCENARIO_DIR / "scenario-payment-failure.md",
+    "broken-images": SCENARIO_DIR / "scenario-broken-images.md",
+    "disk-cpu-cascade": SCENARIO_DIR / "scenario-disk-cpu-cascade.md",
 }
+SESSION_PROTOCOL = SCENARIO_DIR / "session-protocol.md"
 
 # dtctl context each scenario's data lives on; anything not listed is on the Playground.
 SCENARIO_CONTEXT = {
@@ -75,6 +67,12 @@ def extract_dql_blocks(md_path: Path) -> list[str]:
     """Return all raw DQL strings found in ```dql fences."""
     text = md_path.read_text(encoding="utf-8")
     return [m.group(1).strip() for m in DQL_FENCE_RE.finditer(text)]
+
+
+def survey_dql(scenario: str | None = None) -> str:
+    """The survey query from session-protocol.md, optionally narrowed to one scenario's row."""
+    dql = extract_dql_blocks(SESSION_PROTOCOL)[0]
+    return dql + (f'\n| filter scenario == "{scenario}"' if scenario else "")
 
 
 def strip_dql_comments(dql: str) -> str:
@@ -118,6 +116,8 @@ def extract_state_from_resolver(pf, envelope: dict) -> dict:
     row = records[0]
     return {
         "PROBLEM_ID": row.get("problem_id", ""),
+        "STARTED": str(row.get("started", "")),
+        "SURVEY_AT": str(row.get("queried_at", "")),
         "DQL_FROM": row.get("window_from", "now()-2h"),
         "DQL_TO": row.get("window_to", "now()"),
         "TF_FROM_MS": str(row.get("tf_from_ms", "")),
@@ -167,7 +167,7 @@ def main(argv: list[str]) -> int:
     os.environ["DTCTL_CONTEXT"] = args.context
 
     if args.scenario:
-        md_paths = list(SCENARIO_FILES[args.scenario])
+        md_paths = [SCENARIO_FILES[args.scenario]]
     else:
         md_paths = [Path(p) for p in args.md_files]
 
@@ -179,6 +179,8 @@ def main(argv: list[str]) -> int:
     pf = _load_preflight()
 
     blocks = [b for md_path in md_paths for b in extract_dql_blocks(md_path)]
+    if args.scenario:
+        blocks.insert(0, survey_dql(args.scenario))
     names = ", ".join(p.name for p in md_paths)
     if not blocks:
         print(f"No ```dql blocks found in {names}")

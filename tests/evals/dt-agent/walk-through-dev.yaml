@@ -18,7 +18,7 @@ turns:
   expect:
     reads_include:
     - walk-through.md
-    - scenario-disk-cpu-cascade-beats.md
+    - scenario-disk-cpu-cascade.md
     requires_dql: true
     max_progress_lines: 1
     reply_contains:

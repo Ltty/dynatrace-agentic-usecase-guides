@@ -36,7 +36,7 @@ def stream(*, reads=(), dql=0, reply=CLEAN, tail_tool=False):
 
 
 CLEAN_EXPECT = {"first_read_contains": "/SKILL.md", "reads_include": ["session-protocol.md"],
-                "reads_exclude": ["-beats.md"], "requires_dql": True, "reply_equals": CLEAN}
+                "reads_exclude": ["scenario-"], "requires_dql": True, "reply_equals": CLEAN}
 GOOD = stream(reads=[SKILL, REFS + "session-protocol.md"], dql=2)
 
 
@@ -62,9 +62,9 @@ def test_skill_not_read_first_fails():
     assert any("first file read" in f for f in out), out
 
 
-def test_beats_file_read_fails_exclude():
-    out = fails(stream(reads=[SKILL, REFS + "session-protocol.md", REFS + "scenario-x-beats.md"], dql=1), CLEAN_EXPECT)
-    assert any("-beats.md" in f for f in out), out
+def test_scenario_file_read_fails_exclude():
+    out = fails(stream(reads=[SKILL, REFS + "session-protocol.md", REFS + "scenario-x.md"], dql=1), CLEAN_EXPECT)
+    assert any("scenario-" in f for f in out), out
 
 
 def test_missing_dql_fails():

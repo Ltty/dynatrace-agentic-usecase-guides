@@ -8,8 +8,8 @@ All paths below are under `dynatrace-intelligence/skills/investigating-playgroun
 ## The contract
 
 ```text
-references/scenario-<id>.md         # persona, business context, scope, handoff fields, resolver DQL
-references/scenario-<id>-beats.md   # the beats: evidence DQL, reveal, staging, deep link
+references/scenario-<id>.md         # business context, scope, handoff fields, then the beats (evidence DQL, reveal, staging, deep link)
+references/session-protocol.md      # the shared survey query gets one scenario branch, the discovery hooks table one row
 SKILL.md                            # one row in the Scenarios table
 ```
 
@@ -29,35 +29,35 @@ what "show me the trace" means (the whole request, confirming the upstream servi
 
 ### 1. Copy a scenario and rename it
 
-Start from `scenario-payment-failure.md` and `scenario-payment-failure-beats.md`. The `<id>` is
+Start from `scenario-payment-failure.md`. The `<id>` is
 `[topic]-[variant]`, e.g. `k8s-oom-kill`.
 
-### 2. Write the resolver DQL
+### 2. Add the scenario to the survey query
 
-In `scenario-<id>.md`: a primary and a fallback block, in that order. Each returns **one row** with exactly the
-fields the session protocol names (`references/session-protocol.md` → "Session state"): `problem_id`,
-`display_id`, `status`, `started`, `ended`, `affected_users`, `root_cause`, `description`, `duration_min`,
-`ended_min_ago`, `queried_at`, `window_from`, `window_to`, `tf_from_ms`, `tf_to_ms`. Copy the payment-failure
-resolver and change only the root-cause service ID. Date arithmetic belongs in the DQL, not in the model.
+There is one survey query for all scenarios, in `references/session-protocol.md` → "Session state". Add a branch to
+its `scenario` assignment that recognises your root-cause entity. If the scenario needs a fallback (a different
+filter that applies only when the main one finds nothing), give it `pref = 1` through the `pref` expression. The
+query returns one row per scenario with the fields the session protocol names; do not add fields the survey does
+not use (`description` is read by beat 1). Date arithmetic and any cost figure belong in the query, not in the model.
 
 - Look back `from: now()-48h, to: now()`. Patterns fire on a schedule; this window reliably catches the latest
   occurrence.
 - **Filter `dt.davis.is_duplicate == false`, not on `event.name`.** Recurring patterns fire as a cluster of
   near-duplicate problems with overlapping windows and different affected-user counts. Without the filter,
-  `sort … | limit 1` picks one arbitrarily and any revenue figure changes every run. The merged problem is
+  the newest row is picked arbitrarily and any revenue figure changes every run. The merged problem is
   often named generically ("Multiple application problems"), so an `event.name` filter excludes the one you want.
-- The fallback drops `is_duplicate` and sorts by `dt.davis.affected_users_count desc`; it runs only if the
-  primary returns no rows.
+- The fallback ignores `is_duplicate` and prefers `dt.davis.affected_users_count`; it applies only when no
+  non-duplicate row exists for the scenario.
 
 ### 3. Write the beats
 
-In `scenario-<id>-beats.md`, one `## Beat N — Title` section each, with: **Objective**, **Evidence DQL**,
+In `scenario-<id>.md`, one `## Beat N — Title` section each, with: **Objective**, **Evidence DQL**,
 **Reveal**, **Success signal**, **Deep link**, and for a climax `**peak_moment: true**` plus **Staging**.
 Optional: an **Objection** paragraph (skeptic pushback and the answer, used only when the user raises it) and a
 **Fold in on a jump** note when a beat's evidence is needed even if the user skips it.
 
 - Window every query with `from: "{{DQL_FROM}}", to: "{{DQL_TO}}"`, never `now()-Nh`: these are the incident
-  window from the resolver (15 minutes of padding each side), so the query works however long ago it closed.
+  window from the survey row (15 minutes of padding each side), so the query works however long ago it closed.
   Other tokens: `{{PROBLEM_ID}}`, `{{TF_FROM_MS}}`, `{{TF_TO_MS}}` (deep links), `{{TRACE_ID}}` (chained).
 - Never use `limit` where the beat's claim is about *everything* (all deploys, all distinct exceptions, the
   total sessions). Aggregate instead: `summarize … by:` per commit or per exception, oldest first, with
@@ -93,10 +93,10 @@ what kind of finding it is, then the concrete next action. The skill's rule for 
 
 ### 5. Business context and handoff
 
-In `scenario-<id>.md`: `service_name`, `user_action`, optional `avg_order_value_usd` (omit it and the survey
-reports no revenue figure rather than an invented one), and a discovery-hook template with single-brace tokens
-(`{service_name}`, `{affected_users}`, `{duration_min}`, `{revenue_impact}`). Only reference values the resolver
-supplies. If the problem record carries no clean rate, describe severity qualitatively and let a beat's query
+In `scenario-<id>.md`: `service_name`, optional `avg_order_value_usd` (omit it and the survey
+reports no revenue figure rather than an invented one; the survey query computes `revenue_usd` from it). The
+discovery hook is a row in the "Discovery hooks" table in `session-protocol.md`, with single-brace tokens
+(`{affected_users}`, `{duration_min}`, `{revenue_usd}`). Only reference values the survey row supplies. If the problem record carries no clean rate, describe severity qualitatively and let a beat's query
 carry the exact number.
 
 The **Handoff fields** table says which beat provides each value the agent needs to hand an incident to its
@@ -113,10 +113,10 @@ line the walk-through shows while it pulls the first query of every beat, naming
    A scenario whose entities exist on another tenant (the `disk-cpu-cascade` one is dev-only) also goes in
    `SCENARIO_CONTEXT` there: the validator then uses that dtctl context for it, and `preflight.py preflight`
    skips it instead of reporting it empty. The local `/demo` is pinned to the Playground and cannot reach it. Its
-   fallback resolver must also carry a predicate only that tenant's entities satisfy, or a Playground survey lists it
+   branch in the survey query must also carry a predicate only that tenant's entities satisfy, or a Playground survey lists it
    (testruns 12 and 13).
 2. `python tools/dt_agent.py check` — layout rules.
-3. `python tools/validate_dt_skill.py --scenario <id>` — runs the resolver and **every** beat query live,
+3. `python tools/validate_dt_skill.py --scenario <id>` — runs the survey query (narrowed to the scenario) and **every** beat query live,
    including chained ones, and fails on a bad field name or `round()` call. Do not call a scenario done
    until it passes clean.
 4. `python tools/preflight.py preflight` — the scenario shows as live, or as SKIP when its data lives on another

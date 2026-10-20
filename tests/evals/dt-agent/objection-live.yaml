@@ -13,7 +13,7 @@ turns:
 - ask: Let's look at the image service. What changed right before it got slow?
   expect:
     reads_include:
-    - scenario-broken-images-beats.md
+    - scenario-broken-images.md
     requires_dql: true
     reply_contains_any:
     - '{truth.broken_images.commit7s}'

@@ -24,14 +24,14 @@ description, PowerShell, the proof stamp and the authentication notice.
 
 ## Running DQL
 
-Once per session, before the first query, run `python tools/preflight.py dtctl-path` and use
-its output as `<dtctl>`. Then every query is:
+`<dtctl>` is `dtctl`. Only if the shell reports it is not found, run `python tools/preflight.py dtctl-path`
+once and use its output instead. Every query is:
 
 ```bash
-<dtctl> query '<dql>' --context playground --agent -o json --plain --max-field-chars 0 -M=all
+<dtctl> query '<dql>' --context playground --agent -o json --plain --max-field-chars 0 -M=queryId,scannedRecords,executionTimeMilliseconds
 ```
 
-- Use `<dtctl>` exactly as printed. Wrap the DQL in single quotes; it may span several lines.
+- Use `<dtctl>` as given above. Wrap the DQL in single quotes; it may span several lines.
 - `--context playground` on every call pins the read-only Playground context, whatever the
   saved current context is.
 - Substitute every `{{TOKEN}}` yourself before the call, as the skill describes. There is no

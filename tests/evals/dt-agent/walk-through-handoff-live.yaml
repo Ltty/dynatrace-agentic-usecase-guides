@@ -14,7 +14,7 @@ turns:
   expect:
     reads_include:
     - walk-through.md
-    - scenario-payment-failure-beats.md
+    - scenario-payment-failure.md
     requires_dql: true
 - ask: Wrap it up for me.
   expect:

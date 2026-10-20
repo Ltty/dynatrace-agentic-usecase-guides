@@ -30,33 +30,64 @@ One first move, not a menu.
 
 ## Session state
 
-Each scenario provides a **main** and a **backup** lookup DQL. Run each exactly as the file
-gives it, never with fields removed: the later fields are needed, and a trimmed copy costs a second
-query. Run the main lookup; if it returns zero rows, run the backup; use the first row. If both are
-empty, `problem_state` is `no_live_problem`.
+The survey query returns one row per scenario that has a problem in the last 48 hours: the newest
+non-duplicate problem, or, when there is none, the one with the most affected users. A scenario with no row has
+no live problem; no rows at all is `no_live_problem`. Run it exactly as given, never with fields removed: a trimmed
+copy costs a second query. It runs once per conversation, for every opening that needs the live problem (survey,
+direct start, walk-through), and its rows are the session state for the scenarios they name.
+
+```dql
+fetch dt.davis.problems, from: now()-48h, to: now()
+| fieldsAdd rc = toString(root_cause.smartscape_entity[id])
+| fieldsAdd scenario = if(root_cause_entity_id == "SERVICE-531CE26849E95EC1", "payment-failure",
+    else: if(root_cause_entity_id == "SERVICE-5A0CD2879D2F37BE", "broken-images",
+    else: if(rc == "DISK-2B3DB86FA32F6CE1" or (dt.davis.is_duplicate == false
+        and matchesPhrase(event.description, "/data") and matchesPhrase(event.description, "frontend-high-cpu")
+        and contains(toString(smartscape.affected_entities), "HOST-A2BABAD05D401471")), "disk-cpu-cascade", else: null)))
+| filter isNotNull(scenario)
+| fieldsAdd pref = if(dt.davis.is_duplicate == false and (scenario != "disk-cpu-cascade" or rc == "DISK-2B3DB86FA32F6CE1"), 0, else: 1)
+| fieldsAdd rank = if(pref == 0, toDouble(timestamp), else: toDouble(coalesce(dt.davis.affected_users_count, 0)))
+| sort scenario asc, pref asc, rank desc, timestamp desc
+| dedup scenario
+| fieldsAdd window_from = event.start - 15m, window_to = coalesce(event.end, now()) + 15m
+| fieldsAdd tf_from_ms = toLong(window_from) / 1000000, tf_to_ms = toLong(window_to) / 1000000,
+    duration_min = round(toDouble(coalesce(event.end, now()) - event.start) / 60000000000, decimals: 0),
+    ended_min_ago = round(toDouble(now() - event.end) / 60000000000, decimals: 0)
+| fieldsAdd duration_days = floor(duration_min / 1440), duration_hours = floor((duration_min - floor(duration_min / 1440) * 1440) / 60),
+    revenue_usd = if(scenario == "payment-failure", round(toDouble(dt.davis.affected_users_count) * 87, decimals: 0), else: null)
+| fields scenario, problem_id = event.id, display_id, status = event.status, started = event.start, ended = event.end,
+    affected_users = dt.davis.affected_users_count, affected_count = arraySize(smartscape.affected_entities),
+    root_cause = coalesce(root_cause_entity_name, root_cause.smartscape_entity[name]), owning_team = team,
+    duration_min, duration_days, duration_hours, ended_min_ago, revenue_usd, queried_at = now(),
+    window_from, window_to, tf_from_ms, tf_to_ms
+```
+
+The row has no `description`: beat 1 reads it.
 
 Store the result in conversation context (never a file). This is the single source for every
 `{{TOKEN}}`:
 
 | Key | Source | Token | Used in |
 |---|---|---|---|
-| `problem_id` | lookup | `{{PROBLEM_ID}}` | Beat DQL (inside `"..."`), deep links |
-| `display_id` | lookup | — | User-facing label |
-| `status` | lookup | — | `problem_state` |
-| `started`, `ended` | lookup | — | Timeline; `ended` is null while active |
-| `duration_min` | lookup | — | Survey; computed in DQL, don't recompute |
-| `ended_min_ago` | lookup | — | "how long ago" for a closed problem, in minutes; null while active |
-| `affected_users` or `affected_count` | lookup | — | Survey math; the scenario says which (users, or entities) |
-| `root_cause`, `description`, `duration_days`, `duration_hours` | lookup | — | The scenario's discovery hook, where it uses them |
-| `window_from`, `window_to` | lookup | `{{DQL_FROM}}`, `{{DQL_TO}}` | Beat DQL `from:`/`to:` only, ISO8601 inside `"..."` |
-| `tf_from_ms`, `tf_to_ms` | lookup | `{{TF_FROM_MS}}`, `{{TF_TO_MS}}` | Deep-link URLs only, epoch ms |
-| `queried_at` | lookup and every beat's first query | — | Elapsed time in the close; never shown in a table |
+| `problem_id` | survey row | `{{PROBLEM_ID}}` | Beat DQL (inside `"..."`), deep links |
+| `display_id` | survey row | — | User-facing label |
+| `status` | survey row | — | `problem_state` |
+| `started`, `ended` | survey row | `{{STARTED}}` (`started`) | Timeline, and the beat DQL gap fields (`deploy_before_problem_min`, `detected_after_min`); `ended` is null while active |
+| `duration_min` | survey row | — | Survey; computed in DQL, don't recompute |
+| `ended_min_ago` | survey row | — | "how long ago" for a closed problem, in minutes; null while active |
+| `affected_users` or `affected_count` | survey row | — | Survey math; the scenario says which (users, or entities) |
+| `scenario`, `root_cause`, `duration_days`, `duration_hours`, `revenue_usd` | survey row | — | The scenario's discovery hook, where it uses them |
+| `owning_team` | survey row | — | Who a handoff or revert request goes to, before any beat has run; null where the problem has no owner |
+| `window_from`, `window_to` | survey row | `{{DQL_FROM}}`, `{{DQL_TO}}` | Beat DQL `from:`/`to:` only, ISO8601 inside `"..."` |
+| `tf_from_ms`, `tf_to_ms` | survey row | `{{TF_FROM_MS}}`, `{{TF_TO_MS}}` | Deep-link URLs only, epoch ms |
+| `queried_at` | survey row | `{{SURVEY_AT}}` | Beat DQL `elapsed_min` only |
+| `elapsed_min` | every beat's first query | — | The close's elapsed time; never shown in a table |
 | runtime values (e.g. `trace_id`) | a prior query's first record | e.g. `{{TRACE_ID}}` | Chained beat DQL |
 | `problem_state` | derived | — | Tense and framing |
 | `delivery` | conversation | — | `explore` (default) or `walk-through`; see `references/walk-through.md` |
 | `beats_completed`, `current_beat` | conversation | — | Progress; a folded-in beat counts as completed |
 
-A lookup row missing any window field is broken — every beat query depends on them.
+A survey row missing any window field is broken — every beat query depends on them.
 
 The discovery hook uses single-brace `{lower_snake_case}` tokens — prose only, a separate namespace
 from `{{TOKENS}}`.
@@ -67,7 +98,7 @@ from `{{TOKENS}}`.
 |---|---|---|
 | `live_active` | `status == "ACTIVE"` or `ended` is null | Present tense, real urgency |
 | `live_recent` | `status == "CLOSED"` and `ended` set | Past tense, same investigation — "the full picture is still here". Never apologise that it's closed. |
-| `no_live_problem` | both lookups empty | The clean-environment reply, see "Problem survey" |
+| `no_live_problem` | no survey rows | The clean-environment reply, see "Problem survey" |
 
 ---
 
@@ -80,16 +111,15 @@ If no scenario returned a problem, the whole answer after the status line is exa
 "Environment looks clean — nothing I'd page on right now." Nothing in between and nothing after it:
 no offer, no question, no suggestions, no scenario or service names, patterns, schedules or timings.
 
-For each scenario in the SKILL.md registry, run its lookup. Then:
+The survey query's rows are the findings. Then:
 
-1. `revenue_impact = affected_users × avg_order_value_usd`, from the scenario's business context,
-   said as "roughly $X". Omit it if the scenario doesn't define `avg_order_value_usd`. Never state a
-   failure-rate percentage here — the lookup doesn't return one.
+1. The cost is the row's `revenue_usd`, said as "roughly $X". A row without it has no cost: say none. Never
+   state a failure-rate percentage here — the survey doesn't return one.
 2. Open on the impact, not the status. The first sentence has this form, and its first word is the number
    of incidents: "[Two incidents] in the last 48 hours, [both resolved]: [what the first affected, and how
    many], and [what the second affected, and how many]." Never open on what is or is not open ("Nothing is
    open", "No open issues"): the user asked what happened, and the answer is the incidents. Then one sentence
-   per incident, from its discovery hook, in the right tense, with its duration, status and cost; for a closed
+   per incident, from its discovery hook (below), in the right tense, with its duration, status and cost; for a closed
    problem "how long ago" comes from `ended_min_ago` (round to hours above 90 minutes), never estimated from
    timestamps. List each incident once: no bullets that repeat those sentences.
 3. End on exactly one question, and nothing after it:
@@ -106,7 +136,13 @@ For each scenario in the SKILL.md registry, run its lookup. Then:
    Neither gets the survey's questions. Naming only an incident, a service or a scenario id is a pick, not
    an answer to the mode question: reply "[A] it is." and the mode question, and run no query.
 
-In a survey, name only the scenarios that returned a problem, and say nothing about the others: an empty result says nothing about a service. Never write a sentence such as "the payment service and image service are clean", or any sentence that names a service whose scenario returned nothing.
+**Discovery hooks.** Fill the braces from the row. A scenario with no row has no hook.
+
+| `scenario` | Hook | Notes |
+|---|---|---|
+| `payment-failure` | "The payment service is failing for {affected_users} users — it's been going on for {duration_min} minutes. That's roughly ${revenue_usd} in abandoned carts." | |
+| `broken-images` | "The image service is degraded — product images are slow for {affected_users} users, and it's been going on for {duration_min} minutes." | A slowdown, not an outage: never "failing" or "erroring". No cost. State no response times: the survey has none. |
+| `disk-cpu-cascade` | "The frontend-high-cpu host has had a problem open for {duration_days} days and {duration_hours} hours: low available disk space on {root_cause}, with CPU saturation on the same host. It affects {affected_count} entities." | Entities, never users; no cost. For an active problem say it is still open. Never convert `duration_min` yourself. |
 
 ---
 
@@ -136,10 +172,10 @@ Still open:     [what the data does not show]
   table for who it goes to and which population label to use. A row with no such value is left out:
   never "unknown", never "N/A", never a guessed team, and never a sentence saying it is left out. A row keeps the parts that have a source
   ("commit [sha]" without "shipped by [owner]") and is left out when none does.
-- `duration` is `duration_days` and `duration_hours` when the lookup returns them, else `duration_min` minutes.
+- `duration` is `duration_days` and `duration_hours` when the survey row has them, else `duration_min` minutes.
 - `Impact` is the problem record's count with its label; add the beat 5 population, with its own label, once that
   beat's query has run. Say it as "[T] sessions, [M] of them with no country recorded", never "plus [M]".
-- The cost is `affected_users × avg_order_value_usd`, only where the scenario defines it.
+- The cost is the survey row's `revenue_usd`, only where the row has it.
 - `Detected`, `Rate` and `Cause`'s commit come from the beats that return them; a scenario without
   them leaves those rows out.
 - Each link sits on its own labelled line; a link the scenario does not have is left out.
@@ -170,8 +206,8 @@ From the first look to the full picture in [X] minutes: [the two or three things
 [The way out, below.]
 ```
 
-- **[X]:** the latest `queried_at` seen in this conversation minus the survey's, in whole minutes (in a
-  walk-through it measures the opening report, which pulls the whole picture at once). If either is missing,
+- **[X]:** the latest `elapsed_min` a result in this conversation returned, in minutes since the survey (in a
+  walk-through it measures the opening report, which pulls the whole picture at once). If there is none,
   write "The full picture: …" in place of the first half of the line and say nothing about the number.
   No stock sentence about what the alternative would have cost.
 - **The way out, explore:** "Which would you rather dig into next — [option one] or [option two]?" One option

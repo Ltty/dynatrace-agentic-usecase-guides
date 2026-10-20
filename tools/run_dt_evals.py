@@ -170,11 +170,11 @@ def check_turn(summary: dict, expect: dict, truth: dict, forbid: bool = True) ->
 # ---------------------------------------------------------------------------
 
 def ground_truth(scenario_id: str) -> dict:
-    """The resolver row and the deployment commits the agent should report for a scenario."""
+    """The survey row and the deployment commits the agent should report for a scenario."""
     validate = load_module("validate_dt_skill")
     os.environ["DTCTL_CONTEXT"] = validate.SCENARIO_CONTEXT.get(scenario_id, validate.DEFAULT_CONTEXT)
     pf = validate._load_preflight()
-    resolver_file, beats_file = validate.SCENARIO_FILES[scenario_id]
+    scenario_file = validate.SCENARIO_FILES[scenario_id]
 
     def run(raw: str) -> tuple[dict, list[dict]]:
         rc, out, _ = pf.run_dtctl("query", validate.strip_dql_comments(raw), "-o", "json",
@@ -183,17 +183,14 @@ def ground_truth(scenario_id: str) -> dict:
         return (envelope or {}), (pf._flatten_records(envelope) if envelope and envelope.get("ok") else [])
 
     envelope, rows = {}, []
-    for block in validate.extract_dql_blocks(resolver_file)[:2]:
-        envelope, rows = run(block)
-        if rows:
-            break
+    envelope, rows = run(validate.survey_dql(scenario_id))
     if not rows:
         return {}
     row = rows[0]
     truth = {k: row.get(k) for k in ("display_id", "affected_users", "root_cause", "status", "duration_min")}
     state = validate.extract_state_from_resolver(pf, envelope)
     commits: list[str] = []
-    for block in validate.extract_dql_blocks(beats_file):
+    for block in validate.extract_dql_blocks(scenario_file):
         if "CUSTOM_DEPLOYMENT" in block and "{{TRACE_ID}}" not in block:
             _, deploys = run(pf.substitute_placeholders(block, state, pass_through_unknown=True))
             commits = list(dict.fromkeys(str(d["commit"]) for d in deploys if d.get("commit")))

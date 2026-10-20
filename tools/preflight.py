@@ -483,23 +483,28 @@ def preflight_report() -> int:
 
     live_ids = []
     total = 0
-    for scenario_id, (resolver_file, _) in skill.SCENARIO_FILES.items():
+    rows_by_scenario = {}
+    survey_error = None
+    try:
+        _, out, _ = run_dtctl("query", skill.strip_dql_comments(skill.survey_dql()), "-o", "json",
+                              "--max-field-chars", "0")
+        envelope = parse_envelope(out)
+        if envelope and envelope.get("ok"):
+            rows_by_scenario = {r.get("scenario"): r for r in _flatten_records(envelope)}
+        else:
+            survey_error = "the survey query failed"
+    except Exception as e:
+        survey_error = str(e)
+    for scenario_id in skill.SCENARIO_FILES:
         context = skill.SCENARIO_CONTEXT.get(scenario_id, skill.DEFAULT_CONTEXT)
         if context != skill.DEFAULT_CONTEXT:
             print(f"[SKIP] {scenario_id} — its data lives on the '{context}' tenant, not the Playground")
             continue
         total += 1
         try:
-            row = None
-            # Primary resolver, then the fallback, as the skill's session protocol does.
-            for block in skill.extract_dql_blocks(resolver_file)[:2]:
-                _, out, _ = run_dtctl("query", skill.strip_dql_comments(block), "-o", "json",
-                                      "--max-field-chars", "0")
-                envelope = parse_envelope(out)
-                rows = _flatten_records(envelope) if envelope and envelope.get("ok") else []
-                if rows:
-                    row = rows[0]
-                    break
+            if survey_error:
+                raise RuntimeError(survey_error)
+            row = rows_by_scenario.get(scenario_id)
             if row:
                 mode = "live_active" if row.get("status") == "ACTIVE" or not row.get("ended") else "live_recent"
                 check(scenario_id, True, f"{row.get('display_id', '?')} {row.get('status', '?')}, "

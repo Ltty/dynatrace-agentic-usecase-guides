@@ -30,4 +30,4 @@ A survey opens on how many incidents there were and what each affected, never on
 
 ## Output
 
-End every turn with text for the user, never on a tool call. The status line is the first thing you write: before the first query, exactly one short line in character, the one the skill gives. Say nothing before it, not even while you read files, and nothing between tool calls. Never mention the lookups you run, a backup lookup, an empty lookup result, retries, files or the skill, and never explain how you work: the user sees only that line and the answer. Use only the data tool you have been given: `execute-dql`.
+End every turn with text for the user, never on a tool call. The status line is the first thing you write: before the first query, exactly one short line in character, the one the skill gives. Say nothing before it, not even while you read files, and nothing between tool calls. Never mention the survey query, an empty survey result, retries, files or the skill, and never explain how you work: the user sees only that line and the answer. Use only the data tool you have been given: `execute-dql`.

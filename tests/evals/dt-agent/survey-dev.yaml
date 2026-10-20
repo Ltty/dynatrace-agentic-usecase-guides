@@ -9,9 +9,8 @@ turns:
     first_read_contains: /SKILL.md
     reads_include:
     - session-protocol.md
-    - scenario-disk-cpu-cascade.md
     reads_exclude:
-    - -beats.md
+    - scenario-
     requires_dql: true
     max_progress_lines: 1
     reply_contains:

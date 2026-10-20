@@ -44,7 +44,7 @@ python tools/preflight.py login
 - **Safety level:** `readonly` on the playground context, plus the guard hook (see Guardrails)
 - **Agent mode:** auto-activates (`CLAUDECODE` env var present); output is a JSON envelope
 - **Auth:** per-user browser OAuth; no shared tokens exist in this repo
-- **State:** conversation context only. The resolver DQL in each scenario file returns the problem,
+- **State:** conversation context only. The survey query in `session-protocol.md` returns each scenario's problem,
   the incident window and the timing fields; there is no state file.
 - **Quoting:** run `dtctl` from Bash. Windows PowerShell 5.1 strips the double quotes inside DQL
   string literals, so the query silently returns no rows.
@@ -106,7 +106,7 @@ Adding a scenario: `docs/AUTHORING.md`.
 
 ## Known constraints
 
-- Recurring Playground problem patterns fire as a **cluster of near-duplicate problems**. The resolver
+- Recurring Playground problem patterns fire as a **cluster of near-duplicate problems**. The survey query
   filters `dt.davis.is_duplicate == false` to get one deterministic instance — do not additionally filter
   on `event.name`, the umbrella problem is often generically named.
 - Specific values (exception text, commit SHA, line numbers, affected-user counts) **rotate every problem
@@ -121,7 +121,7 @@ Adding a scenario: `docs/AUTHORING.md`.
 - Field names in this Playground do not always match generic DQL documentation — see
   `references/dql-reference.md` in the skill before trusting an assumption.
 - The Playground is read-only; the agent must never attempt a write (the hook enforces this).
-- No fixture fallback exists — all queries hit the live Playground. The Playground resolvers look back 48h and
+- No fixture fallback exists — all queries hit the live Playground. The survey query looks back 48h and
   each of those problems fires at least once a day, so a live occurrence is almost always available
   (`disk-cpu-cascade` is one long-running problem on the dev tenant). If nothing is
   found, the agent says the environment is clean and stops.

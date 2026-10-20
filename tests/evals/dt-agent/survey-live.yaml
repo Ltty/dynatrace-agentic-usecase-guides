@@ -14,10 +14,8 @@ turns:
     first_read_contains: /SKILL.md
     reads_include:
     - session-protocol.md
-    - scenario-payment-failure.md
-    - scenario-broken-images.md
     reads_exclude:
-    - -beats.md
+    - scenario-
     requires_dql: true
     reply_excludes:
     - Environment looks clean

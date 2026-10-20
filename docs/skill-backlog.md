@@ -59,8 +59,53 @@ Branding: "Dynatrace Intelligence" / "Dynatrace Assist", never "Davis" or "CoPil
 - Evals: the runner forbids "Dynatrace Intelligence" only as self-identification, so no walk-through case sets
   `forbid: false`; `explore-close-dev` (draft) covers the close; `walk-through-*` cases replace `briefing-*`.
 
+## Done in the repo, 2026-10-20 (best-practice review and execution cost; not uploaded, evals not run)
+
+Review against the skill-authoring best practices, then a pass to cut thinking time and tokens without losing determinism.
+
+- **Contradictions fixed:** one opening-report length (14 lines); checkout is "listed as affected", not "downstream", in the
+  payment context (read before any trace); "let me look myself" ends on exactly two angles; beat 5 (payment, images) no
+  longer ends on a quiz question; one label for the beat 5 population ("sessions with server errors (5xx)"); no hardcoded
+  retry time in the images beat 4.
+- **One survey query** (`session-protocol.md` -> "Session state") replaces three main/backup lookup pairs. `dedup` picks the main
+  row, or the fallback when there is none, in DQL. Checked live: same problem ids as the old lookups on the Playground
+  (payment, images) and on dev (disk, via the fallback branch, 5 days 1 hour). Survey steps drop from five sequential model steps
+  to three.
+- **One file per scenario:** the lookup file and the beats file are merged; the survey reads `session-protocol.md` only, and a
+  scenario file is read once the scenario is chosen. Discovery hooks moved into the protocol; the persona is stated once in
+  SKILL.md; unused `user_action` and `Duration` lines are gone. Local `/demo` preloads SKILL.md and session-protocol only and
+  uses bare `dtctl` (the path helper is a fallback).
+- **Arithmetic moved into DQL:** `revenue_usd`, `duration_days/hours` (survey); `deploy_before_problem_min` (beat 2),
+  `detected_after_min` (payment beat 4), `elapsed_min` (every beat's first query, from `{{SURVEY_AT}}`), and beat 5 totals
+  (`total_sessions`, `no_country`, `countries`, top five rows) instead of summing 16 rows by hand. This closes the "detection
+  gap is computed by the model" item. New tokens: `{{STARTED}}`, `{{SURVEY_AT}}`.
+- **Less text:** "Optional engagement", the four-class table, the duplicated off-topic and cost replies, the second payment
+  Wrong/Right example and the repeated survey paragraph are gone. SKILL.md has a turn table (reads, status line, ending per
+  opening) in place of the checklist exceptions.
+- **Measured** (characters / 4, before the first reply): survey 13.6k -> 6.9k tokens; hands-on payment session 16.8k -> 13.7k.
+- Tools follow the layout: `validate_dt_skill.py` uses the survey query narrowed to the scenario as its resolver, and
+  `preflight.py` and `run_dt_evals.py` (ground truth) use it too. Survey evals now assert that no scenario file is read.
+  All three scenarios validate live (8, 7 and 6 blocks pass); offline tests pass.
+- Beat 1 keeps its own query: it needs `description`, which the survey row leaves out on purpose (the row does carry `owning_team`).
+
 ## Open
 
+- **In-session evals after the 2026-10-20 restructuring (1 run each, subagent plays the agent, Sonnet):** 11 of 11 pass:
+  `survey-live`, `survey-dev`, `opening-pick-id-live`, `opening-pick-live`, `opening-shortcut-live`,
+  `walk-through-opening-live`, `walk-through-evidence-live` (six turns, ends on the handoff block and close),
+  `explore-close-live` (seven turns, close with a measured "4 minutes"), `data-only-live`, and `handoff-live` after a fix.
+  - `handoff-live` first failed: the revert request ran a query for the owning team, which only beat 1 returned. The
+    pre-change skill skipped that query and named the deploy owner (team-astroshop) as who it goes to, which is the wrong
+    team per the Handoff fields. Fixed by adding `owning_team` to the survey row; the rerun names Team-Financial-Services,
+    lists both teams and runs no query.
+  - Not run: `offtopic`, `cost` (instructions changed by one phrase), `clean-environment` (needs a clean tenant),
+    the images and disk walk-throughs, `limits-live`, `premise`, `injection`, and the model comparison (Haiku, Sonnet, Opus).
+    One run each is not the 3-run bar the dev runner uses. A subagent writes no text between tool calls, so the status line
+    is not checked here.
+- **Deep links are still templates** in the beats. Building them with `concat()` in each beat's first query would save the
+  model the URL assembly; not done because it adds fields to every result.
+- **Dev tenant:** one trivial query hung until timeout during the restructuring and worked again minutes later (token refresh
+  suspected); the dev validation passed on retry.
 - **Deployed to dev, 2026-10-08 (template v12, 11 documents); first `@demo-agent` runs.** Dev evals, 3 runs each, across
   four rounds: cost, greeting, injection, offtopic, revert-no-incident and vendor pass 3/3 every time. The rest moved
   between rounds with 3-run noise; what stays broken, and why:

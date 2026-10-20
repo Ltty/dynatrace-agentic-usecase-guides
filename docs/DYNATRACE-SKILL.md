@@ -55,7 +55,7 @@ These are the app format's rules. `python tools/dt_agent.py check` enforces them
 
 - **Mount at `/resources/documents/`.** The platform appends each document's full name under the mount path. Mounting at `/resources/documents/skills/<skill>/` buried `SKILL.md` two levels deep and the agent ignored the skill. At `/resources/documents/`, `SKILL.md` lands at `/resources/documents/skills/<skill>/SKILL.md`, directly inside the directory listed in `skills`. The SRE template's per-skill mount form does not transfer.
 - **Name the path in the instructions.** After a document update the agent skipped the skill in three runs in a row. Naming the exact `SKILL.md` path and saying to read it first, before any query, fixed it (3 of 3 runs).
-- **Survey reads resolvers only.** At survey time the agent reads `session-protocol.md` and each scenario's resolver file, never the beats files. Eval group D checks this.
+- **The survey reads `session-protocol.md` only.** It runs one query for every scenario and reads no scenario file; a scenario file is read once the scenario is chosen. Eval group D checks this.
 
 ## Dev and production routes
 
@@ -83,9 +83,9 @@ The Playground token needs `ai:operator:execute`, `mcp-gateway:servers:read` and
 
 ## Add a scenario
 
-1. Add `scenario-<id>.md` (persona, business context, scope, handoff fields, primary and fallback resolver) and `scenario-<id>-beats.md` to `references/`, copying an existing pair.
+1. Add `scenario-<id>.md` (business context, scope, handoff fields, beats) to `references/`, copying an existing one, and a branch for it in the survey query in `session-protocol.md`.
 2. Add a row to the scenario table in `SKILL.md`, and keep it under 150 lines.
-3. Register the files in `SCENARIO_FILES` in `tools/validate_dt_skill.py`.
+3. Register the file in `SCENARIO_FILES` in `tools/validate_dt_skill.py`.
 4. Verify every DQL block live, then `check`, then upload.
 5. Verify DQL on live data before writing the reveal. Plugin-era assumptions went stale: a failing-spans story turned out to be pure latency.
 
@@ -123,10 +123,10 @@ The Playground token needs `ai:operator:execute`, `mcp-gateway:servers:read` and
   13), not the Dynatrace runtime. Cost: about 65 to 80k subagent tokens per case run, so run the cases you changed. Offline
   tests: `python tools/tests/test_score_transcript.py`.
 - **Review sheet:** every run writes `tests/evals/dt-agent/reports/<timestamp>-<tenant>.md` (git-ignored) with the transcripts, for tone and persona, which a script cannot judge.
-- **Ground truth (Playground):** a case can list `truth: [payment-failure, ...]`. The runner runs the scenario's resolver and deployment DQL itself, pinned to the read-only `playground` `dtctl` context (`python tools/run_dt_evals.py --truth payment-failure` prints it), and `{truth.<scenario>.<field>}` placeholders in a case are replaced with the live values. An empty truth fails the check instead of skipping it.
+- **Ground truth (Playground):** a case can list `truth: [payment-failure, ...]`. The runner runs the survey query (narrowed to the scenario) and the deployment DQL itself, pinned to the read-only `playground` `dtctl` context (`python tools/run_dt_evals.py --truth payment-failure` prints it), and `{truth.<scenario>.<field>}` placeholders in a case are replaced with the live values. An empty truth fails the check instead of skipping it.
 - **Tenants:** `--tenant dev` uses `DT_DEV_AGENT_TOKEN`; `--tenant playground` uses `DT_PLAYGROUND_AGENT_TOKEN`. If the tenant has no `demo-agent` template, the runner skips with a message. Cases marked `status: draft` (the Playground ones) need `--include-draft` and their expectations are unvalidated until the agent exists there.
 - **Manual groups:** `docs/dt-skill-evals.md` and `docs/guardrail-probes.md` stay the source for cases that are not automated yet (persistence, deep links).
-- **Dev has one scenario.** The payment and image resolvers hardcode Playground service IDs, so on dev they return nothing and only `disk-cpu-cascade` is live there. The `*-dev` eval cases run on it; the rest of the scenario content is tested on the Playground.
+- **Dev has one scenario.** The payment and image branches of the survey query hardcode Playground service IDs, so on dev they return nothing and only `disk-cpu-cascade` is live there. The `*-dev` eval cases run on it; the rest of the scenario content is tested on the Playground.
 
 ## One skill, two runtimes
 

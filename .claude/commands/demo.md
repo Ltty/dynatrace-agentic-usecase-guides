@@ -14,11 +14,9 @@ they map onto this environment, and the skill they name:
 
 @dynatrace-intelligence/skills/investigating-playground-incidents/references/session-protocol.md
 
-@dynatrace-intelligence/skills/investigating-playground-incidents/references/conversation-craft.md
-
-The skill and its session-protocol and conversation-craft references are already above, so the
-instructions' first step of reading the skill is done and those two need no Read; read the other
-reference files (scenarios, DQL, the walk-through) as the skill directs. If any block above shows a literal `@path` instead of the file's
+The skill and its session-protocol reference are already above, so the instructions' first step of
+reading the skill is done and those two need no Read; read the other reference files
+(conversation-craft, the chosen scenario, the walk-through, DQL) as the skill directs. If any block above shows a literal `@path` instead of the file's
 content, Read that file first, silently (in a plugin install the paths are under the plugin's
 directory).
 

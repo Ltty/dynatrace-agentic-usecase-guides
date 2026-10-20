@@ -11,7 +11,7 @@ Procedures (layout rules, deploying, testing, adding a scenario): [docs/DYNATRAC
 ## What this is
 
 - **One `SKILL.md`** — the entry point and dispatch layer.
-- **Reference `.md` files** — the conversation rules, DQL gotchas, and each scenario's resolver and beats.
+- **Reference `.md` files** — the conversation rules, DQL gotchas, and each scenario's context and beats.
 - **Native DQL execution** — in Dynatrace the runtime runs queries through `execute-dql`; locally the
   adapter maps the same call onto `dtctl query`.
 
@@ -27,16 +27,13 @@ dynatrace-intelligence/
     └── investigating-playground-incidents/   — folder name must equal the frontmatter `name`
         ├── SKILL.md                          — entry point, principles, scenario registry, workflow, checklist
         └── references/                       — flat: no subfolders, unique names, linked as references/<name>.md
-            ├── session-protocol.md           — greeting, session state + token table, survey, handoff block, close
+            ├── session-protocol.md           — greeting, the survey query + session state, survey, handoff block, close
             ├── conversation-craft.md         — beat loop, data-only rule, divergence, staying in role, pacing rules
             ├── walk-through.md               — the report delivery: opening report, evidence turns, a manager's words
             ├── dql-reference.md              — verified field names, gotchas, chained queries
-            ├── scenario-payment-failure.md        — persona, business context, scope, handoff fields, resolvers
-            ├── scenario-payment-failure-beats.md  — the 5 beats with DQL, reveals, staging, deep links
-            ├── scenario-broken-images.md          — same shape, for the image-provider slowdown
-            ├── scenario-broken-images-beats.md    — the 5 beats for the slowdown
-            ├── scenario-disk-cpu-cascade.md       — same shape, for the dev-tenant disk and CPU problem
-            └── scenario-disk-cpu-cascade-beats.md — the 5 beats for the disk and CPU problem
+            ├── scenario-payment-failure.md   — business context, scope, handoff fields, the 5 beats with DQL, reveals, staging, deep links
+            ├── scenario-broken-images.md     — same shape, for the image-provider slowdown
+            └── scenario-disk-cpu-cascade.md  — same shape, for the dev-tenant disk and CPU problem
 ```
 
 Every scenario runs in two deliveries: the user explores with the SRE as a peer (default), or the SRE
@@ -46,8 +43,9 @@ instructions only route to it. Scenarios author no walk-through content, but the
 `pull_line` and a `Goes to` row, and the handoff block draws on their Handoff fields table, so a scenario with no
 owner or no user count must say so there.
 
-The survey reads only each scenario's resolver file; the beats file is read once the user picks
-a direction. Adding a scenario means adding both files and a row in the SKILL.md registry.
+The survey runs one query for every scenario and reads only `session-protocol.md`; a scenario file is read once the
+scenario is chosen. Adding a scenario means adding its file, a branch in the survey query and a row in the SKILL.md
+registry.
 
 The layout is the one `dt-app deploy` expects. It turns each file into an `ai-agent-resource` document named `/skills/<skill-name>/SKILL.md` or `/skills/<skill-name>/references/<name>.md`. SKILL.md stays under 150 lines, and reference links always use the `.md` extension.
 
@@ -82,7 +80,7 @@ constraint. See `docs/SECURITY.md` for both.
 The strong practice in this repo is *no query ships unexecuted*. Before loading the skill:
 
 ```bash
-# Runs both resolver DQLs, then all beat DQLs, including the chained trace summary.
+# Runs the survey query for the scenario, then all beat DQLs, including the chained trace summary.
 python tools/validate_dt_skill.py --scenario payment-failure
 python tools/validate_dt_skill.py --scenario broken-images
 python tools/validate_dt_skill.py --scenario disk-cpu-cascade   # runs on the dev context
@@ -93,7 +91,7 @@ Also open one deep link with substituted values and confirm the Dynatrace app lo
 ## Current scope
 
 - **Engine:** complete — session protocol, beat loop, divergence, persona, pacing, data-only conclusions.
-- **payment-failure scenario:** complete — resolver DQLs and all 5 beats with DQL inline.
+- **payment-failure scenario:** complete — survey query branch and all 5 beats with DQL inline.
 - **broken-images scenario:** complete — ported as a latency investigation, rebuilt against
   live data. The incident repeats every day: after a deploy around 03:00 UTC the Lambda resizes
   every image on every request until a fix lands about 30 minutes later. A single sampled failed
@@ -104,22 +102,22 @@ Also open one deep link with substituted values and confirm the Dynatrace app lo
 - **Walk-through delivery:** complete locally (testruns 12 and 13) — an opening report with the whole story, then
   evidence turns and a handoff block. Not yet uploaded or evaluated on `@demo-agent`.
 
-## Resolver notes (maintainers only)
+## Survey query notes (maintainers only)
 
 Kept out of the skill on purpose: the agent reads the scenario files and would repeat them to the user.
 
 - `now()-48h`: payment-failure fires about twice a day and broken-images once a day (around 03:04 UTC), so 48 hours always spans at least one occurrence. disk-cpu-cascade is one long-running problem, always inside it.
 - `±15m` window padding catches the culprit deploy just before onset, a clean baseline, and the recovery after the fix.
-- The fallback resolver drops `is_duplicate` and takes the largest-impact problem instead, for cycles where the near-duplicate problems weren't merged.
-- The payment and image resolvers hardcode Playground service IDs, and the disk resolvers hardcode dev IDs. On the
-  other tenant a resolver returns nothing and the survey does not list that scenario.
+- The fallback (`pref = 1`) ignores `is_duplicate` and takes the largest-impact problem instead, for cycles where the near-duplicate problems weren't merged.
+- The payment and image branches hardcode Playground service IDs, and the disk branch hardcodes dev IDs. On the
+  other tenant a branch returns nothing and the survey does not list that scenario.
 - The Playground runs the same disk and CPU demo as dev under different IDs (P-26092140, whose record has no root
   cause). The disk fallback therefore also requires the dev host ID among the affected entities, or a Playground
   survey listed a dev-only scenario (testruns 12 and 13). Dev records carry no `dt.entity.host`, so the guard is a
   string test on `smartscape.affected_entities`.
 - A problem is recorded several times (updates and refreshes); only the newest platform-analysed record carries the
   root cause, which is why the disk primary filters on it.
-- Resolver DQL runs exactly as the file gives it: a hand-trimmed copy dropped fields needed later and cost a second
+- The survey query runs exactly as the file gives it: a hand-trimmed copy dropped fields needed later and cost a second
   query (testrun 12).
 - Payment beat 1 is pinned to the problem ID, so its 48h range is safe; the incident window would risk cutting off
   the problem record.

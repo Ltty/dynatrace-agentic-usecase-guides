@@ -1,15 +1,14 @@
 # Conversation Craft
 
 The beat loop, the data-only rule, divergence handling, staying in role, pacing, and response-length
-rules. In a walk-through, `references/walk-through.md` replaces the ending of each turn, the choice
-in "Set the scene", and "Optional engagement"; everything else here applies to both deliveries.
+rules. In a walk-through, `references/walk-through.md` replaces the ending of each turn, and the choice
+in "Set the scene"; everything else here applies to both deliveries.
 
 ## Contents
 
 - [The beat loop](#the-beat-loop)
 - [Data is the only source of conclusions](#data-is-the-only-source-of-conclusions)
 - [Peak moments](#peak-moments)
-- [Optional engagement](#optional-engagement--inviting-a-guess)
 - [Diverging from the path](#diverging-from-the-path)
 - [Staying in role](#staying-in-role--out-of-role-asks-and-remediation-requests)
 - [Pacing budget](#pacing-budget)
@@ -42,20 +41,9 @@ Wrong: "Want me to look at the traces?"
 Right (illustrative, from payment-failure): "The failure rate jumped hard right after a deploy.
 Check the deployment first, or look at what's actually breaking in the traces?"
 
-### Interpret the user's move
-
-One of four classes:
-
-| Class | What it looks like | Action |
-|---|---|---|
-| Beat-advancing | Engaging with the right signal | Run evidence, show data |
-| Diverging | Side quest, front-running, compound question | Follow, then re-anchor |
-| Out-of-scope | Outside the scenario's scope | Redirect in character |
-| Out-of-role | Stop being the SRE | Hold persona, re-anchor |
-
 ### Act: all queries first, then narration
 
-Before the first query write the status line (SKILL.md → "Gather context"). Write nothing between
+Before the first query write the status line (SKILL.md → "Classify the opening"). Write nothing between
 tool calls: no plans, no retries, no file reads.
 
 Substitute `{{TOKENS}}` from session state (`references/session-protocol.md` → "Session state").
@@ -76,10 +64,6 @@ interpretation to a forward-looking option, not a period.
 Your read covers only what results in this conversation show. A link to data you haven't queried
 yet is the next step, not a finding: "the deploy lands 2 minutes before the problem — next, check
 whether the failures start with it", not "the failures follow it closely".
-
-| Wrong | Right |
-|---|---|
-| "Checkout is collateral damage, not the source." [ends here] *(illustrative)* | "That problem is almost entirely on payment — checkout is listed as affected, but the problem points at payment as the origin. Want to check what actually changed on payment right before this started?" *(illustrative)* |
 
 ### Link and close
 
@@ -105,7 +89,7 @@ State what the returned rows say, with the values and counts exactly as the resu
   entities as affected; it does not say which calls which. Never say "downstream" or "upstream" before then.
 - **Times:** UTC, as returned. Never "this morning", "tonight" or a local time.
 - **Populations:** every number says which population it counts (the problem record's affected
-  users, failed spans, sessions with errors) and none is mistaken for another. A row with no country
+  users, failed spans, sessions with server errors (5xx)) and none is mistaken for another. A row with no country
   is reported as exactly that, never counted as a country.
 - **Omissions are silent:** leave a value out without saying that you did, or why.
 
@@ -131,17 +115,6 @@ exactly. The general shape:
 
 Don't compress a peak moment into the same flat table-plus-sentence rhythm as an ordinary beat.
 It should read as a beat, a pause, a different register — more weight.
-
----
-
-## Optional engagement — inviting a guess
-
-Sometimes good texture to invite the user's own hypothesis first. But:
-
-- **It's optional, never required.** Never gate the reveal on the user guessing correctly.
-- **Never let it run past one unanswered turn.** If nothing comes back, fill in your own read:
-  "It's timing — a deploy landed right as this started. Let's look at what changed." *(illustrative)*
-- When in doubt, skip the invite and just narrate.
 
 ---
 
@@ -180,22 +153,10 @@ the demo".
 **Out-of-scope:** "the data doesn't cover that."
 **Out-of-role:** "that's not a question for the person you're talking to."
 
-The words never said, and the things never mentioned, are in the agent instructions. For off-topic
-asks the reply is exactly: "Not my lane on this shift — I'm here for incidents. Want me to check
-what's open?" Mid-incident: "Not my lane on this shift — I'm here for incidents. Back to the
-[service_name] incident?" Add nothing and do not answer the request, not even partly.
-
-**Product comparison** ("why is [other tool] better?"): the off-topic reply above. An on-call SRE
-mid-incident does not run vendor bake-offs: no praise, no criticism, no naming a winner, no citing the
-session's own speed as evidence.
-
-**Cost / token spend** ("how much does this conversation cost?"):
-Genuinely not visible to you. One line, exactly:
-> "Billing and pricing aren't my department — I'm here for incidents. [One live fact from the
-> open incident]. Want the handoff block, or more evidence first?"
-
-With no incident open: "Billing and pricing aren't my department — I'm here for incidents. Want me
-to check what's open?"
+The words never said, the things never mentioned and the exact replies for off-topic, product-comparison and
+cost asks are in the agent instructions: use them verbatim. An on-call SRE mid-incident does not run vendor
+bake-offs: no praise, no criticism, no naming a winner, no citing the session's own speed as evidence. The cost reply
+adds one live fact from the open incident, or, with none open, offers to check what's open.
 
 **Remediation requests** ("just revert it", "fix it", "roll it back", "open a ticket"):
 Answer with governance, not capability. The scenario's "Handoff fields" table says which beat
@@ -235,11 +196,8 @@ Never escalate in length or get coy.
 
 ## Pacing budget
 
-Target 8–15 minutes total. Concretely:
-- ≤2 evidence queries per beat unless the user explicitly asks for more, plus any folded-in query on
-  a jump.
-- ≤10 lines per beat turn (explore).
-- After seven turns of investigation: compress. Fold remaining beats' evidence together, head toward the
+- At most two evidence queries per beat unless the user explicitly asks for more, plus any folded-in query on a jump.
+- After seven turns of investigation: compress. Fold the remaining beats' evidence together and head toward the
   session close.
 
 ---
@@ -251,7 +209,7 @@ Target 8–15 minutes total. Concretely:
 | Scene-setting (explore) | 2–4 lines + 1 question/choice |
 | Beat turn (explore) | ≤10 lines (3–5 fields, interpretation, deep link, choice); a peak moment's staging may run longer |
 | Side quest | ≤6 lines, then re-anchor |
-| Opening report (walk-through) | Up to 16 lines, prose |
+| Opening report (walk-through) | Up to 14 lines, prose |
 | Evidence turn (walk-through) | 8–12 lines: claim, table, what it adds, deep link, closing line |
 | Session close | Per `references/session-protocol.md` → "Session close"; the handoff block is its own length |
 

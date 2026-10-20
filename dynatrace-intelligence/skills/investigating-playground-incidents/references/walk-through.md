@@ -30,7 +30,7 @@ incident report", "report it to me". "Give me the summary" is not one of these: 
 handoff block.
 
 If no survey has run in this conversation, resolve the scenario first, as the survey does. Read the
-scenario's beats file and `references/conversation-craft.md` before the opening report, if they are not
+scenario file and `references/conversation-craft.md` before the opening report, if they are not
 already read.
 
 Never name the two ways of working to the user: no "walk-through", "briefing", "explore", "mode" or
@@ -42,8 +42,8 @@ The first turn is the whole story, not the first beat. A manager who stops liste
 turn must still know what happened, what it cost, why, and who it hit.
 
 **Queries.** Before writing anything, run the first Evidence DQL block of every beat in the
-scenario's beats file, in one turn, with no text between the calls. Skip any block that needs a
-value from another block (`{{TRACE_ID}}`); it runs in its evidence turn. Do not run the lookup
+scenario file, in one turn, with no text between the calls. Skip any block that needs a
+value from another block (`{{TRACE_ID}}`); it runs in its evidence turn. Do not run the survey query
 again if it ran in this conversation. This is the one turn that may exceed the budget of two
 queries per beat.
 
@@ -55,8 +55,8 @@ peak"): "about" is only for rounding a value you read, never for one you did not
 evidence turns.
 
 1. **The story,** three or four sentences in time order, plain words. First what was affected and for how long
-   (UTC as returned), for how many (one population, labelled) and at what cost (`affected_users ×
-   avg_order_value_usd`, an estimate from the average order value, only when the scenario defines it). Then
+   (UTC as returned), for how many (one population, labelled) and at what cost (the survey row's `revenue_usd`, an
+   estimate from the average order value, only when the row has it). Then
    what happened, in order: the change shipped (commit, short SHA, 7 characters), the errors began, Dynatrace
    opened the problem, a later deploy after which the problem stops (an inference, labelled as the data-only
    rule says), resolved. A scenario that is a state, not a change, tells its state, what it does and what it
@@ -121,7 +121,7 @@ itself the handoff, that turn is the block.
 ## What differs from explore
 
 - A turn ends on the closing line, not on a choice. Offer one path, never two.
-- Skip "Optional engagement". Never wait for a Success signal; advance on any acknowledgement.
+- Never wait for a Success signal; advance on any acknowledgement.
 - After a detour or an out-of-scope reply, return to the thread: "Back to where we were — next is X." Not
   the explore re-anchor, which offers options.
 - The opening report is prose; evidence turns use tables.
@@ -138,7 +138,7 @@ itself the handoff, that turn is the block.
 | "what next", "what do we do", "wrap it up", "give me the summary" | The handoff block now (session-protocol → "Handoff block"), plus any held-back block its rows need, then the session close, payoff line included |
 | "was it a bug", "was that the fix", "was it global" | The exact replies below |
 | a specific question | Answer it from data, querying if needed, then one line back to the thread |
-| "let me look myself", "what would you check" | Set `delivery` to `explore` and end on 2–3 entry angles |
+| "let me look myself", "what would you check" | Set `delivery` to `explore` and end on exactly two entry angles |
 
 If the user asks to be walked through it again after steering, set `delivery` back to
 `walk-through` and continue from the next evidence turn not yet delivered.
@@ -165,13 +165,13 @@ from the results:
   was intended is [owning_team]'s call. We can see the behaviour and the timing, not the intent."
 - **"Was that the fix?"** "[The symptom] stops within [gap] of [short SHA]'s deploy, so it reads as
   the fix landing. What it changed is in the diff, which the telemetry doesn't hold."
-- **"Was it global?"** "[T] sessions had errors, [M] of them with no country recorded and the rest
+- **"Was it global?"** "[T] sessions had server errors (5xx), [M] of them with no country recorded and the rest
   across [N] countries. That's the count; the data says nothing more about reach."
 
 Never say "global outage" or "worldwide".
 
 These use payment-failure's terms. For another scenario keep the structure and substitute its own: the population
-label from the Handoff fields table instead of "sessions with errors", and the beat 4 finding instead of the
+label from the Handoff fields table instead of "sessions with server errors (5xx)", and the beat 4 finding instead of the
 exception. Never call a slowdown an error.
 
 ## Keeping it a conversation
