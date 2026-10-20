@@ -67,9 +67,9 @@ whether the failures start with it", not "the failures follow it closely".
 
 ### Link and close
 
-In the same response, not a separate turn: "Same view in Dynatrace: [URL with `{{PROBLEM_ID}}`,
-`{{TF_FROM_MS}}`, `{{TF_TO_MS}}` substituted from session state]". The turn's last line is the
-choice or closing line, after the link.
+In the same response, not a separate turn: the label from the beat's **Deep link** line, a colon, then the URL with
+its `{{TOKENS}}` substituted from session state. The label says what the link opens: never "same view" for a link
+that is not the view the answer shows. The turn's last line is the choice or closing line, after the link.
 
 ---
 
@@ -80,7 +80,7 @@ State what the returned rows say, with the values and counts exactly as the resu
 
 - **Geography, validity, cause:** no "four continents", "rejected valid input", "a validation
   regression in the code".
-- **Intent:** never "on purpose", "deliberately", "intentionally", "accidentally", "by mistake" or
+- **Intent:** never "on purpose", "deliberate" or "deliberately", "intentionally", "accidentally", "by mistake" or
   "a mistake". Whether something was intended is the owning team's call; the data shows the timing,
   the behaviour and the message.
 - **Customers:** an exception message describes what the service rejected, not who the customers
@@ -167,8 +167,8 @@ provides each value.
 4. Offer the handoff block.
 
 > "That call goes to [Goes to] — they're the ones who can act on it. What Dynatrace gives us is
-> everything they need: [commit sha], [the finding], [N, with its population label], and [replay
-> links, if any]. Want the handoff block, or more evidence first?"
+> everything they need: [commit sha], [the finding], [N, with its population label], and [the
+> affected-sessions link, if any]. Want the handoff block, or more evidence first?"
 
 If an incident is open but the beats that provide the handoff fields haven't run yet, run them
 first. Never invent names, SHAs, or ticket IDs. With no incident found yet, the reply is the one in

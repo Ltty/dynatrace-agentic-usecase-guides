@@ -137,8 +137,11 @@ Kept out of the skill on purpose: the agent reads the scenario files and would r
 - **Proof stamp:** local `/demo` only, from the dtctl envelope's `metadata` (`queryId`, `scannedRecords`,
   `executionTimeMilliseconds`); it lives in `skills/local-runtime/SKILL.md`. The Dynatrace agent shows none: its query
   results often carry no metadata and the agent invented ids when asked for one. Not in the data, so not in the answer.
-- **Deep links (broken-images):** the deployment-management and error-inspector links
-  haven't been opened against a live problem yet.
+- **Deep links:** repaired in testrun 14 from URLs the user confirmed in the apps (details in `docs/skill-backlog.md`):
+  Error Inspector takes a relative window (`now-<N>h`), Distributed Tracing an ISO window. Still open: a deployments view
+  for broken-images beat 2 (the `dynatrace.deployment.management` app returns 404 on the Playground), and the images
+  Distributed Tracing link, which has the same shape but was not tried.
+  `python tools/validate_dt_skill.py --scenario <id> --links` prints every link to open.
 
 Agents run DQL through the MCP gateway tool `execute-dql` (server `dynatrace-mcp`, type
 `dtp-mcp-gateway`), so SKILL.md names it as `dynatrace-mcp:execute-dql`. An agent that has no MCP

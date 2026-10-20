@@ -51,7 +51,7 @@ Three populations coexist — always say which one a number counts.
 | Affected users (problem record) | survey row `affected_users` |
 | Real-user sessions with a slow image load (>1 s) | Beat 5 — sum of `sessions` across all countries |
 | Per-country sessions | Beat 5 — individual rows |
-| Session replay link | Beat 5 deep link |
+| Affected sessions link | Beat 5 deep link |
 
 ---
 
@@ -86,7 +86,7 @@ owner on record, since the deploy events carry none.
 
 **Success signal:** User names the image provider or the Lambda, or asks why it's slow.
 
-**Deep link:**
+**Deep link** (label "Problem in Dynatrace"):
 
 ```text
 https://playground.apps.dynatrace.com/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TF_FROM_MS}}&to={{TF_TO_MS}}
@@ -134,10 +134,10 @@ there.
 
 **Success signal:** User identifies the deploy as the trigger, or asks what that commit changed.
 
-**Deep link:**
+**Deep link** (label "Problem in Dynatrace"):
 
 ```text
-https://playground.apps.dynatrace.com/ui/apps/dynatrace.deployment.management/deployments?filter=dt.entity.service%3DSERVICE-5A0CD2879D2F37BE&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}
+https://playground.apps.dynatrace.com/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TF_FROM_MS}}&to={{TF_TO_MS}}
 ```
 
 ---
@@ -172,7 +172,7 @@ the buckets where it flips — that flip lines up with both commits.
 
 **Success signal:** User connects the resizes to the deploy, or asks where the time goes.
 
-**Deep link:**
+**Deep link** (label "Service view"):
 
 ```text
 https://playground.apps.dynatrace.com/ui/apps/dynatrace.services/explorer/services?detailsId=SERVICE-5A0CD2879D2F37BE&perspective=performance&problemId={{PROBLEM_ID}}&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}
@@ -246,10 +246,10 @@ check doesn't skip it.
 5. Tie it back: the check for a cached image runs, the resize runs anyway, every request since
    the deploy.
 
-**Deep link:**
+**Deep link** (label "Slow requests"):
 
 ```text
-https://playground.apps.dynatrace.com/ui/apps/dynatrace.distributedtracing/explorer?filter=dt.smartscape.service+%3D+SERVICE-5A0CD2879D2F37BE+AND+endpoint.name+%3D+invoke&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}
+https://playground.apps.dynatrace.com/ui/apps/dynatrace.distributedtracing/explorer?filter=dt.smartscape.service+%3D+SERVICE-5A0CD2879D2F37BE+AND+endpoint.name+%3D+invoke&tf={{TF_FROM_ISO}}%3B{{TF_TO_ISO}}&v=requests
 ```
 
 ---
@@ -304,8 +304,8 @@ recording of a shopper whose image took seconds to load.
 **Staging:** After the numbers, make replay concrete with one shopper: open one recording and watch which product images
 appeared, which stayed blank, and whether the shopper waited, scrolled on, or left. That is not in the DQL result; the replay shows it, via the deep link.
 
-**Deep link:**
+**Deep link** (label "Affected sessions"):
 
 ```text
-https://playground.apps.dynatrace.com/ui/apps/dynatrace.error.inspector/error-explorer?tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}&problemId={{PROBLEM_ID}}&perspective=impact&sort=affected_users%3Adescending
+https://playground.apps.dynatrace.com/ui/apps/dynatrace.error.inspector/error-explorer?tf=now-{{TF_REL_H}}h%3Bnow&problemId={{PROBLEM_ID}}&perspective=impact&sort=affected_users%3Adescending
 ```

@@ -26,7 +26,7 @@ turns:
     reply_excludes:
     - accidentally
     - on purpose
-    - deliberately
+    - deliberate
 - ask: Understood.
   expect:
     no_dql: true
@@ -40,7 +40,7 @@ turns:
     reply_excludes:
     - accidentally
     - on purpose
-    - deliberately
+    - deliberate
     - global outage
 - ask: Ok.
   expect:

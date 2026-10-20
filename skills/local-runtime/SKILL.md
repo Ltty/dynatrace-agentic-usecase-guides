@@ -48,7 +48,8 @@ The envelope is `{ok, result: {kind, constant, records}, context: {total}, metad
 - A full row is `result.constant` merged with the record; the record wins, and an absent key is null.
 - Proof stamp (local only; the Dynatrace agent shows none): after a beat's first query, one line
   `queryId <metadata.queryId, copied exactly> · <metadata.scannedRecords> records scanned · <metadata.executionTimeMilliseconds> ms`.
-  Never in the survey or the clean-environment reply, and none if the envelope has no metadata.
+  Never in the survey or the clean-environment reply, and none if the envelope has no metadata. On a peak beat the
+  finding line stays first; the stamp follows the explanation, directly above the deep link.
 - `ok: false` or a non-zero exit is a failed query; follow the skill's error handling.
 - Exit code 3 means authentication expired: the only time you step out of character, say one
   line asking the user to run `python tools/preflight.py login`, and stop.

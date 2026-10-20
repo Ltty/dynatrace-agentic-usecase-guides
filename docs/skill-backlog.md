@@ -88,8 +88,36 @@ Review against the skill-authoring best practices, then a pass to cut thinking t
   All three scenarios validate live (8, 7 and 6 blocks pass); offline tests pass.
 - Beat 1 keeps its own query: it needs `description`, which the survey row leaves out on purpose (the row does carry `owning_team`).
 
+## Done in the repo, 2026-10-20 (testrun 14 follow-up, phases 2 to 4; not uploaded)
+
+- Every beat's deep link has a label (`**Deep link** (label "..."):`) and the closing rule uses it, replacing the fixed
+  "Same view in Dynatrace:" (beat 2's link opens the assistant; the original guide calls it "Explain with Dynatrace
+  Intelligence"). The handoff block's `Replays:` line is now `Affected sessions:`; the runner's forbidden list rejects both
+  old phrases.
+- Scenario text: payment beat 4's trace example no longer includes checkout and says to build the chain from the rows;
+  beat 1 quotes an endpoint from `description` only if it names one for payment; on a peak beat the local proof stamp
+  follows the explanation, above the deep link.
+- `validate_dt_skill.py --scenario <id> --links` prints each beat's label and live-substituted URL;
+  `tools/tests/test_deep_links.py` (in CI) checks labels and tokens; AUTHORING step 4 requires opening every link for a
+  closed problem.
+- In-session evals after the label change (1 run each): `explore-close-live` passes (a label on every beat, "Affected sessions:" 
+  on beat 5, close with a measured "2 minutes"); `walk-through-evidence-live` passes the old assertions and the handoff block
+  has the "Affected sessions:" row. That run said "a deliberate rejection of a card type" on the exception turn, an intent claim the
+  old check missed (it looked for "deliberately"). The rule's word list and both cases now use "deliberate"; the same transcript
+  fails the widened check, and it has not been rerun since the rule change.
+- Still to do (needs the user): repair the Error Inspector and Distributed Tracing links from URLs copied out of the apps
+  (testrun 14 observations 1 and 2); see Open.
+
 ## Open
 
+- **Deep links, testrun 14:** confirmed in the apps by the user, 2026-10-20: Error Inspector loads with a relative window
+  (`tf=now-<N>h%3Bnow` plus the same parameters; payment and images), and Distributed Tracing loads with an absolute ISO
+  window (`tf=<from>%3B<to>&v=requests`, milliseconds, payment). Both are in the beats now, fed by `tf_rel_h`, `tf_from_iso` and
+  `tf_to_iso` in the survey row. Not yet confirmed: the images Distributed Tracing link (same shape, `endpoint.name = invoke`
+  filter), and whether Error Inspector also takes an absolute window (a relative one drifts as the problem ages). The
+  `dynatrace.deployment.management` app does not exist on the Playground (404), so images beat 2 points at the problem record
+  until a real deployments view is found. The Error Inspector link is labelled "Affected sessions"; nobody has checked that it
+  lists sessions or replays.
 - **In-session evals after the 2026-10-20 restructuring (1 run each, subagent plays the agent, Sonnet):** 11 of 11 pass:
   `survey-live`, `survey-dev`, `opening-pick-id-live`, `opening-pick-live`, `opening-shortcut-live`,
   `walk-through-opening-live`, `walk-through-evidence-live` (six turns, ends on the handoff block and close),

@@ -98,7 +98,7 @@ and the rest across [N] countries", never "plus [M]".
 
 A peak moment keeps its Staging: the finding alone on its own line first, then the pause, then part 1 as a
 clause inside the explanation, then parts 2 to 5. A peak turn may run past 12 lines. A question or invitation at the
-end of the Staging is replaced by the closing line, and the replay link goes in as the deep link.
+end of the Staging is replaced by the closing line, and the affected-sessions link goes in as the deep link.
 
 Reuse the opening report's results; query again only for the blocks held back. Budget: 8–12 lines
 per turn, the deep link included.

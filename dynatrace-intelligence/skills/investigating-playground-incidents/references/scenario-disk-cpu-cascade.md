@@ -99,7 +99,7 @@ what the record shows, not why: how the three relate is for the next beats to te
 
 **Success signal:** User names the disk, or asks why CPU is high, or asks about the OneAgent failure.
 
-**Deep link:**
+**Deep link** (label "Problem in Dynatrace"):
 
 ```text
 https://fxz0998d.dev.apps.dynatracelabs.com/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TF_FROM_MS}}&to={{TF_TO_MS}}
@@ -139,7 +139,7 @@ to the disk is not in these metrics.
 
 **Success signal:** User asks what filled the disk, or how long it has been this way, or asks to see the CPU.
 
-**Deep link:**
+**Deep link** (label "Host view"):
 
 ```text
 https://fxz0998d.dev.apps.dynatracelabs.com/ui/apps/dynatrace.infraops/explorer?entityId=HOST-A2BABAD05D401471&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}
@@ -186,7 +186,7 @@ data does tie to the disk, in its own words.
 **Success signal:** User asks what is using the CPU, or whether the disk causes it, or asks about the OneAgent
 failure.
 
-**Deep link:**
+**Deep link** (label "Host view"):
 
 ```text
 https://fxz0998d.dev.apps.dynatracelabs.com/ui/apps/dynatrace.infraops/explorer?entityId=HOST-A2BABAD05D401471&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}
@@ -250,7 +250,7 @@ fix it.
 5. State it plainly: one root cause in the problem record, and the update failure says in its own message that
    the disk is full. Whether freeing space also brings the CPU down is not something the data shows.
 
-**Deep link:**
+**Deep link** (label "Host view"):
 
 ```text
 https://fxz0998d.dev.apps.dynatracelabs.com/ui/apps/dynatrace.infraops/explorer?entityId=HOST-A2BABAD05D401471&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}
@@ -290,7 +290,7 @@ saturation. The record has no owner, so hand off by host name and host group; do
 
 **Success signal:** User confirms they know what to do, or asks for the handoff block.
 
-**Deep link:**
+**Deep link** (label "Problem in Dynatrace"):
 
 ```text
 https://fxz0998d.dev.apps.dynatracelabs.com/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TF_FROM_MS}}&to={{TF_TO_MS}}

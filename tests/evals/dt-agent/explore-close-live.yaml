@@ -45,7 +45,7 @@ turns:
     reply_excludes:
     - accidentally
     - on purpose
-    - deliberately
+    - deliberate
 - ask: And who was affected?
   expect:
     requires_dql: true

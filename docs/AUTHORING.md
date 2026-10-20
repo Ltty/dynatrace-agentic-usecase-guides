@@ -115,13 +115,19 @@ line the walk-through shows while it pulls the first query of every beat, naming
    skips it instead of reporting it empty. The local `/demo` is pinned to the Playground and cannot reach it. Its
    branch in the survey query must also carry a predicate only that tenant's entities satisfy, or a Playground survey lists it
    (testruns 12 and 13).
-2. `python tools/dt_agent.py check` — layout rules.
+2. `python tools/dt_agent.py check` — layout rules; `python tools/tests/test_deep_links.py` — every beat has a
+   labelled deep link that uses only known tokens.
 3. `python tools/validate_dt_skill.py --scenario <id>` — runs the survey query (narrowed to the scenario) and **every** beat query live,
    including chained ones, and fails on a bad field name or `round()` call. Do not call a scenario done
    until it passes clean.
-4. `python tools/preflight.py preflight` — the scenario shows as live, or as SKIP when its data lives on another
+4. `python tools/validate_dt_skill.py --scenario <id> --links` prints each beat's label and its URL with the live
+   problem's values. Open every one for a problem that has ended and judge it against its label: a link that opens a
+   chat, an empty view (an app that falls back to its default last-30-minutes window) or an error fails. A link
+   matching the beats file is not a pass (testruns 10 and 11 marked the Assist link as one; testrun 14 found it opens
+   the assistant). Each app writes its own time-range format: copy the URL from the app, never from another app's link.
+5. `python tools/preflight.py preflight` — the scenario shows as live, or as SKIP when its data lives on another
    tenant.
-5. Upload and evaluate: `docs/DYNATRACE-SKILL.md`. Add an eval case under `tests/evals/dt-agent/` for any new
+6. Upload and evaluate: `docs/DYNATRACE-SKILL.md`. Add an eval case under `tests/evals/dt-agent/` for any new
    behaviour. Run a full `/demo` session and write it up as a `docs/testrun-NN.md`.
 
 ## What the agent guarantees

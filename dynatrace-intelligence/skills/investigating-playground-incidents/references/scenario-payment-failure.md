@@ -53,7 +53,7 @@ which one a number counts.
 | Affected users (problem record) | survey row `affected_users` |
 | Sessions with server errors (5xx) | Beat 5 — sum of `sessions` across all countries |
 | Per-country sessions | Beat 5 — individual rows |
-| Session replay link | Beat 5 deep link |
+| Affected sessions link | Beat 5 deep link |
 
 ---
 
@@ -81,7 +81,8 @@ fetch dt.davis.problems, from: now()-48h, to: now()
 ```
 
 **Reveal:** The problem record names the payment service as root cause and counts a large
-number of affected users; quote the failing endpoint from `description`.
+number of affected users; quote the failing endpoint from `description` only if it names one for the
+payment service (it may name only the frontend's); the `Charge` endpoint comes in beat 3.
 Checkout shows as impacted, but `root_cause` points at payment — checkout is listed as affected,
 not named as the cause. This result has no call direction, so don't say
 checkout calls payment until the trace in beat 4 shows it. State the actual numbers, and name
@@ -89,7 +90,7 @@ checkout calls payment until the trace in beat 4 shows it. State the actual numb
 
 **Success signal:** User names payment or Charge, or asks to drill into the payment service.
 
-**Deep link:**
+**Deep link** (label "Problem in Dynatrace"):
 
 ```text
 https://playground.apps.dynatrace.com/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TF_FROM_MS}}&to={{TF_TO_MS}}&segments=%5B%7B%22id%22%3A%22Apy24Rcu0cO%22%7D%5D
@@ -131,7 +132,7 @@ between `first_deploy` and the problem start (`deploy_before_problem_min`; negat
 
 **Success signal:** User asks which commit to revert, who owns it, or for deployment details.
 
-**Deep link:**
+**Deep link** (label "Explain with Dynatrace Intelligence"):
 
 ```text
 https://playground.apps.dynatrace.com/ui/intent/dynatrace.davis.copilot/ask-question#%7B%22prompt%22%3A%22Explain%20what%20happened%20in%20the%20problem%20with%20id%20{{PROBLEM_ID}}%2C%20why%20it%20happened%2C%20and%20actionable%20steps%20to%20remediate%20it.%22%2C%22execute%22%3Atrue%7D
@@ -186,7 +187,7 @@ changed is in the diff, not the telemetry.
 
 **Success signal:** User connects the deploy to the spike, or asks for the failing requests.
 
-**Deep link:**
+**Deep link** (label "Service view"):
 
 ```text
 https://playground.apps.dynatrace.com/ui/apps/dynatrace.services/explorer/services?detailsId=SERVICE-531CE26849E95EC1&perspective=performance&problemId={{PROBLEM_ID}}&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}
@@ -268,18 +269,19 @@ appears, say so — that's a second finding; one first seen after the later depl
 4. The trace as a short chain plus one summary line:
 
    ```text
-   ingress → frontend → checkout → payment   failed (origin: payment)
-   checkout also called: cart, catalog, currency, shipping, quote — all clean
+   ingress → frontend → payment   failed (origin: payment)
+   frontend also called: cart, catalog, currency, shipping, quote — all clean
    ```
 
-   Build both lines from the summary rows; list the clean services the query actually returned.
+   The example shows the shape, not the services. Build both lines from the summary rows in call order, ending at the
+   origin, and list the clean services the query actually returned; add a service to the chain only if its row is there.
 5. State it plainly: one call originates the failure, everything it touches upstream just
    relays it, and every sibling call was clean.
 
-**Deep link:**
+**Deep link** (label "Failing requests"):
 
 ```text
-https://playground.apps.dynatrace.com/ui/apps/dynatrace.distributedtracing/explorer?filter=request.is_failed+%3D+Failure+AND+dt.smartscape.service+%3D+SERVICE-531CE26849E95EC1+AND+endpoint.name+%3D+Charge&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}
+https://playground.apps.dynatrace.com/ui/apps/dynatrace.distributedtracing/explorer?filter=request.is_failed+%3D+Failure+AND+dt.smartscape.service+%3D+SERVICE-531CE26849E95EC1+AND+endpoint.name+%3D+Charge&tf={{TF_FROM_ISO}}%3B{{TF_TO_ISO}}&v=requests
 ```
 
 ---
@@ -321,8 +323,8 @@ recording of a real customer hitting a real error.
 that customer saw and clicked at the failed payment, instead of inferring it from logs. What the UI showed at the
 failed payment, any feedback or silence, is not in the DQL result; the replay shows it, via the deep link.
 
-**Deep link:**
+**Deep link** (label "Affected sessions"):
 
 ```text
-https://playground.apps.dynatrace.com/ui/apps/dynatrace.error.inspector/error-explorer?tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}&problemId={{PROBLEM_ID}}&perspective=impact&sort=affected_users%3Adescending
+https://playground.apps.dynatrace.com/ui/apps/dynatrace.error.inspector/error-explorer?tf=now-{{TF_REL_H}}h%3Bnow&problemId={{PROBLEM_ID}}&perspective=impact&sort=affected_users%3Adescending
 ```

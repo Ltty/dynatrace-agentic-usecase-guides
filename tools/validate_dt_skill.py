@@ -75,6 +75,15 @@ def survey_dql(scenario: str | None = None) -> str:
     return dql + (f'\n| filter scenario == "{scenario}"' if scenario else "")
 
 
+DEEP_LINK_RE = re.compile(r'\*\*Deep link\*\* \(label "([^"]+)"\):\s*```text\n(.*?)```', re.DOTALL)
+
+
+def deep_links(md_path: Path) -> list[tuple[str, str]]:
+    """(label, url template) of every beat's deep link, in beat order."""
+    text = md_path.read_text(encoding="utf-8").replace("\r\n", "\n")
+    return [(m.group(1), m.group(2).strip()) for m in DEEP_LINK_RE.finditer(text)]
+
+
 def strip_dql_comments(dql: str) -> str:
     """Remove // comment lines and collapse to a single line."""
     lines = [ln for ln in dql.splitlines() if not ln.strip().startswith("//")]
@@ -118,6 +127,9 @@ def extract_state_from_resolver(pf, envelope: dict) -> dict:
         "PROBLEM_ID": row.get("problem_id", ""),
         "STARTED": str(row.get("started", "")),
         "SURVEY_AT": str(row.get("queried_at", "")),
+        "TF_REL_H": str(row.get("tf_rel_h", "")),
+        "TF_FROM_ISO": str(row.get("tf_from_iso", "")),
+        "TF_TO_ISO": str(row.get("tf_to_iso", "")),
         "DQL_FROM": row.get("window_from", "now()-2h"),
         "DQL_TO": row.get("window_to", "now()"),
         "TF_FROM_MS": str(row.get("tf_from_ms", "")),
@@ -149,6 +161,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         help="dtctl context to query (default: the scenario's own, else playground). Set per run, "
              "never saved, so a different current context cannot redirect the validation."
     )
+    parser.add_argument(
+        "--links", action="store_true",
+        help="with --scenario: print every beat's deep link, substituted from the live survey row, "
+             "and run no beat query. Open each one and judge it against its label."
+    )
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument(
         "--scenario", choices=list(SCENARIO_FILES), metavar="SCENARIO_ID",
@@ -158,7 +175,29 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         "md_files", nargs="*", default=[], metavar="FILE",
         help="Direct paths to scenario markdown files, resolver file first."
     )
-    return parser.parse_args(argv[1:])
+    args = parser.parse_args(argv[1:])
+    if args.links and not args.scenario:
+        parser.error("--links needs --scenario")
+    return args
+
+
+def print_links(pf, scenario: str, md_path: Path) -> int:
+    """Print each beat's label and substituted deep link for the scenario's live problem."""
+    rc, out, _ = pf.run_dtctl("query", strip_dql_comments(survey_dql(scenario)), "-o", "json",
+                              "--max-field-chars", "0")
+    envelope = pf.parse_envelope(out)
+    state = extract_state_from_resolver(pf, envelope) if envelope and envelope.get("ok") else {}
+    if not state.get("PROBLEM_ID"):
+        print(f"No live problem for {scenario}: nothing to substitute.")
+        return 1
+    unresolved = 0
+    for n, (label, url) in enumerate(deep_links(md_path), 1):
+        full = pf.substitute_placeholders(url, state, pass_through_unknown=True)
+        left = remaining_tokens(full)
+        unresolved += bool(left)
+        print(f"Beat {n}  {label}" + (f"   UNRESOLVED {left}" if left else ""))
+        print(f"  {full}")
+    return 1 if unresolved else 0
 
 
 def main(argv: list[str]) -> int:
@@ -177,6 +216,9 @@ def main(argv: list[str]) -> int:
             return 2
 
     pf = _load_preflight()
+
+    if args.links:
+        return print_links(pf, args.scenario, md_paths[0])
 
     blocks = [b for md_path in md_paths for b in extract_dql_blocks(md_path)]
     if args.scenario:

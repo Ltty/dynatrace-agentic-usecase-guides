@@ -54,12 +54,15 @@ fetch dt.davis.problems, from: now()-48h, to: now()
     duration_min = round(toDouble(coalesce(event.end, now()) - event.start) / 60000000000, decimals: 0),
     ended_min_ago = round(toDouble(now() - event.end) / 60000000000, decimals: 0)
 | fieldsAdd duration_days = floor(duration_min / 1440), duration_hours = floor((duration_min - floor(duration_min / 1440) * 1440) / 60),
-    revenue_usd = if(scenario == "payment-failure", round(toDouble(dt.davis.affected_users_count) * 87, decimals: 0), else: null)
+    revenue_usd = if(scenario == "payment-failure", round(toDouble(dt.davis.affected_users_count) * 87, decimals: 0), else: null),
+    tf_rel_h = toLong(ceil(toDouble(duration_min + coalesce(ended_min_ago, 0)) / 60)) + 1,
+    tf_from_iso = concat(formatTimestamp(window_from, format: "yyyy-MM-dd"), "T", formatTimestamp(window_from, format: "HH:mm:ss.SSS"), "Z"),
+    tf_to_iso = concat(formatTimestamp(window_to, format: "yyyy-MM-dd"), "T", formatTimestamp(window_to, format: "HH:mm:ss.SSS"), "Z")
 | fields scenario, problem_id = event.id, display_id, status = event.status, started = event.start, ended = event.end,
     affected_users = dt.davis.affected_users_count, affected_count = arraySize(smartscape.affected_entities),
     root_cause = coalesce(root_cause_entity_name, root_cause.smartscape_entity[name]), owning_team = team,
-    duration_min, duration_days, duration_hours, ended_min_ago, revenue_usd, queried_at = now(),
-    window_from, window_to, tf_from_ms, tf_to_ms
+    duration_min, duration_days, duration_hours, ended_min_ago, revenue_usd, tf_rel_h, queried_at = now(),
+    window_from, window_to, tf_from_ms, tf_to_ms, tf_from_iso, tf_to_iso
 ```
 
 The row has no `description`: beat 1 reads it.
@@ -80,6 +83,8 @@ Store the result in conversation context (never a file). This is the single sour
 | `owning_team` | survey row | — | Who a handoff or revert request goes to, before any beat has run; null where the problem has no owner |
 | `window_from`, `window_to` | survey row | `{{DQL_FROM}}`, `{{DQL_TO}}` | Beat DQL `from:`/`to:` only, ISO8601 inside `"..."` |
 | `tf_from_ms`, `tf_to_ms` | survey row | `{{TF_FROM_MS}}`, `{{TF_TO_MS}}` | Deep-link URLs only, epoch ms |
+| `tf_rel_h` | survey row | `{{TF_REL_H}}` | Error Inspector link: a relative window `now-<N>h`, whole hours since the problem started, plus one |
+| `tf_from_iso`, `tf_to_iso` | survey row | `{{TF_FROM_ISO}}`, `{{TF_TO_ISO}}` | Distributed Tracing link: the incident window as ISO timestamps with milliseconds |
 | `queried_at` | survey row | `{{SURVEY_AT}}` | Beat DQL `elapsed_min` only |
 | `elapsed_min` | every beat's first query | — | The close's elapsed time; never shown in a table |
 | runtime values (e.g. `trace_id`) | a prior query's first record | e.g. `{{TRACE_ID}}` | Chained beat DQL |
@@ -162,9 +167,9 @@ Rate:           [the beat 3 metric: failure rate, p50 latency], [before] to [pea
 Cause:          [what the evidence shows], commit [short SHA, 7 characters], shipped by [owner]
 Goes to:        [owning team, or the host and host group] — they act, we supply the evidence
 Evidence:
-  Problem:           [problem link]
-  Failing requests:  [trace link]
-  Replays:           [replay link]
+  Problem:            [problem link]
+  Failing requests:   [trace link]
+  Affected sessions:  [sessions link]
 Still open:     [what the data does not show]
 ```
 
@@ -202,7 +207,7 @@ replace either with a question of your own ("Want me to check whether anything e
 ```text
 [Explore only] Timeline: one sentence per beat, chronological, with the actual values you showed.
 From the first look to the full picture in [X] minutes: [the two or three things established, such as the change, the exact error and the sessions with a replay].
-[The replay link, when the scenario's Handoff fields table has one and the handoff block has not already given it.]
+[The affected-sessions link, when the scenario's Handoff fields table has one and the handoff block has not already given it.]
 [The way out, below.]
 ```
 

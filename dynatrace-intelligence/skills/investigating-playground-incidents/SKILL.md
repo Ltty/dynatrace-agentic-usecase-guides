@@ -120,7 +120,7 @@ and must come from the live result).
 "That problem is almost entirely on payment — checkout is listed as affected, but Dynatrace
 Intelligence points at payment as the origin, and it already knows who owns it: [owning_team]."
 
-Same view in Dynatrace: [deep link]
+Problem in Dynatrace: [deep link]
 
 "Want to check what changed on payment right before this started, or look at what's actually
 breaking?"

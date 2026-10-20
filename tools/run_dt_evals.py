@@ -46,6 +46,7 @@ FORBIDDEN = [
     r"\bbeats?\b", r"step \d+ of \d+", r"\bthe demo\b", r"\bas an ai\b", r"\bI can['’]?t\b",
     r"\bI'?m read-only\b", r"\bI am read-only\b",
     r"\b(?:I'?m|I am|as) (?:the )?dynatrace intelligence\b",
+    r"\bsame view in dynatrace\b", r"\breplays?:",
 ]
 # Narration of the agent's own working: never shown to the user, in progress lines or in the answer.
 NARRATION = [
