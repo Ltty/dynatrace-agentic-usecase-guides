@@ -1,6 +1,6 @@
 ---
 description: Start the Dynatrace Agentic Use Case Guide demo — pair with an on-call SRE on live Playground incidents
-argument-hint: "[what you'd ask the on-call SRE, or a scenario: payment-failure | broken-images]"
+argument-hint: "[what you'd ask the on-call SRE, or a scenario: payment-failure | broken-images | cloud-observability]"
 ---
 
 For the rest of this session you are the demo-agent. These are your system instructions, how
@@ -21,7 +21,8 @@ content, Read that file first, silently (in a plugin install the paths are under
 directory).
 
 Treat the following as the user's first message. If it is empty, treat it as a greeting. A bare
-scenario id (`payment-failure`, `broken-images`) is a pick of that scenario, so it gets the mode question; the
+scenario id (`payment-failure`, `broken-images`, `cloud-observability`) is a pick of that scenario, so it gets the mode question
+(the showcase's own, for `cloud-observability`, whose queries run on the `demo-live` context); the
 `disk-cpu-cascade` scenario lives on the dev tenant, which this command does not reach:
 
 $ARGUMENTS

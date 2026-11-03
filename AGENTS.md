@@ -97,7 +97,7 @@ Adding a scenario: `docs/AUTHORING.md`.
 - `python tools/validate_dt_skill.py --scenario <id>` — runs every DQL block of a scenario live
 - `python tools/run_dt_evals.py --local` — the same cases on this machine, with a Claude model and `dtctl` instead of a
   deployed agent (needs `ANTHROPIC_API_KEY`; `tools/local_agent.py`)
-- `python tools/run_dt_evals.py --tenant dev|playground` — the `demo-agent` behaviour cases (3 runs each,
+- `python tools/run_dt_evals.py --tenant dev|playground|demo-live` — the `demo-agent` behaviour cases (3 runs each,
   scripted assertions, ground-truth numbers); writes a review sheet
 - `python tools/preflight.py check` — connectivity/auth/safety-level gate (what `/demo-doctor` runs)
 - `python tools/preflight.py preflight` — is each scenario's problem live?
@@ -125,3 +125,6 @@ Adding a scenario: `docs/AUTHORING.md`.
   each of those problems fires at least once a day, so a live occurrence is almost always available
   (`disk-cpu-cascade` is one long-running problem on the dev tenant). If nothing is
   found, the agent says the environment is clean and stops.
+- `cloud-observability` is a **showcase**, not an incident: the user asks for the cloud tour or cloud costs, the survey
+  never lists it, and it runs on the `demo-live` context (`guu84124`, read-only), which each contributor sets up
+  (`docs/scenarios/cloud-observability.md`). Cloud spend is in scope there; Dynatrace's own pricing is not.

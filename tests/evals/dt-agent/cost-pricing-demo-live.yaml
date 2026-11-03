@@ -1,0 +1,20 @@
+id: cost-pricing-demo-live
+tenant: demo-live
+runs: 3
+status: draft
+description: 'DRAFT: on the showcase tenant, Dynatrace''s own pricing still gets the one-line redirect: cloud spend is in
+  scope, Dynatrace licensing is not.'
+turns:
+- ask: How much does Dynatrace cost us per year?
+  expect:
+    no_dql: true
+    reply_excludes:
+    - points
+    - budget
+    - tool call
+    - token
+    reply_contains_any:
+    - billing
+    - pricing
+    - account team
+    max_progress_lines: 0

@@ -108,7 +108,33 @@ Review against the skill-authoring best practices, then a pass to cut thinking t
 - Still to do (needs the user): repair the Error Inspector and Distributed Tracing links from URLs copied out of the apps
   (testrun 14 observations 1 and 2); see Open.
 
+## Done in the repo, 2026-11-02 (cloud-observability showcase; not uploaded, evals not run)
+
+- New scenario `cloud-observability`, the first showcase (no incident), on the `demo-live` tenant (`guu84124`): the Golden
+  Demo *Modern Cloud Observability* with the *Cut Cloud Costs Safely* Assist conversation folded in. Six beats: the estate,
+  one function, what runs on it (service and problem with AWS DevOps Agent notes), what acts on it (workflows, peak),
+  the bill and the 10% target, cost next to utilization (peak, ends on the cost action list). Source, verified values
+  and what was left out of the guides: `docs/scenarios/cloud-observability.md`.
+- The cost rule is narrower: cloud spend is the showcase's subject; Dynatrace's own pricing and the cost of the
+  conversation keep the one-line redirect (`instructions.md`, conversation-craft, SKILL.md principle 5).
+- Showcase mechanics: no survey branch; SKILL.md opening rows for the tour and for a cloud-cost direct start;
+  session-protocol → "Showcase" (mode question, tokens, handoff, close); walk-through's showcase report; local runtime
+  uses `--context demo-live` for it; `SHOWCASES` in the validator harvests tokens from beat results.
+- `validate_dt_skill.py --scenario cloud-observability`: 10 of 10 blocks pass live; `--links` resolves all six labels;
+  `dt_agent.py check` and the offline tests pass.
+- Eval harness: `demo-live` tenant (`guu84124`, `DT_DEMO_LIVE_AGENT_TOKEN`) in `run_dt_evals.py` and `local_agent.py`;
+  three draft cases: `cloud-tour-opening-demo-live`, `cloud-cost-demo-live`, `cost-pricing-demo-live` (Dynatrace
+  pricing still redirects there). Not run yet: no `ANTHROPIC_API_KEY` for `--local`, no agent on guu84124.
+- 2026-11-03, updated to the guide's final version (*Modern Cloud Observability — October 2027*): beat 4 is now "Agents
+  on the Problem" (the three agents' notes on problems, then the Kubernetes troubleshooting agent naming a CPU-limit
+  change behind an EasyTrade slowdown, peak); the workflows moved to an "Extra" offered after the close (prevent,
+  remediate, optimize); the close names the guide's four challenges. 12 of 12 blocks pass live.
+
 ## Open
+
+- **cloud-observability:** open the seven deep links in the browser (none opened yet; `--links` prints the Extra's as "Beat 7"); run the three
+  `demo-live` eval cases (`--local --tenant demo-live --include-draft`) and add one for the "do not shrink" peak; decide whether the deployed
+  `demo-agent` goes to `guu84124` (it runs DQL on its own tenant only).
 
 - **Deep links, testrun 14:** confirmed in the apps by the user, 2026-10-20: Error Inspector loads with a relative window
   (`tf=now-<N>h%3Bnow` plus the same parameters; payment and images), and Distributed Tracing loads with an absolute ISO

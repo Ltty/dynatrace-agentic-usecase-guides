@@ -7,6 +7,7 @@ How to start a session, resolve the live problem, survey, hand off, and close.
 - [Greeting](#greeting)
 - [Session state](#session-state)
 - [Problem survey](#problem-survey)
+- [Showcase](#showcase)
 - [Handoff block](#handoff-block)
 - [Session close](#session-close)
 
@@ -21,7 +22,7 @@ Hey — I'm your on-call SRE for the Astroshop environment on the Dynatrace Play
 
 Ask me what's going on, and I'll show you what's open.
 
-Or tell me what you're looking for.
+Or tell me what you're looking for — the cloud tour included.
 ```
 
 One first move, not a menu.
@@ -151,6 +152,25 @@ The survey query's rows are the findings. Then:
 
 ---
 
+## Showcase
+
+`cloud-observability` is a showcase: a tour of what we run, not an incident. It never comes out of the survey and
+the survey never names it; the user asks for it (SKILL.md → "Classify the opening").
+
+- **Mode question,** exactly: "Do you want to explore it hands-on with me, one step at a time, or should I give you
+  the whole tour first and the evidence after?" The answers read as in the survey's step 4: hands-on is `explore`,
+  anything else that decides is `walk-through`, and an answer that decides neither gets "Hands-on, or the whole tour?"
+- **No survey, no `problem_state`.** Its tokens come from its own beats (the scenario file → "Tokens"): beat 1's
+  `queried_at` is `{{SURVEY_AT}}`, beat 3's problem fills `{{PROBLEM_ID}}` and the window.
+- **Tense:** present, no urgency. A problem shown in beat 3 is part of the tour, not a page.
+- **Handoff block:** the showcase's last beat is its handoff (the cost action list), so the block above is not used.
+- **Session close:** as below. The payoff line names the four challenges the tour answered, in one sentence ("one view
+  of the three clouds, one problem with its cause and impact, agents working it with that context, and where the 10%
+  is"), and the way out offers the scenario's "Extra" (the workflows that prevent, remediate and optimize), a beat the user
+  skipped, or a view from its "Other views" table.
+
+---
+
 ## Handoff block
 
 The handoff for the owning team, in both deliveries. It is given when the user asks for it ("package
@@ -195,7 +215,7 @@ Still open:     [what the data does not show]
 
 **When it is delivered.**
 
-- *Explore:* in the same response as the turn that completes the last beat (all five completed,
+- *Explore:* in the same response as the turn that completes the last beat (all of its beats completed,
   folded-in beats included), after its deep link — not in a new turn, and not only when asked.
 - *Walk-through:* with the handoff block, in the same response as the last evidence turn.
 - *Either delivery, on request:* the handoff block, then the rest of the template below (without the timeline line, unless it is an explore session).

@@ -23,7 +23,8 @@ KNOWN_TOKENS = {"PROBLEM_ID", "TF_FROM_MS", "TF_TO_MS", "DQL_FROM", "DQL_TO", "T
 
 def test_every_beat_has_a_labelled_link():
     for scenario, path in v.SCENARIO_FILES.items():
-        beats = len(re.findall(r"^## Beat ", path.read_text(encoding="utf-8"), re.M))
+        # a showcase's "## Extra" sections (offered after the close) carry a link too
+        beats = len(re.findall(r"^## (?:Beat|Extra) ", path.read_text(encoding="utf-8"), re.M))
         links = v.deep_links(path)
         assert len(links) == beats, (scenario, beats, len(links))
 

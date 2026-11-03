@@ -1,0 +1,31 @@
+id: cloud-tour-opening-demo-live
+tenant: demo-live
+runs: 3
+status: draft
+description: 'DRAFT: asking for the cloud tour gets the showcase mode question and no query, no survey and no incident
+  list; the answer "hands-on" starts beat 1 (the estate across the three clouds).'
+turns:
+- ask: Show me the cloud tour.
+  expect:
+    first_read_contains: /SKILL.md
+    no_dql: true
+    reply_contains:
+    - hands-on with me
+    - whole tour
+    reply_excludes:
+    - Which one should we look at first
+    - full incident briefing
+    - account team
+    - davis
+    - copilot
+- ask: Hands-on.
+  expect:
+    reads_include:
+    - scenario-cloud-observability.md
+    requires_dql: true
+    reply_contains:
+    - AWS
+    - Azure
+    - Google Cloud
+    reply_excludes:
+    - account team

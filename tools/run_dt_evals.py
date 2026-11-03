@@ -13,13 +13,15 @@ Usage:
     python tools/run_dt_evals.py --truth payment-failure
     python tools/run_dt_evals.py --tenant dev [--case greeting,cost] [--runs 3] [--workers 3]
     python tools/run_dt_evals.py --tenant playground
+    python tools/run_dt_evals.py --local --tenant demo-live --include-draft
     python tools/run_dt_evals.py --local [--tenant playground] [--case survey-live] [--include-draft]
 
 --local runs the cases against the skill on this machine (tools/local_agent.py): a Claude model drives
 the same instructions and skill documents, and each case's DQL runs through dtctl on that case's tenant
-(playground or dev), so no agent has to be deployed. It needs ANTHROPIC_API_KEY.
+(playground, dev or demo-live), so no agent has to be deployed. It needs ANTHROPIC_API_KEY.
 
-Tokens: DT_DEV_AGENT_TOKEN (dev) and DT_PLAYGROUND_AGENT_TOKEN (playground); never printed.
+Tokens: DT_DEV_AGENT_TOKEN (dev), DT_PLAYGROUND_AGENT_TOKEN (playground) and DT_DEMO_LIVE_AGENT_TOKEN
+(demo-live, guu84124: the cloud-observability showcase); never printed.
 """
 
 from __future__ import annotations
@@ -41,6 +43,7 @@ AGENT = "demo-agent"
 TENANTS = {
     "dev": ("https://fxz0998d.dev.apps.dynatracelabs.com", "DT_DEV_AGENT_TOKEN"),
     "playground": ("https://playground.apps.dynatrace.com", "DT_PLAYGROUND_AGENT_TOKEN"),
+    "demo-live": ("https://guu84124.apps.dynatrace.com", "DT_DEMO_LIVE_AGENT_TOKEN"),
 }
 FORBIDDEN = [
     r"\bbeats?\b", r"step \d+ of \d+", r"\bthe demo\b", r"\bas an ai\b", r"\bI can['’]?t\b",
@@ -173,6 +176,8 @@ def check_turn(summary: dict, expect: dict, truth: dict, forbid: bool = True) ->
 def ground_truth(scenario_id: str) -> dict:
     """The survey row and the deployment commits the agent should report for a scenario."""
     validate = load_module("validate_dt_skill")
+    if scenario_id in validate.SHOWCASES:
+        return {}  # no survey row, no incident: showcase cases assert on shape, not on truth values
     os.environ["DTCTL_CONTEXT"] = validate.SCENARIO_CONTEXT.get(scenario_id, validate.DEFAULT_CONTEXT)
     pf = validate._load_preflight()
     scenario_file = validate.SCENARIO_FILES[scenario_id]

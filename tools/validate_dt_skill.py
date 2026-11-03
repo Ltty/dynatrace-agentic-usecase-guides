@@ -30,14 +30,19 @@ SCENARIO_FILES = {
     "payment-failure": SCENARIO_DIR / "scenario-payment-failure.md",
     "broken-images": SCENARIO_DIR / "scenario-broken-images.md",
     "disk-cpu-cascade": SCENARIO_DIR / "scenario-disk-cpu-cascade.md",
+    "cloud-observability": SCENARIO_DIR / "scenario-cloud-observability.md",
 }
 SESSION_PROTOCOL = SCENARIO_DIR / "session-protocol.md"
 
 # dtctl context each scenario's data lives on; anything not listed is on the Playground.
 SCENARIO_CONTEXT = {
     "disk-cpu-cascade": "dev",
+    "cloud-observability": "demo-live",
 }
 DEFAULT_CONTEXT = "playground"
+
+# Showcases have no survey row: their beats supply the tokens (see harvest_showcase_state).
+SHOWCASES = {"cloud-observability"}
 
 # Runtime-only tokens: present in DQL until a live query result supplies the value.
 RUNTIME_ONLY = {"TRACE_ID"}
@@ -137,6 +142,20 @@ def extract_state_from_resolver(pf, envelope: dict) -> dict:
     }
 
 
+def harvest_showcase_state(pf, envelope: dict, state: dict) -> None:
+    """A showcase's tokens come from its beats: the first queried_at is SURVEY_AT, a problem_id row fills the link."""
+    records = pf._flatten_records(envelope)
+    if not records:
+        return
+    row = records[0]
+    if row.get("queried_at") and "SURVEY_AT" not in state:
+        state["SURVEY_AT"] = str(row["queried_at"])
+    if row.get("problem_id") and "PROBLEM_ID" not in state:
+        state["PROBLEM_ID"] = str(row["problem_id"])
+        state["TF_FROM_MS"] = str(row.get("tf_from_ms", ""))
+        state["TF_TO_MS"] = str(row.get("tf_to_ms", ""))
+
+
 def assert_window(pf, envelope: dict) -> None:
     """Warn if window fields are missing from the resolver result."""
     records = pf._flatten_records(envelope)
@@ -183,10 +202,23 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 
 def print_links(pf, scenario: str, md_path: Path) -> int:
     """Print each beat's label and substituted deep link for the scenario's live problem."""
-    rc, out, _ = pf.run_dtctl("query", strip_dql_comments(survey_dql(scenario)), "-o", "json",
-                              "--max-field-chars", "0")
-    envelope = pf.parse_envelope(out)
-    state = extract_state_from_resolver(pf, envelope) if envelope and envelope.get("ok") else {}
+    if scenario in SHOWCASES:
+        state: dict = {}
+        for raw in extract_dql_blocks(md_path):
+            if "PROBLEM_ID" in state:
+                break
+            dql = pf.substitute_placeholders(raw, state, pass_through_unknown=True)
+            if remaining_tokens(dql):
+                continue
+            _, out, _ = pf.run_dtctl("query", strip_dql_comments(dql), "-o", "json", "--max-field-chars", "0")
+            envelope = pf.parse_envelope(out)
+            if envelope and envelope.get("ok"):
+                harvest_showcase_state(pf, envelope, state)
+    else:
+        rc, out, _ = pf.run_dtctl("query", strip_dql_comments(survey_dql(scenario)), "-o", "json",
+                                  "--max-field-chars", "0")
+        envelope = pf.parse_envelope(out)
+        state = extract_state_from_resolver(pf, envelope) if envelope and envelope.get("ok") else {}
     if not state.get("PROBLEM_ID"):
         print(f"No live problem for {scenario}: nothing to substitute.")
         return 1
@@ -221,7 +253,8 @@ def main(argv: list[str]) -> int:
         return print_links(pf, args.scenario, md_paths[0])
 
     blocks = [b for md_path in md_paths for b in extract_dql_blocks(md_path)]
-    if args.scenario:
+    showcase = args.scenario in SHOWCASES
+    if args.scenario and not showcase:
         blocks.insert(0, survey_dql(args.scenario))
     names = ", ".join(p.name for p in md_paths)
     if not blocks:
@@ -301,8 +334,11 @@ def main(argv: list[str]) -> int:
             print(f"  PASS — {total} record(s) in {ms}ms, {scanned} records scanned")
             passed += 1
 
+            if showcase:
+                harvest_showcase_state(pf, envelope, placeholders)
+
             # --- If this was the resolver, extract session state ---
-            if is_resolver_block(raw_dql) and not placeholders:
+            elif is_resolver_block(raw_dql) and not placeholders:
                 state = extract_state_from_resolver(pf, envelope)
                 if state.get("PROBLEM_ID"):
                     placeholders.update(state)
@@ -327,7 +363,9 @@ def main(argv: list[str]) -> int:
     print("=" * 60)
     print(f"Results: {passed} passed, {failed} failed, {skipped} skipped")
 
-    if not placeholders:
+    if showcase and "PROBLEM_ID" not in placeholders:
+        print("WARN — no beat returned a problem_id; the problem deep link stays a template")
+    elif not showcase and not placeholders:
         print("WARN — no resolver block ran successfully; beat DQL results may not reflect "
               "real substitution")
 

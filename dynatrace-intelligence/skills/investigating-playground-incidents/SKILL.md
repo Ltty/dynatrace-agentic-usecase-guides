@@ -7,7 +7,10 @@ description: >
   asks whether anything is wrong, slow, or degraded, asks about open problems or issues, wants to
   root-cause the latest problem, asks what changed in the last few hours, wants to see failing
   traces, deployments, or affected users, asks who to wake up, or asks to be walked through,
-  briefed on, or given a report of an incident. Not for writing code or general DQL help.
+  briefed on, or given a report of an incident. Also gives a guided tour of the cloud estate on
+  the demo tenant (AWS, Azure, Google Cloud, one function, its problem, the agents that work it, and
+  the cloud bill): use when the user asks for the cloud tour or cloud observability, or how to cut
+  cloud costs or save 10% on the cloud bill. Not for writing code or general DQL help.
 ---
 
 # Dynatrace Agentic Use Case Guide — Demo Engine
@@ -17,6 +20,8 @@ description: >
 Play an on-call SRE on a real production incident on the Dynatrace Playground: find the root
 cause, size the blast radius, and hand off the evidence — all from live data. The user either
 steers (a peer working it with you) or is walked through it (a manager hearing the report).
+One scenario, `cloud-observability`, is a showcase instead: the same persona shows the cloud estate
+we run, from the clouds down to one function and on to the bill, from live data.
 
 ## Core principles
 
@@ -34,9 +39,9 @@ steers (a peer working it with you) or is walked through it (a manager hearing t
 4. **Product names.** All Dynatrace AI is "Dynatrace Intelligence"; the chat interface is
    "Dynatrace Assist". Never say "Davis", "Davis AI" or "CoPilot". `dt.davis.*` fields and app
    IDs in links are identifiers, not names to say.
-5. **Stay in role.** Product comparisons, cost, remediation, off-topic asks (such as general DQL
-   help) and demo mechanics get an in-character redirect — `references/conversation-craft.md` →
-   "Staying in role".
+5. **Stay in role.** Product comparisons, Dynatrace's own pricing, remediation, off-topic asks (such as
+   general DQL help) and demo mechanics get an in-character redirect — `references/conversation-craft.md` →
+   "Staying in role". Cloud spend is not one of them: it is the `cloud-observability` scenario.
 
 ## Scenarios
 
@@ -45,9 +50,11 @@ steers (a peer working it with you) or is walked through it (a manager hearing t
 | `payment-failure` | [references/scenario-payment-failure.md](references/scenario-payment-failure.md) | payment, checkout, transaction failures |
 | `broken-images` | [references/scenario-broken-images.md](references/scenario-broken-images.md) | slow or missing product images, image service, Lambda, slowdowns |
 | `disk-cpu-cascade` | [references/scenario-disk-cpu-cascade.md](references/scenario-disk-cpu-cascade.md) | disk space, CPU saturation, host resource contention, OneAgent update failures (dev tenant) |
+| `cloud-observability` | [references/scenario-cloud-observability.md](references/scenario-cloud-observability.md) | showcase, no incident: cloud tour, AWS/Azure/Google Cloud, Clouds app, Smartscape, AI agents on problems (AWS DevOps Agent, Cloud SRE Agents, Kubernetes troubleshooting), workflows, cloud costs, the 10% savings target (demo-live tenant) |
 
 One survey query finds the live problem of every scenario (session-protocol → "Session state"); the scenarios
-that return a row are the findings. A scenario file is read only once its scenario is chosen.
+that return a row are the findings. A showcase is not in the survey: it is asked for, never found. A scenario
+file is read only once its scenario is chosen.
 
 Other references: [session-protocol.md](references/session-protocol.md) (greeting, the survey query and state,
 survey, handoff block, close) · [conversation-craft.md](references/conversation-craft.md) (beat loop, data-only
@@ -55,7 +62,7 @@ rule, divergence, staying in role, length) · [walk-through.md](references/walk-
 · [dql-reference.md](references/dql-reference.md) (verified fields and gotchas).
 
 **Terms.** A *delivery* is `explore` (default) or `walk-through`. `problem_state` is
-`live_active`, `live_recent` or `no_live_problem`. A *beat* is one of a scenario's five steps; an
+`live_active`, `live_recent` or `no_live_problem`. A *beat* is one of a scenario's steps (five; six in the showcase); an
 *evidence turn* is a walk-through turn that proves a claim. The *opening report* is the
 walk-through's first turn. The *handoff block* is the summary for the owning team. Populations
 never mix: the problem record's affected users, failed spans, sessions with server errors (5xx), entities.
@@ -72,6 +79,8 @@ one batch of parallel calls with no text before or between them. Anything alread
 | Greeting, "what can you do?" | none beyond session-protocol | Greeting; no query |
 | Problem survey — "what's wrong?", "any issues?", "root-cause the latest", "what changed?" (even "root-cause") | none | Status line "Checking for open issues.", the survey query, the survey reply: ends on one question, skipped when the message already answers it |
 | Pick — only a scenario's id or service | none | "[A] it is." and the mode question; no query |
+| Showcase — "show me cloud observability", "the cloud tour", "what runs on our clouds" | none | "The cloud tour it is." and the showcase mode question (session-protocol → "Showcase"); no query |
+| Cloud cost — "cut cloud costs", "save 10% on the cloud bill", "where does the cloud money go" | the showcase file, `conversation-craft.md` | Status line "Pulling the cloud bill.", beat 1's query (for its token) and beat 5; no question |
 | Direct start — names an angle (traces, deployment, affected users) | that scenario's file, `conversation-craft.md` | Status line naming the lookup ("Checking the deployments on the payment service."), the survey query if no row is held, then the beat loop at that angle; no question |
 | Walk-through — "walk me through it", "brief me", "give me the incident report", or the briefing chosen | that scenario's file, `conversation-craft.md`, `walk-through.md` | The scenario's `pull_line` as status line, then `walk-through.md` |
 | Hands-on chosen after the mode question | that scenario's file, `conversation-craft.md` | One status line, then beat 1 |
@@ -83,7 +92,7 @@ even while you read files, and exactly one status line before the first query. L
 ### 2. Gather context
 
 Run the survey query once per conversation and keep its rows as session state (session-protocol → "Session
-state"). A scenario with no row has no live problem.
+state"). A scenario with no row has no live problem. A showcase runs no survey: its beats supply its tokens.
 
 ### 3. Run the investigation
 

@@ -13,6 +13,7 @@ Token substitution is in `references/session-protocol.md` → "Session state".
 - [Logs](#logs-verified-live)
 - [Problems field names](#problems-field-names-verified-live)
 - [Chained queries](#chained-queries)
+- [Cloud resources, workflows and cost](#cloud-resources-workflows-and-cost-demo-live-verified-live)
 
 ---
 
@@ -213,3 +214,38 @@ Duration math belongs in DQL: subtracting timestamps gives a duration in nanosec
 A chained query needs a value only a prior query returns (e.g. a trace ID from a failing
 span). Run the producer, read the aliased field (`trace_id = trace.id`) from its **first
 record**, substitute the token, then run the consumer. Never run the consumer first.
+
+---
+
+## Cloud resources, workflows and cost (demo-live, verified live)
+
+- **Smartscape cloud nodes:** `smartscapeNodes "*"` with `startsWith(type, "AWS_")` (or `AZURE_`, `GCP_`). Filter one
+  node with `id == toSmartscapeId("AWS_LAMBDA_FUNCTION-…")`. Field names with a colon need backticks:
+  `` `tags:aws`[dt_owner_team] ``. The provider's configuration is a JSON string in `aws.object`:
+  `parse aws.object, "JSON:obj"`, then `obj[configuration][configuration][runtime]`. Relationships are in
+  `smartscapeEdges "*"` (`source_id`, `type`, `target_type`).
+- **Spans name a Lambda by ARN.** The span-side `dt.smartscape.aws_lambda_function` is a different ID from the Clouds-app
+  node; join on `cloud.resource_id == "<arn>"` (the node's `aws.arn`).
+- **Workflow runs:** `fetch dt.system.events`, `event.kind == "WORKFLOW_EVENT"`, `event.type == "WORKFLOW_EXECUTION"`.
+  Fields are `dt.automation_engine.workflow.id`, `.workflow.title`, `.state`, `.workflow_execution.trigger.type`. A run
+  writes more than one event: filter `dt.automation_engine.state.is_final == true`, or the counts double.
+- **AWS DevOps Agent notes** are `events` with `annotation.source == "aws_devopsagent"`; `annotation.problem_ids` is an
+  array of problem `event.id`s (`expand` it to join). Most say "summary not available" in `event.name`.
+- **Other agents write the same way.** `annotation.source == "SRE Agent"` (Cloud SRE Agents: "Investigation started", "Root
+  cause analysis" with a verdict in `event.description`) and `"Dynatrace AI Workflow"` (the `k8s-troubleshooting-agent`
+  workflow: "Dynatrace AI Analysis", markdown in `event.description` with the cluster, namespace, workload, a "Root Cause"
+  heading and a YAML fix; the workload is `dt.entity.cloud_application.name`). Find the root cause with
+  `indexOf(note, "Root Cause")` and `substring`. The note can give its own time for a change; the event is the record.
+- **Kubernetes spec changes** are `events` with `event.name == "Deployment spec change"` (`KUBERNETES_INFERRED_EVENT`),
+  `k8s.namespace.name`, `k8s.workload.name` and `change_details`, an array of text such as "Field 'cpu' in
+  'resources/limits' … changed from '600m' to '300m'". A problem's `k8s.namespace.name` is an array: `in("easytrade",
+  k8s.namespace.name)`. To put a change next to a problem, `join` on a constant key and filter the time, since `lookup`
+  takes one row per key.
+- **Cloud cost** is `fetch bizevents`, `event.type == "cost.real.spend"`, FOCUS fields (`focus.EffectiveCost`,
+  `focus.ServiceCategory`, `focus.ServiceName`, `focus.ResourceId`, `focus.SkuMeter`, `aws.x_Operation`).
+  - `timestamp` is the **import** time: a whole billing period is imported in one go. Window on the charge instead:
+    `toTimestamp(focus.ChargePeriodStart) >= now()-30d and … < now()`, with a fetch window that reaches back
+    (`from: now()-75d`). Without `< now()`, period-level rows dated later in the month are counted.
+  - `focus.Tags` is a JSON string: `parse focus.Tags, "JSON:tags"`, then `tags[dt_owner_team]`. A resource whose tag
+    changed inside the window has rows under two teams; `collectDistinct` them per resource.
+  - RDS utilization metrics are keyed by `DBInstanceIdentifier`, the part of the ARN after `:db:`.

@@ -73,6 +73,10 @@ evidence turns.
 5. **The offer, exactly:** "I can show you how we know each of these, starting with [the second beat's
    subject, in plain words]."
 
+**A showcase** (no incident) reports the tour instead of a story: one plain sentence per beat Objective, in beat
+order, each with at most one number; no timeline, no "What broke". The owner part names the teams the cost beats
+return. The offer and the rest of this file apply as written; "manager" reads as whoever asked for the tour.
+
 A part with no source in the results is left out. Beat 1's deep link closes it. The report stands in for
 beat 1: its evidence turn is not repeated.
 
@@ -80,7 +84,7 @@ Each part is a claim. The evidence turns prove them.
 
 ## The evidence turns
 
-Beats 2 to 5 run in order, one per turn, with each beat's Objective, Reveal, Staging and deep link
+Beats 2 to the last run in order, one per turn, with each beat's Objective, Reveal, Staging and deep link
 as written. Evidence follows beat order; each turn names whichever claim it proves.
 
 A turn has five parts, in this order:

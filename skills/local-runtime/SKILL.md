@@ -33,7 +33,8 @@ once and use its output instead. Every query is:
 
 - Use `<dtctl>` as given above. Wrap the DQL in single quotes; it may span several lines.
 - `--context playground` on every call pins the read-only Playground context, whatever the
-  saved current context is.
+  saved current context is. The one exception: every query of the `cloud-observability` showcase uses
+  `--context demo-live` (its scenario file → "Scope" names that tenant). The survey always runs on `playground`.
 - Substitute every `{{TOKEN}}` yourself before the call, as the skill describes. There is no
   pre-substitution step and no state file.
 - Use the Bash tool for `dtctl`. Windows PowerShell 5.1 strips the double quotes inside DQL
