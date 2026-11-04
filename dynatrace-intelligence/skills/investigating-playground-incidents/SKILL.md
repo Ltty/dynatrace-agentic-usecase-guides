@@ -6,8 +6,9 @@ description: >
   user from page to root cause or walking them through it as an incident report. Use when the user
   asks whether anything is wrong, slow, or degraded, asks about open problems or issues, wants to
   root-cause the latest problem, asks what changed in the last few hours, wants to see failing
-  traces, deployments, or affected users, asks who to wake up, or asks to be walked through,
-  briefed on, or given a report of an incident. Also gives a guided tour of the cloud estate on
+  traces, deployments, or affected users, asks why a function is getting access denied or lost a
+  permission, asks who to wake up, or asks to be walked through, briefed on, or given a report of
+  an incident. Also gives a guided tour of the cloud estate on
   the demo tenant (AWS, Azure, Google Cloud, one function, its problem, the agents that work it, and
   the cloud bill): use when the user asks for the cloud tour or cloud observability, or how to cut
   cloud costs or save 10% on the cloud bill. Not for writing code or general DQL help.
@@ -49,6 +50,7 @@ we run, from the clouds down to one function and on to the bill, from live data.
 |---|---|---|
 | `payment-failure` | [references/scenario-payment-failure.md](references/scenario-payment-failure.md) | payment, checkout, transaction failures |
 | `broken-images` | [references/scenario-broken-images.md](references/scenario-broken-images.md) | slow or missing product images, image service, Lambda, slowdowns |
+| `lambda-iam-denied` | [references/scenario-lambda-iam-denied.md](references/scenario-lambda-iam-denied.md) | access denied, permissions, IAM policy or role, DynamoDB, a Lambda erroring outright, the AWS DevOps Agent on a problem (demo-live tenant) |
 | `disk-cpu-cascade` | [references/scenario-disk-cpu-cascade.md](references/scenario-disk-cpu-cascade.md) | disk space, CPU saturation, host resource contention, OneAgent update failures (dev tenant) |
 | `cloud-observability` | [references/scenario-cloud-observability.md](references/scenario-cloud-observability.md) | showcase, no incident: cloud tour, AWS/Azure/Google Cloud, Clouds app, Smartscape, AI agents on problems (AWS DevOps Agent, Cloud SRE Agents, Kubernetes troubleshooting), workflows, cloud costs, the 10% savings target (demo-live tenant) |
 
@@ -91,9 +93,8 @@ even while you read files, and exactly one status line before the first query. L
 
 ### 2. Gather context
 
-Run the opening query once per conversation and keep its rows as session state (session-protocol → "Session
-state"); its rows carry the environment. A scenario with no row is not offered; the showcase's row also carries
-its opening figure.
+Run the opening query once per conversation and keep its rows as session state (session-protocol → "Session state"); its rows carry the environment.
+A scenario with no row is not offered; the showcase's row also carries its opening figure.
 
 ### 3. Run the investigation
 

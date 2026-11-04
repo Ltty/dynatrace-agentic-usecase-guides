@@ -4,7 +4,8 @@ Verdicts for each scenario against the selected set in `AUTHORING.md` → "The n
 A verdict is not a read-through: it names what the file satisfies, what it does not, and the line
 that fails.
 
-Reviewed 2026-11-04 against the fifteen selected principles. Two of them are owned centrally and
+Reviewed 2026-11-04 against the fifteen selected principles. `lambda-iam-denied` was added later the
+same day and reviewed on arrival; its verdict is the last column and its own section below. Two of them are owned centrally and
 the scenarios inherit them rather than restating them:
 
 - **Anchoring** is a global rule (`conversation-craft.md` → "Act: all queries first, then
@@ -20,16 +21,16 @@ which is why no file states a figure. That is deliberate and is not counted agai
 
 ## Summary
 
-| Principle | `payment-failure` | `broken-images` | `disk-cpu-cascade` |
-|---|---|---|---|
-| Anchoring | pass | pass (fixed: beat 2 led on a row count) | pass, strongest |
-| Goal Gradient | n/a — no target exists | partial: baseline named once, never carried forward | **was a miss — fixed** |
-| Serial Position | pass for beats; `commit` mid-table | pass for beats; null-owner caveat buried in a cell | **Contents fixed**; peak deliberately not last |
-| Storytelling | pass; **beat 5 stands alone** | pass; **beat 5 stands alone** | pass, strongest; beat 3 disconnected by instruction |
-| Curiosity Gap | pass | pass, strongest | pass — gaps name limits, not next beats |
-| Progressive Disclosure | pass | front-loads impact dimensions never reused | **was self-contradictory — fixed** |
-| Loss Aversion | **miss — see below** | n/a, no figure | n/a, no figure; risk framing used at the peak |
-| Curse of Knowledge | fixed (5xx) | fixed (baseline) | fixed (I/O wait) |
+| Principle | `payment-failure` | `broken-images` | `disk-cpu-cascade` | `lambda-iam-denied` |
+|---|---|---|---|---|
+| Anchoring | pass | pass (fixed: beat 2 led on a row count) | pass, strongest | pass for beats 1–4; beat 5 leads on a note count, sanctioned below |
+| Goal Gradient | n/a — no target exists | partial: baseline named once, never carried forward | **was a miss — fixed** | n/a — no target exists |
+| Serial Position | pass for beats; `commit` mid-table | pass for beats; null-owner caveat buried in a cell | **Contents fixed**; peak deliberately not last | **was a miss — fixed**: beat 1 returned nine fields with the owner mid-row |
+| Storytelling | pass; **beat 5 stands alone** | pass; **beat 5 stands alone** | pass, strongest; beat 3 disconnected by instruction | pass, strongest here: every beat is named by the one before it |
+| Curiosity Gap | pass | pass, strongest | pass — gaps name limits, not next beats | pass — beats 2 and 3 both end on a gap the next beat opens |
+| Progressive Disclosure | pass | front-loads impact dimensions never reused | **was self-contradictory — fixed** | pass — five beats, one query each |
+| Loss Aversion | **miss — see below** | n/a, no figure | n/a, no figure; risk framing used at the peak | n/a, no figure by design |
+| Curse of Knowledge | fixed (5xx) | fixed (baseline) | fixed (I/O wait) | **was the worst miss — fixed** (role, ARN, inline policy, `/*`) |
 
 ---
 
@@ -82,3 +83,45 @@ which is why no file states a figure. That is deliberate and is not counted agai
   error framing to hang Loss Aversion on.
 - All three state the shape of a finding rather than its values, so figures in the files would be
   stale by construction.
+
+---
+
+## `lambda-iam-denied`, reviewed on arrival 2026-11-04
+
+### Fixed before it shipped
+
+- **Curse of Knowledge was the worst of it.** The scenario is built on AWS identity vocabulary and
+  the first draft assumed all of it: *execution role*, *ARN*, *inline policy* and the trailing `/*`
+  all appeared unglossed, in the two beats the whole argument rests on. A reader who does not already
+  know what an ARN is cannot judge whether the one in the policy matches the one in the exception —
+  which is the entire finding of beat 4. All four are now glossed in plain words on first use, and
+  beat 3 says explicitly to assume none of it is known.
+- **Beat 1 returned nine fields and said to state them.** Serial Position and Chunking both fail on a
+  nine-row table, and `owning_team` — the only value in it that is a person — sat in the middle. The
+  Reveal now names the three values that carry the beat, says not to put the whole row on screen, and
+  moves the owner to last.
+
+### Deliberate deviations, recorded so they are not "fixed" later
+
+- **The peak is beat 3, not beat 4.** Beat 4 is the better payoff *when* the broken policy is visible,
+  but Smartscape holds current state only, so outside the live window it returns the corrected policy.
+  A peak that lands on some runs and not others is worse than one that always lands; beat 3's
+  exception names the root cause in full on every run.
+- **Beat 5's first number is a count of notes, not an impact figure.** Anchoring says the first number
+  in a turn is the impact. Beat 5's subject *is* the notes — the impact was established in beats 1 and
+  2 and is not restated. Said at all, a second impact figure here would be the repetition testrun 18
+  objected to in the cost track.
+- **Peak-End puts the recency slot on the handoff, not the peak** — the same shape as
+  `disk-cpu-cascade`, and here the last beat is a real payoff (the hand-off closing) rather than a
+  recap.
+- **No Loss Aversion framing and no cost figure.** The scenario has no `avg_order_value_usd` and the
+  affected users are the problem record's. Inventing exposure from them would be the kind of number
+  the data does not hold.
+
+### Open
+
+- **Beat 5 is thinner than the story it is modelled on**, and will stay that way while the AWS DevOps
+  Agent writes notes with no readable summary (since 2026-10-27, see
+  `docs/scenarios/lambda-iam-denied.md`). The beat is honest about it rather than silent, but a
+  reader meeting the scenario for the first time meets the degraded path.
+

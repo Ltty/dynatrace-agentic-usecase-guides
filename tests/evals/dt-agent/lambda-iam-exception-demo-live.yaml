@@ -1,0 +1,25 @@
+id: lambda-iam-exception-demo-live
+tenant: demo-live
+runs: 3
+status: draft
+description: >-
+  DRAFT: the peak beat reads the root cause off the exception. It quotes the error verbatim — the
+  action and the table it was refused on — and says in plain words that this is a permission rather
+  than a fault, so nothing is broken, overloaded or unreachable. It never says the backend failed.
+turns:
+- ask: Why are the product images failing?
+  expect:
+    requires_dql: true
+- ask: What do the failing requests actually return?
+  expect:
+    requires_dql: true
+    reply_contains:
+    - AccessDeniedException
+    reply_contains_any:
+    - 'dynamodb:GetItem'
+    - GetItem
+    reply_excludes:
+    - DynamoDB is down
+    - database outage
+    - timed out
+    - overloaded

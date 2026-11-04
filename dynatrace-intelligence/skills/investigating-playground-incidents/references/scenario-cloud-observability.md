@@ -111,6 +111,10 @@ they arrived, and the session close fires when that track's beats have all run (
   what we actually run". Never walk back into beats 1–4 as a continuation of the cost story.
 - A pick of the cloud tour walks `estate`, then `cost`, as one sequence — that is the full guide.
 - The Extra comes after either close, on request.
+- Beat 3 shows a problem at tour depth and beat 4 counts the notes on it; the investigation that walks
+  that same problem to its root cause is `lambda-iam-denied`. Offer it **only after a close**, never
+  mid-tour, and only as what it is — the long way round the problem just shown, not a second tour.
+  Name it by what it investigates, never by its id.
 
 ## Tokens
 
