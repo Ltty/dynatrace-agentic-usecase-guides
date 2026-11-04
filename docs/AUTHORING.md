@@ -51,14 +51,40 @@ not use (`description` is read by beat 1). Date arithmetic and any cost figure b
 
 ### 3. Write the beats
 
-In `scenario-<id>.md`, one `## Beat N — Title` section each, with: **Objective**, **Evidence DQL**,
-**Reveal**, **Success signal**, **Deep link**, and for a climax `**peak_moment: true**` plus **Staging**.
-Optional: an **Objection** paragraph (skeptic pushback and the answer, used only when the user raises it) and a
-**Fold in on a jump** note when a beat's evidence is needed even if the user skips it.
+In `scenario-<id>.md`, one `## Beat N — Title` section each, with: **Why this step**, **Objective**,
+**Evidence DQL**, **Reveal**, **Success signal**, **Deep link**, and for a climax `**peak_moment: true**` plus
+**Staging**. Optional: an **Objection** paragraph (skeptic pushback and the answer, used only when the user
+raises it) and a **Fold in on a jump** note when a beat's evidence is needed even if the user skips it.
+
+**Why this step** and **Objective** are not the same thing, and both are required.
+
+- **Why this step** is one sentence the agent *says*, before the query, naming what the step is for in terms of
+  what the scenario is settling: "To know whether the deploy caused this, we need the failure rate either side of
+  it." Without it the user is left asking "so what?" at every step.
+  `tools/tests/test_deep_links.py` fails a beat that has none.
+- **Objective** is for you, the author: what the user ends up seeing. It is never read out.
+
+**A beat with several Evidence DQL blocks runs as several turns** — one query, one finding, one call to action
+each (`conversation-craft.md` → "One query, one turn"). A chained pair counts as one. Write the blocks in the
+order you want them taken, and put the Staging and the deep link on the last one: they close the beat.
 
 - Window every query with `from: "{{DQL_FROM}}", to: "{{DQL_TO}}"`, never `now()-Nh`: these are the incident
   window from the survey row (15 minutes of padding each side), so the query works however long ago it closed.
-  Other tokens: `{{PROBLEM_ID}}`, `{{TF_FROM_MS}}`, `{{TF_TO_MS}}` (deep links), `{{TRACE_ID}}` (chained).
+  A showcase has no incident window and uses relative windows instead.
+- **Never write a tenant's host, or an entity id the survey resolves, into a link or a query.** A scenario can run
+  on more than one environment, and a literal host sends the user to the wrong one. The full token list, all of
+  which `test_deep_links.py` knows:
+
+  | Token | What it is |
+  |---|---|
+  | `{{LINK_HOST}}` | the environment's host — **every** deep link starts `https://{{LINK_HOST}}/` |
+  | `{{PROBLEM_SEGMENTS}}` | the problem link's segment parameter, empty outside the environment that has one |
+  | `{{ROOT_CAUSE_ID}}` | the root-cause entity, from the survey row, instead of a hardcoded `SERVICE-…` |
+  | `{{PROBLEM_ID}}`, `{{TF_FROM_MS}}`, `{{TF_TO_MS}}`, `{{TF_REL_H}}`, `{{TF_FROM_ISO}}`, `{{TF_TO_ISO}}` | the problem and its window, in each app's own format |
+  | `{{DQL_FROM}}`, `{{DQL_TO}}`, `{{SURVEY_AT}}`, `{{TRACE_ID}}` | query windows, the elapsed anchor, and a chained value |
+
+  An auxiliary id that the survey does *not* resolve (a second service, a host) stays literal, in the Scope
+  table, with a row per environment.
 - Never use `limit` where the beat's claim is about *everything* (all deploys, all distinct exceptions, the
   total sessions). Aggregate instead: `summarize … by:` per commit or per exception, oldest first, with
   `first_seen` / `last_seen`. A `sort desc | limit 5` once hid the deploy that caused the incident.
@@ -110,25 +136,101 @@ line the walk-through shows while it pulls the first query of every beat, naming
 
 1. Add the row to the Scenarios table in `SKILL.md` and the files to `SCENARIO_FILES` in
    `tools/validate_dt_skill.py` (the same dict feeds `run_dt_evals.py` and `preflight.py preflight`).
-   A scenario whose entities exist on another tenant (the `disk-cpu-cascade` one is dev-only) also goes in
-   `SCENARIO_CONTEXT` there: the validator then uses that dtctl context for it, and `preflight.py preflight`
-   skips it instead of reporting it empty. The local `/demo` is pinned to the Playground and cannot reach it. Its
-   branch in the survey query must also carry a predicate only that tenant's entities satisfy, or a Playground survey lists it
-   (testruns 12 and 13).
+   List the environments its data exists on in `SCENARIO_ENVIRONMENTS` in `tools/preflight.py`, and add
+   the same row to `session-protocol.md` -> "Environments" — `tools/tests/test_environments.py` fails if
+   the two disagree. The validator then uses that environment, `preflight.py preflight` skips the
+   scenario where it does not belong, and the opening never names it there.
+
+   Its branch in the opening query must carry a predicate only that tenant's entities satisfy, and must
+   stamp the environment into the `"env:scenario"` key. Match on entity id, never on entity name:
+   playground and demo-live both run Astroshop, and a name match is how `disk-cpu-cascade` leaked onto
+   the Playground in testruns 12 and 13. A scenario on more than one environment needs one Stable-IDs
+   row per environment, and `--environment` becomes required when validating it.
 2. `python tools/dt_agent.py check` — layout rules; `python tools/tests/test_deep_links.py` — every beat has a
-   labelled deep link that uses only known tokens.
-3. `python tools/validate_dt_skill.py --scenario <id>` — runs the survey query (narrowed to the scenario) and **every** beat query live,
+   labelled deep link that uses only known tokens and a **Why this step** line.
+3. **The narrative pass.** Read the scenario against "The narrative standard" below and write a verdict into
+   `docs/narrative-review.md`: which principles it satisfies, which it does not, and the line that fails. A
+   read-through is not a pass. Nothing automated can judge this, which is why it is a step rather than a test —
+   and why the three incident scenarios each carry findings nobody had noticed until somebody did it.
+4. `python tools/validate_dt_skill.py --scenario <id> [--environment <env>]` — runs the opening query (narrowed to the scenario) and **every** beat query live,
    including chained ones, and fails on a bad field name or `round()` call. Do not call a scenario done
    until it passes clean.
-4. `python tools/validate_dt_skill.py --scenario <id> --links` prints each beat's label and its URL with the live
+5. `python tools/validate_dt_skill.py --scenario <id> --links` prints each beat's label and its URL with the live
    problem's values. Open every one for a problem that has ended and judge it against its label: a link that opens a
    chat, an empty view (an app that falls back to its default last-30-minutes window) or an error fails. A link
    matching the beats file is not a pass (testruns 10 and 11 marked the Assist link as one; testrun 14 found it opens
    the assistant). Each app writes its own time-range format: copy the URL from the app, never from another app's link.
-5. `python tools/preflight.py preflight` — the scenario shows as live, or as SKIP when its data lives on another
+6. `python tools/preflight.py preflight` — the scenario shows as live, or as SKIP when its data lives on another
    tenant.
-6. Upload and evaluate: `docs/DYNATRACE-SKILL.md`. Add an eval case under `tests/evals/dt-agent/` for any new
+7. Upload and evaluate: `docs/DYNATRACE-SKILL.md`. Add an eval case under `tests/evals/dt-agent/` for any new
    behaviour. Run a full `/demo` session and write it up as a `docs/testrun-NN.md`.
+
+## The narrative standard
+
+`psychology-cheat-sheet.pdf` in this folder (growth.design, *Psychology of Design*, 106 principles) is
+the standard every scenario is written against. It is not applied wholesale, for two reasons.
+
+Read literally it contradicts itself — Hick's Law says cut the options, Group Attractiveness says
+present them together — so an author needs a short list with a rule attached, not a reading list.
+And several of its principles work by making a decision *less* rational. This demo is evidence-led;
+using those on someone watching it would cut against the rule everything else rests on, and once
+noticed would discredit every number said before. So they are excluded by name, not by omission.
+
+**Do not use:** Scarcity, Social Proof, Decoy Effect, Bandwagon, Sunk Cost, Variable Reward,
+Temptation Bundling, Hawthorne.
+
+**The selected set.** Most of these name something the skill already does; naming it is what makes it
+reviewable.
+
+| Principle | The rule it becomes |
+|---|---|
+| Feedforward | State the approach before the first query, so the user knows the shape before it starts |
+| Goal Gradient | Once a target is named, place every finding against it — "$2,454 against a $1,332 target" |
+| Storytelling Effect | A scenario has an order and an argument; each Reveal connects to the one before |
+| Chunking, Miller's Law | 3–5 fields per table, findings grouped |
+| Peak-End Rule | `peak_moment` staging and the close decide how the session is remembered |
+| Serial Position | In a list, what matters most goes first or last, never buried in the middle |
+| Curiosity Gap | The opening names a gap without closing it ("where 10% of it is") |
+| Anchoring | The first number in a turn is the impact figure, never a row count |
+| Loss Aversion | Unowned spend is exposure, not a missed gain — "$6,725 nobody is accountable for" |
+| Framing | Give the absolute and the share when the share carries the meaning |
+| Reactance | A proposal is offered once; the other choice gets no comment and no second attempt |
+| Progressive Disclosure | Beats exist so the estate is not dumped in turn one |
+| Curse of Knowledge | "What does that mean?" is answered in plain words, no product vocabulary assumed |
+| Labor Illusion | The proof stamp shows the work behind the answer |
+| Provide Exit Points | The close's way out is a real exit, not a hook to keep going |
+
+Five of these change what the agent *says* and are therefore also stated in
+`references/conversation-craft.md`: Feedforward, Goal Gradient, Anchoring, Reactance, Curse of
+Knowledge. The rest are authoring guidance and stay here, out of the runtime context.
+
+**Reviewing a scenario against it** means a written verdict, not a read-through: which principles it
+satisfies, which it does not, and the line that fails. `docs/narrative-review.md` holds the current
+verdicts.
+
+## Showcase scenarios
+
+A showcase shows a capability instead of resolving an incident (`scenario-cloud-observability.md` is the example). It
+uses the same file layout, beats, reveals, deep links and data-only rule, with these differences:
+
+- **No survey branch.** The user asks for it; the survey never finds or names it. Add the opening phrases to SKILL.md's
+  opening table instead.
+- **Tracks, when a showcase has more than one story in it.** A `## Tracks` section maps each arc to its beats
+  and what it closes on, so entering in the middle walks one arc forward rather than backwards through another.
+  The session close fires when the track's beats have all run, in whatever order they ran.
+- **One delivery.** A showcase is a presentation: no `mode_question`, no `pull_line`, and
+  `references/walk-through.md` does not apply to it. It is always guided step by step, with a call to action after
+  every step.
+- **Its own tokens.** A "Tokens" section says which beat result fills each token: beat 1's `queried_at` is
+  `{{SURVEY_AT}}`, and a beat that returns `problem_id`, `tf_from_ms` and `tf_to_ms` fills the problem link. Windows
+  are relative (`now()-24h`, `now()-7d`), since there is no incident window.
+- **Its own handoff.** The last beat is the handoff (an action list with owners); the Handoff fields table says where
+  each row comes from.
+- **Register it** in `SHOWCASES` in `tools/validate_dt_skill.py` as well as `SCENARIO_FILES`; the validator then skips
+  the survey and harvests the tokens from the beat results, for both the live run and `--links`.
+- **Extras** (optional): a `## Extra — <title>` section after the last beat, for a guide part that is offered after the
+  close and is not in the walk-through report. It has its own evidence DQL, reveal and labelled deep link; the validator
+  runs its query and `test_deep_links.py` counts its link.
 
 ## What the agent guarantees
 

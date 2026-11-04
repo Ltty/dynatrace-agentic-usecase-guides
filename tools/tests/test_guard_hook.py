@@ -50,10 +50,10 @@ TESTS = [
     ("dtctl commands",             "dtctl commands --brief -o json",             False),
     ("plain bash (ls)",            "ls -la scenarios/",                          False),
     ("python preflight",           "python tools/preflight.py check",            False),
-    ("curl to DT playground",      "curl https://playground.apps.dynatrace.com/api/v2/problems", False),
     ("dtctl named in a commit msg", 'git commit -m "guard: block dtctl delete"',  False),
 
     # --- Bypasses closed on 2026-10-08 (MUST BE BLOCKED) ---
+    ("curl to the demo tenant",    "curl https://playground.apps.dynatrace.com/api/v2/problems", True),
     ("quoted dtctl",               '"dtctl" delete workflow x',                  True),
     ("quoted full path",           '"C:/Users/x/AppData/Local/dtctl/dtctl.EXE" delete workflow x', True),
     ("after cd &&",                "cd /tmp && dtctl delete workflow x",         True),

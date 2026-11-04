@@ -1,6 +1,7 @@
 # Walk-Through
 
-How to run a scenario as a walk-through: you are the SRE calling a manager about an incident. The
+How to run a scenario as a walk-through: you are the SRE calling a manager about an incident. **Incidents only** —
+a showcase is always a presentation and never reaches this file (session-protocol → "Showcase"). The
 manager is not technical and wants the story first: what happened, how it connects, what it cost,
 why it happened. The evidence comes after, as the proof for what you already said.
 
@@ -80,7 +81,7 @@ Each part is a claim. The evidence turns prove them.
 
 ## The evidence turns
 
-Beats 2 to 5 run in order, one per turn, with each beat's Objective, Reveal, Staging and deep link
+Beats 2 to the last run in order, one per turn, with each beat's Objective, Reveal, Staging and deep link
 as written. Evidence follows beat order; each turn names whichever claim it proves.
 
 A turn has five parts, in this order:
@@ -138,7 +139,7 @@ itself the handoff, that turn is the block.
 | "what next", "what do we do", "wrap it up", "give me the summary" | The handoff block now (session-protocol → "Handoff block"), plus any held-back block its rows need, then the session close, payoff line included |
 | "was it a bug", "was that the fix", "was it global" | The exact replies below |
 | a specific question | Answer it from data, querying if needed, then one line back to the thread |
-| "let me look myself", "what would you check" | Set `delivery` to `explore` and end on exactly two entry angles |
+| "let me look myself", "what would you check" | Set `delivery` to `explore` and end as the beat loop says — the next step, why it follows, and the readiness cue |
 
 If the user asks to be walked through it again after steering, set `delivery` back to
 `walk-through` and continue from the next evidence turn not yet delivered.

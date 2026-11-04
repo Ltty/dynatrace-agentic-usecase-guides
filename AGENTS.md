@@ -39,13 +39,17 @@ python tools/preflight.py login
 ## Connectivity
 
 - **Tool:** `dtctl` (Dynatrace CLI) — `dtctl query`, `dtctl inventory`
-- **Context:** `playground` / `https://playground.apps.dynatrace.com`. Every local query passes
-  `--context playground`, whatever the saved context is.
-- **Safety level:** `readonly` on the playground context, plus the guard hook (see Guardrails)
+- **Environments:** `playground`, `dev` and `demo-live` (`guu84124`), one CLI context each. A session
+  runs on whichever is current -- no `--context` is passed -- and the skill offers only the scenarios
+  that environment holds. The registry is `ENVIRONMENTS` / `SCENARIO_ENVIRONMENTS` in
+  `tools/preflight.py`, restated for the agent in `session-protocol.md` -> "Environments";
+  `tools/tests/test_environments.py` fails if the two drift.
+- **Safety level:** `readonly` on *every* demo context -- `preflight.py check` and the local adapter
+  both refuse to run otherwise -- plus the guard hook (see Guardrails)
 - **Agent mode:** auto-activates (`CLAUDECODE` env var present); output is a JSON envelope
 - **Auth:** per-user browser OAuth; no shared tokens exist in this repo
-- **State:** conversation context only. The survey query in `session-protocol.md` returns each scenario's problem,
-  the incident window and the timing fields; there is no state file.
+- **State:** conversation context only. The opening query in `session-protocol.md` returns each
+  scenario's problem, its `env`, the incident window and the timing fields; there is no state file.
 - **Quoting:** run `dtctl` from Bash. Windows PowerShell 5.1 strips the double quotes inside DQL
   string literals, so the query silently returns no rows.
 
@@ -59,7 +63,8 @@ skills/           local-runtime: the adapter that runs the Dynatrace skill with 
 commands/         /demo and /demo-doctor (.claude/commands/ is a copy; CI checks they match)
 dynatrace-intelligence/  The skill and the demo-agent: the single source for both runtimes
 tools/            dt_agent.py (check/upload/test the Dynatrace skill and agent), validate_dt_skill.py,
-                  run_dt_evals.py, preflight.py, guard_dtctl.py
+                  run_dt_evals.py, preflight.py (also the environment registry), guard_dtctl.py,
+                  render_report.py + report-template.html + report-schema.json (local-only report)
 tests/            Behaviour evals for the demo-agent (tests/evals/dt-agent/)
 docs/             AUTHORING.md, SECURITY.md, DYNATRACE-SKILL.md, skill-backlog.md, test runs
 ```
@@ -94,12 +99,15 @@ Adding a scenario: `docs/AUTHORING.md`.
 
 - `python tools/dt_agent.py check|pack|docs|template|invoke` — check, copy, upload and test the Dynatrace
   skill and `demo-agent`; every write is a dry run unless `--apply`. Procedure: `docs/DYNATRACE-SKILL.md`
-- `python tools/validate_dt_skill.py --scenario <id>` — runs every DQL block of a scenario live
+- `python tools/validate_dt_skill.py --scenario <id> [--environment <env>]` — runs every DQL block of a
+  scenario live; `--environment` is required for a scenario that lives on more than one
 - `python tools/run_dt_evals.py --local` — the same cases on this machine, with a Claude model and `dtctl` instead of a
   deployed agent (needs `ANTHROPIC_API_KEY`; `tools/local_agent.py`)
-- `python tools/run_dt_evals.py --tenant dev|playground` — the `demo-agent` behaviour cases (3 runs each,
+- `python tools/run_dt_evals.py --tenant dev|playground|demo-live` — the `demo-agent` behaviour cases (3 runs each,
   scripted assertions, ground-truth numbers); writes a review sheet
-- `python tools/preflight.py check` — connectivity/auth/safety-level gate (what `/demo-doctor` runs)
+- `python tools/preflight.py check` — connectivity/auth/safety-level gate on the current context (what `/demo-doctor` runs)
+- `python tools/preflight.py env` — the current environment and its link host
+- `python tools/preflight.py login [<environment>]` — browser OAuth for one environment
 - `python tools/preflight.py preflight` — is each scenario's problem live?
 - `python tools/preflight.py dtctl-path` — how to invoke dtctl (bare `dtctl` if on PATH)
 - `python tools/tests/test_guard_hook.py`, `test_run_dt_evals.py` — offline tests (CI runs them)
@@ -125,3 +133,11 @@ Adding a scenario: `docs/AUTHORING.md`.
   each of those problems fires at least once a day, so a live occurrence is almost always available
   (`disk-cpu-cascade` is one long-running problem on the dev tenant). If nothing is
   found, the agent says the environment is clean and stops.
+- `cloud-observability` is a **showcase**, not an incident, and lives on `demo-live` only. The opening
+  offers it with a live figure from the bill, from a probe appended to the opening query. That probe
+  runs only where the environment lists the showcase: on playground it would take the opening from
+  50 MB scanned to 3.77 GB for a row that cannot exist there. Cloud spend is in scope in that
+  scenario; Dynatrace's own pricing is not. Each contributor sets the context up themselves
+  (`docs/scenarios/cloud-observability.md`).
+- The **report** (`tools/render_report.py`) is local-only: the Dynatrace runtime cannot write files.
+  It lives in `skills/local-runtime/SKILL.md`, which `dt_agent.py` never packs.

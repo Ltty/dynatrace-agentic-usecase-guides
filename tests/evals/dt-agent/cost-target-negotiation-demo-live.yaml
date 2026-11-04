@@ -1,0 +1,34 @@
+id: cost-target-negotiation-demo-live
+tenant: demo-live
+runs: 3
+status: draft
+description: >-
+  DRAFT. An over-ambitious savings target is never called unrealistic and never refused. The agent
+  says what it comes to in dollars, names what it can actually evidence against it, and proposes the
+  figure those lines support — owning the 10% as its own assumption, attributed to nobody. Turn 1
+  also pins the greeting: two directions, no query, no figures.
+turns:
+- ask: Hi
+  expect:
+    no_dql: true
+    reply_excludes:
+    - $
+- ask: Let's cut our cloud costs by 50%.
+  expect:
+    requires_dql: true
+    reply_contains:
+    - $
+    - '10%'
+    reply_contains_any:
+    - point at
+    - show you
+    - evidence
+    reply_excludes:
+    - unrealistic
+    - not realistic
+    - impossible
+    - "can't do that"
+    - CTO
+    - cloud-observability
+    - davis
+    - copilot

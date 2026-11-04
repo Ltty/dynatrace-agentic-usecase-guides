@@ -57,6 +57,8 @@ Three populations coexist — always say which one a number counts.
 
 ## Beat 1 — The Page
 
+**Why this step:** Before we chase a cause we need the blast radius: what is degraded, for how many, and whose service it is.
+
 **Objective:** User grasps the blast radius: the image-provider Lambda is the root cause, it's a
 response-time degradation rather than an outage, how many users are affected, and who owns it.
 
@@ -79,7 +81,8 @@ fetch dt.davis.problems, from: now()-48h, to: now()
 ```
 
 **Reveal:** Dynatrace Intelligence classifies it as a slowdown — `description` states the current response time
-against the auto-detected baseline for the image provider; quote both numbers. The frontend,
+against the baseline it learned from this service's own normal behaviour; quote both numbers, and say which is
+which, since the comparison is the finding. The frontend,
 the ingress, and a synthetic image-loading check are listed as affected; `impact_level`
 spans application, services, and synthetic. Name `owning_team` explicitly — it's the only
 owner on record, since the deploy events carry none.
@@ -89,12 +92,14 @@ owner on record, since the deploy events carry none.
 **Deep link** (label "Problem in Dynatrace"):
 
 ```text
-https://playground.apps.dynatrace.com/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TF_FROM_MS}}&to={{TF_TO_MS}}
+https://{{LINK_HOST}}/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TF_FROM_MS}}&to={{TF_TO_MS}}
 ```
 
 ---
 
 ## Beat 2 — The Deploy
+
+**Why this step:** Something made the Lambda slower at a point in time, so the next thing worth knowing is what shipped around it.
 
 **Objective:** User connects the slowdown to a specific commit, and sees both deploys on the
 timeline.
@@ -104,7 +109,7 @@ timeline.
 ```dql
 fetch events, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 | filter event.type == "CUSTOM_DEPLOYMENT"
-| filter dt.entity.service == "SERVICE-5A0CD2879D2F37BE"
+| filter dt.entity.service == "{{ROOT_CAUSE_ID}}"
 | parse event.description, "LD \"(\" LD:git_url \")\""
 | parse git_url, "LD \"/commit/\" ALNUM:commit"
 | summarize
@@ -119,7 +124,8 @@ fetch events, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 These GitHub Actions events leave `commit` and `gitUrl` null; the query parses both from the
 markdown link in `event.description` and collapses the repeated re-deploys of one commit.
 
-**Reveal:** Typically two rows. The first commit lands a few minutes before the problem
+**Reveal:** Lead with the gap between the deploy and the problem start — that is the finding; the row count is
+not. Typically two rows. The first commit lands a few minutes before the problem
 `started` (beat 1) and is re-deployed several times — that's the lead suspect. The second
 lands shortly before the problem ended and is not a second regression; whether the slowdown
 stops around it is for beat 3, and what it changed is in the diff, not the telemetry. Both
@@ -137,12 +143,14 @@ there.
 **Deep link** (label "Problem in Dynatrace"):
 
 ```text
-https://playground.apps.dynatrace.com/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TF_FROM_MS}}&to={{TF_TO_MS}}
+https://{{LINK_HOST}}/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TF_FROM_MS}}&to={{TF_TO_MS}}
 ```
 
 ---
 
 ## Beat 3 — The Slowdown
+
+**Why this step:** A deploy near the slowdown is not yet a cause — to connect them we need what the Lambda's behaviour did at that moment.
 
 **Objective:** User sees what changed in the Lambda's behaviour at the deploy: it started
 resizing the image on every request, and latency jumped with it.
@@ -154,7 +162,7 @@ flip in one line. It is the evidence that ties the deploy to the slowdown.
 
 ```dql
 fetch spans, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
-| filter dt.entity.service == "SERVICE-5A0CD2879D2F37BE"
+| filter dt.entity.service == "{{ROOT_CAUSE_ID}}"
 | filter in(span.name, "Invoke lambda /images/presign.", "Resize original product image")
 | summarize
     requests = countIf(span.name == "Invoke lambda /images/presign."),
@@ -175,7 +183,7 @@ the buckets where it flips — that flip lines up with both commits.
 **Deep link** (label "Service view"):
 
 ```text
-https://playground.apps.dynatrace.com/ui/apps/dynatrace.services/explorer/services?detailsId=SERVICE-5A0CD2879D2F37BE&perspective=performance&problemId={{PROBLEM_ID}}&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}
+https://{{LINK_HOST}}/ui/apps/dynatrace.services/explorer/services?detailsId={{ROOT_CAUSE_ID}}&perspective=performance&problemId={{PROBLEM_ID}}&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}
 ```
 
 ---
@@ -184,6 +192,8 @@ https://playground.apps.dynatrace.com/ui/apps/dynatrace.services/explorer/servic
 
 **`peak_moment: true`**
 
+**Why this step:** We know the behaviour changed; to say where the seconds actually go we need one slow request broken down end to end.
+
 **Objective:** User sees one slow image request end to end: where the seconds go, and what
 is *not* slow.
 
@@ -191,7 +201,7 @@ is *not* slow.
 
 ```dql
 fetch spans, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
-| filter dt.entity.service == "SERVICE-5A0CD2879D2F37BE"
+| filter dt.entity.service == "{{ROOT_CAUSE_ID}}"
 | filter span.name == "Invoke lambda /images/presign."
 | fieldsAdd duration_ms = round(toDouble(duration) / 1000000, decimals: 0)
 | sort duration_ms desc
@@ -249,7 +259,7 @@ check doesn't skip it.
 **Deep link** (label "Slow requests"):
 
 ```text
-https://playground.apps.dynatrace.com/ui/apps/dynatrace.distributedtracing/explorer?filter=dt.smartscape.service+%3D+SERVICE-5A0CD2879D2F37BE+AND+endpoint.name+%3D+invoke&tf={{TF_FROM_ISO}}%3B{{TF_TO_ISO}}&v=requests
+https://{{LINK_HOST}}/ui/apps/dynatrace.distributedtracing/explorer?filter=dt.smartscape.service+%3D+{{ROOT_CAUSE_ID}}+AND+endpoint.name+%3D+invoke&tf={{TF_FROM_ISO}}%3B{{TF_TO_ISO}}&v=requests
 ```
 
 ---
@@ -257,6 +267,8 @@ https://playground.apps.dynatrace.com/ui/apps/dynatrace.distributedtracing/explo
 ## Beat 5 — The Humans
 
 **`peak_moment: true`**
+
+**Why this step:** Latency only matters as what someone waited through, so the last thing to establish is who felt it and what they saw.
 
 **Objective:** User understands who felt it: real shoppers in many countries waiting seconds
 for product images, each with a replay of exactly what they saw.
@@ -299,6 +311,12 @@ nearly all have replay. State `total_sessions`, `countries` and
 `no_country` (a row with no country is reported as exactly that), the `top_rows`, and `worst_ms`. Don't add geography the rows don't contain. The point isn't the number — each one is a
 recording of a shopper whose image took seconds to load.
 
+**This is a different population from the rest of the scenario, and it has to be said.** These are
+real-user sessions in the window, not sessions that waited on *this* Lambda: nothing in the data ties
+a session to a backend service — `user.sessions` carries no service field and spans carry no session
+id. Say so once, and never present the count as the image slowdown's victims. The replay is what
+closes the gap.
+
 **Success signal:** User asks about the experience, what shoppers saw, or opens a replay.
 
 **Staging:** After the numbers, make replay concrete with one shopper: open one recording and watch which product images
@@ -307,5 +325,5 @@ appeared, which stayed blank, and whether the shopper waited, scrolled on, or le
 **Deep link** (label "Affected sessions"):
 
 ```text
-https://playground.apps.dynatrace.com/ui/apps/dynatrace.error.inspector/error-explorer?tf=now-{{TF_REL_H}}h%3Bnow&problemId={{PROBLEM_ID}}&perspective=impact&sort=affected_users%3Adescending
+https://{{LINK_HOST}}/ui/apps/dynatrace.error.inspector/error-explorer?tf=now-{{TF_REL_H}}h%3Bnow&problemId={{PROBLEM_ID}}&perspective=impact&sort=affected_users%3Adescending
 ```

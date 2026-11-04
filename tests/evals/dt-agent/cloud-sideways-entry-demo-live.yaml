@@ -1,0 +1,23 @@
+id: cloud-sideways-entry-demo-live
+tenant: demo-live
+runs: 3
+status: draft
+description: >-
+  DRAFT. A question *about* the cloud line is answered and then shows the user, rather than ending
+  on a question. Testrun 15 found this path reaching the beats with no delivery chosen; testrun 17
+  found the choice itself was the problem, so there is now nothing to choose.
+turns:
+- ask: What do you mean, where 10% of it is?
+  expect:
+    reads_include:
+    - scenario-cloud-observability.md
+    requires_dql: true
+    reply_contains:
+    - $
+    reply_excludes:
+    - hands-on with me
+    - whole tour
+    - CTO
+    - cloud-observability
+    - davis
+    - copilot

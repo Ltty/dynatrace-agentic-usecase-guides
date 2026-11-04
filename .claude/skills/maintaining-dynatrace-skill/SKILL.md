@@ -28,7 +28,10 @@ holds the rules that must hold every time.
 
 ## Workflow
 
-- Skill change: edit, `python tools/dt_agent.py check`, `validate_dt_skill.py` for all three scenarios,
+- Narration change (a Reveal, a Staging, conversation-craft): also do the narrative pass —
+  `docs/AUTHORING.md` -> "The narrative standard", verdict into `docs/narrative-review.md`, and the
+  manual N1-N8 checks in `docs/dt-skill-evals.md` against the last transcript. No script judges these.
+- Skill change: edit, `python tools/dt_agent.py check`, `validate_dt_skill.py` for every scenario on each environment it lists,
   `docs` dry run, approved `docs --apply`, then the evals.
 - Agent change: edit `dynatrace-intelligence/agents/demo-agent/`, `render`, `template` dry run, approved `template --apply`,
   then `invoke`.

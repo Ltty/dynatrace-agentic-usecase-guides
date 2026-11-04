@@ -11,7 +11,7 @@ Reveals describe the *shape* of a finding, never its values. Timestamps, percent
 - [Beat 1 — The Page](#beat-1--the-page)
 - [Beat 2 — The Disk](#beat-2--the-disk)
 - [Beat 3 — The CPU](#beat-3--the-cpu)
-- [Beat 4 — The Platform Victim](#beat-4--the-platform-victim)
+- [Beat 4 — The Platform Victim](#beat-4--the-platform-victim) (peak)
 - [Beat 5 — The Handoff](#beat-5--the-handoff)
 
 ---
@@ -59,7 +59,7 @@ No `avg_order_value_usd` is defined, and the problem record has no affected-user
 | `owning_team` | None: the problem record has no owner. Hand off by host (`frontend-high-cpu`) and host group; never name a team |
 | `Goes to` | The host `frontend-high-cpu` and its host group `cloud-alerts-demo`; never a team |
 | `root_cause` | Survey row (the problem's root-cause entity name) |
-| Disk and CPU thresholds | Beat 1 — the problem `description` ("lower than 3%", "above 95%") |
+| Disk and CPU thresholds | Beat 1 — quoted from the problem `description`; they are values, so read them live |
 | Blocked OneAgent version | Beat 4 — the newest update-failure event, not the problem description (see Beat 4) |
 | Entities in the problem | Survey row `affected_count` |
 | Disk free space | Beat 2 |
@@ -68,6 +68,8 @@ No `avg_order_value_usd` is defined, and the problem record has no affected-user
 ---
 
 ## Beat 1 — The Page
+
+**Why this step:** Before anything else we need what the platform itself concluded: which entity is the root cause and what is only affected.
 
 **Objective:** User grasps the blast radius: the `/data` disk is the root cause Dynatrace Intelligence
 named, CPU saturation on the same host is listed as affected, and the problem record also lists the platform's
@@ -102,12 +104,14 @@ what the record shows, not why: how the three relate is for the next beats to te
 **Deep link** (label "Problem in Dynatrace"):
 
 ```text
-https://fxz0998d.dev.apps.dynatracelabs.com/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TF_FROM_MS}}&to={{TF_TO_MS}}
+https://{{LINK_HOST}}/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TF_FROM_MS}}&to={{TF_TO_MS}}
 ```
 
 ---
 
 ## Beat 2 — The Disk
+
+**Why this step:** The root cause is a disk, so the first thing to establish is how little space there is and whether it is a spike or a standing condition.
 
 **Objective:** User sees the free space on `/data` over the whole window and confirms it is critically low — not a
 spike, a sustained floor.
@@ -132,8 +136,9 @@ timeseries
 One row: the series is summarised in DQL (min and max across all buckets, and the bucket size in `interval`).
 
 **Reveal:** If `free_pct_min` and `free_pct_max` are equal or nearly so, the free space has not moved across the
-whole window: a floor, not a spike. State the percentage, the megabytes available, and how many buckets of what
-size that covers (the window is as long as the problem has been open). The disk was already at that level when
+whole window: a floor, not a spike. State the percentage against the threshold beat 1 quoted — that is what makes
+it a problem rather than a number — then the megabytes available, and how many buckets of what size that covers
+(the window is as long as the problem has been open). The disk was already at that level when
 the window opened, so the data shows that it stayed full, not how it filled. Say where the data stops: what wrote
 to the disk is not in these metrics.
 
@@ -142,12 +147,14 @@ to the disk is not in these metrics.
 **Deep link** (label "Host view"):
 
 ```text
-https://fxz0998d.dev.apps.dynatracelabs.com/ui/apps/dynatrace.infraops/explorer?entityId=HOST-A2BABAD05D401471&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}
+https://{{LINK_HOST}}/ui/apps/dynatrace.infraops/explorer?entityId=HOST-A2BABAD05D401471&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}
 ```
 
 ---
 
 ## Beat 3 — The CPU
+
+**Why this step:** The CPU is on the same host and in the same problem — to say whether the disk explains it we have to look at what the CPU data does and does not show.
 
 **Objective:** User sees the CPU and I/O wait on the host over the same window, and what that does and does not
 say about how the CPU relates to the disk.
@@ -173,7 +180,9 @@ timeseries
 One row, summarised in DQL. Both metrics are in percent.
 
 **Reveal:** Report what the two series show, from the row: CPU usage is saturated across the window (state the
-min, average and max), and I/O wait is close to zero (state its average and max). Read it as it is: the data
+min, average and max, against the threshold beat 1 quoted), and I/O wait — the share of time the processor spends
+waiting on storage, which is what a full disk would normally drive up — is close to zero (state its average and
+max). Say that gloss the first time the term appears; the whole beat turns on it. Read it as it is: the data
 does **not** show I/O wait as the way the full disk affects the CPU. What it shows is two conditions on the same
 host, which Dynatrace Intelligence grouped into one problem with the disk as root cause and the CPU as affected.
 Do not explain the CPU load by the disk, and do not offer a mechanism. What is using the CPU is not in these
@@ -189,7 +198,7 @@ failure.
 **Deep link** (label "Host view"):
 
 ```text
-https://fxz0998d.dev.apps.dynatracelabs.com/ui/apps/dynatrace.infraops/explorer?entityId=HOST-A2BABAD05D401471&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}
+https://{{LINK_HOST}}/ui/apps/dynatrace.infraops/explorer?entityId=HOST-A2BABAD05D401471&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}
 ```
 
 ---
@@ -197,6 +206,8 @@ https://fxz0998d.dev.apps.dynatracelabs.com/ui/apps/dynatrace.infraops/explorer?
 ## Beat 4 — The Platform Victim
 
 **`peak_moment: true`**
+
+**Why this step:** One symptom the data does tie to the disk in so many words is the platform's own agent, which is worth seeing because it shows the blast radius reaching the monitoring itself.
 
 **Objective:** User sees that Dynatrace's own OneAgent tried to auto-update and failed, with the failure message
 naming the full disk — the monitoring platform itself is affected by the condition it reports.
@@ -253,12 +264,14 @@ fix it.
 **Deep link** (label "Host view"):
 
 ```text
-https://fxz0998d.dev.apps.dynatracelabs.com/ui/apps/dynatrace.infraops/explorer?entityId=HOST-A2BABAD05D401471&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}
+https://{{LINK_HOST}}/ui/apps/dynatrace.infraops/explorer?entityId=HOST-A2BABAD05D401471&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}
 ```
 
 ---
 
 ## Beat 5 — The Handoff
+
+**Why this step:** Everything we have now has to become something the owning host's team can act on, with the limits of the data stated.
 
 **Objective:** User has everything needed to act: the root cause, what the data shows on the host, the blocked
 OneAgent version, and the one step the data supports.
@@ -293,5 +306,5 @@ saturation. The record has no owner, so hand off by host name and host group; do
 **Deep link** (label "Problem in Dynatrace"):
 
 ```text
-https://fxz0998d.dev.apps.dynatracelabs.com/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TF_FROM_MS}}&to={{TF_TO_MS}}
+https://{{LINK_HOST}}/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TF_FROM_MS}}&to={{TF_TO_MS}}
 ```

@@ -18,15 +18,33 @@ v = importlib.util.module_from_spec(spec)
 sys.modules["validate_dt_skill"] = v
 spec.loader.exec_module(v)
 
-KNOWN_TOKENS = {"PROBLEM_ID", "TF_FROM_MS", "TF_TO_MS", "DQL_FROM", "DQL_TO", "TF_REL_H", "TF_FROM_ISO", "TF_TO_ISO"}
+KNOWN_TOKENS = {"LINK_HOST", "ROOT_CAUSE_ID", "PROBLEM_SEGMENTS", "PROBLEM_ID", "TF_FROM_MS", "TF_TO_MS", "DQL_FROM", "DQL_TO", "TF_REL_H", "TF_FROM_ISO", "TF_TO_ISO"}
 
 
 def test_every_beat_has_a_labelled_link():
     for scenario, path in v.SCENARIO_FILES.items():
-        beats = len(re.findall(r"^## Beat ", path.read_text(encoding="utf-8"), re.M))
+        # a showcase's "## Extra" sections (offered after the close) carry a link too
+        beats = len(re.findall(r"^## (?:Beat|Extra) ", path.read_text(encoding="utf-8"), re.M))
         links = v.deep_links(path)
         assert len(links) == beats, (scenario, beats, len(links))
 
+
+def test_every_beat_says_why_it_exists():
+    """A beat with no purpose line leaves the user asking "so what?" (testrun 16).
+
+    The agent can only say why a step exists if the beat hands it the sentence. Objective
+    describes the outcome for the author; it is not the reason, and it is not addressed to
+    the user.
+    """
+    for scenario, path in v.SCENARIO_FILES.items():
+        text = path.read_text(encoding="utf-8")
+        sections = re.findall(r"^## (?:Beat \d+|Extra)[^\n]*\n(.*?)(?=^## |\Z)", text, re.M | re.S)
+        assert sections, scenario
+        for body in sections:
+            cut = body.find("**Objective:**")
+            head = body[:cut] if cut >= 0 else body
+            assert "**Why this step:**" in head, (
+                scenario, "a beat is missing its 'Why this step' line before the Objective")
 
 def test_links_use_known_tokens_only():
     for scenario, path in v.SCENARIO_FILES.items():

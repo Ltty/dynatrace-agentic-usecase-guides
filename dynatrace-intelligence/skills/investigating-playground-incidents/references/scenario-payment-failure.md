@@ -35,7 +35,8 @@ The failure rate comes from the service deep dive (beat 3), never from the probl
 
 | Name | ID |
 |---|---|
-| astroshop-payment (root cause) | `SERVICE-531CE26849E95EC1` |
+| astroshop-payment (root cause), `playground` | `SERVICE-531CE26849E95EC1` |
+| astroshop-payment (root cause), `demo-live` | `SERVICE-E9CB57C5D00C3626` |
 | astroshop-checkout (listed as affected) | `SERVICE-5ACC60E0079F8E6D` |
 | Charge endpoint | `endpoint.name == "Charge"` |
 | Segment (problem deep link) | `Apy24Rcu0cO` |
@@ -58,6 +59,8 @@ which one a number counts.
 ---
 
 ## Beat 1 — The Page
+
+**Why this step:** Before we chase a cause we need the blast radius: what is failing, for how many, and whose service it is.
 
 **Objective:** User grasps the blast radius: root-cause service, impacted users, onset, that
 checkout is listed as affected, and which team owns the failing service.
@@ -93,12 +96,14 @@ checkout calls payment until the trace in beat 4 shows it. State the actual numb
 **Deep link** (label "Problem in Dynatrace"):
 
 ```text
-https://playground.apps.dynatrace.com/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TF_FROM_MS}}&to={{TF_TO_MS}}&segments=%5B%7B%22id%22%3A%22Apy24Rcu0cO%22%7D%5D
+https://{{LINK_HOST}}/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TF_FROM_MS}}&to={{TF_TO_MS}}{{PROBLEM_SEGMENTS}}
 ```
 
 ---
 
 ## Beat 2 — The Change
+
+**Why this step:** A failure that starts at a point in time usually starts with a change, so the next thing worth knowing is what shipped just before it.
 
 **Objective:** User sees which deployment lines up with the start of the failure, who shipped
 it, and a concise read of the timing naming the commit and who it goes to.
@@ -108,7 +113,7 @@ it, and a concise read of the timing naming the commit and who it goes to.
 ```dql
 fetch events, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 | filter event.type == "CUSTOM_DEPLOYMENT"
-| filter in(dt.entity.service, "SERVICE-531CE26849E95EC1", "SERVICE-5ACC60E0079F8E6D")
+| filter in(dt.entity.service, "{{ROOT_CAUSE_ID}}", "SERVICE-5ACC60E0079F8E6D")
 | summarize
     first_deploy = min(timestamp),
     deploys      = count(),
@@ -135,12 +140,14 @@ between `first_deploy` and the problem start (`deploy_before_problem_min`; negat
 **Deep link** (label "Explain with Dynatrace Intelligence"):
 
 ```text
-https://playground.apps.dynatrace.com/ui/intent/dynatrace.davis.copilot/ask-question#%7B%22prompt%22%3A%22Explain%20what%20happened%20in%20the%20problem%20with%20id%20{{PROBLEM_ID}}%2C%20why%20it%20happened%2C%20and%20actionable%20steps%20to%20remediate%20it.%22%2C%22execute%22%3Atrue%7D
+https://{{LINK_HOST}}/ui/intent/dynatrace.davis.copilot/ask-question#%7B%22prompt%22%3A%22Explain%20what%20happened%20in%20the%20problem%20with%20id%20{{PROBLEM_ID}}%2C%20why%20it%20happened%2C%20and%20actionable%20steps%20to%20remediate%20it.%22%2C%22execute%22%3Atrue%7D
 ```
 
 ---
 
 ## Beat 3 — Service Deep Dive
+
+**Why this step:** A deploy landing near the start is not yet a cause — to tie them together we need the failure rate either side of it.
 
 **Objective:** User reads the Charge endpoint's failure rate over time and sees the spike align
 with the deployment marker.
@@ -153,7 +160,7 @@ failures.
 
 ```dql
 fetch spans, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
-| filter dt.entity.service == "SERVICE-531CE26849E95EC1"
+| filter dt.entity.service == "{{ROOT_CAUSE_ID}}"
 | filter endpoint.name == "Charge"
 | summarize
     total    = count(),
@@ -169,7 +176,7 @@ fetch spans, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 ```dql
 fetch events, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 | filter event.type == "CUSTOM_DEPLOYMENT"
-| filter dt.entity.service == "SERVICE-531CE26849E95EC1"
+| filter dt.entity.service == "{{ROOT_CAUSE_ID}}"
 | summarize timestamp = min(timestamp), by: { commit }
 | sort timestamp asc
 ```
@@ -190,7 +197,7 @@ changed is in the diff, not the telemetry.
 **Deep link** (label "Service view"):
 
 ```text
-https://playground.apps.dynatrace.com/ui/apps/dynatrace.services/explorer/services?detailsId=SERVICE-531CE26849E95EC1&perspective=performance&problemId={{PROBLEM_ID}}&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}
+https://{{LINK_HOST}}/ui/apps/dynatrace.services/explorer/services?detailsId={{ROOT_CAUSE_ID}}&perspective=performance&problemId={{PROBLEM_ID}}&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}
 ```
 
 ---
@@ -199,6 +206,8 @@ https://playground.apps.dynatrace.com/ui/apps/dynatrace.services/explorer/servic
 
 **`peak_moment: true`**
 
+**Why this step:** We know the rate moved with the deploy; to say what actually broke we need the exception itself and the request it happened in.
+
 **Objective:** User sees the exact exception, source file, and line, and the whole request it
 broke: where the failure originates, how it propagates upstream, and which calls stayed clean.
 
@@ -206,7 +215,7 @@ broke: where the failure originates, how it propagates upstream, and which calls
 
 ```dql
 fetch spans, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
-| filter dt.entity.service == "SERVICE-531CE26849E95EC1"
+| filter dt.entity.service == "{{ROOT_CAUSE_ID}}"
 | filter request.is_failed == true
 | expand span.events
 | fieldsAdd
@@ -281,7 +290,7 @@ appears, say so — that's a second finding; one first seen after the later depl
 **Deep link** (label "Failing requests"):
 
 ```text
-https://playground.apps.dynatrace.com/ui/apps/dynatrace.distributedtracing/explorer?filter=request.is_failed+%3D+Failure+AND+dt.smartscape.service+%3D+SERVICE-531CE26849E95EC1+AND+endpoint.name+%3D+Charge&tf={{TF_FROM_ISO}}%3B{{TF_TO_ISO}}&v=requests
+https://{{LINK_HOST}}/ui/apps/dynatrace.distributedtracing/explorer?filter=request.is_failed+%3D+Failure+AND+dt.smartscape.service+%3D+{{ROOT_CAUSE_ID}}+AND+endpoint.name+%3D+Charge&tf={{TF_FROM_ISO}}%3B{{TF_TO_ISO}}&v=requests
 ```
 
 ---
@@ -289,6 +298,8 @@ https://playground.apps.dynatrace.com/ui/apps/dynatrace.distributedtracing/explo
 ## Beat 5 — The Humans
 
 **`peak_moment: true`**
+
+**Why this step:** A root cause is only half the handoff — the owning team also needs to know who this reached and what they experienced.
 
 **Objective:** User understands the real-world impact: how many sessions hit errors, where, and
 that session replay shows exactly what a customer saw.
@@ -312,10 +323,19 @@ distinct countries, `rows_returned` the rows before the top five. Never present 
 call it "affected users" (that's the problem record's count). `elapsed_min` is for the close, not for the table.
 
 **Reveal:** Sessions with 5xx errors span many countries, and nearly all have replay. State
-`total_sessions`, `countries` and `no_country` (a row with no country is reported as exactly that, never folded into a
+`total_sessions` (sessions that hit a server error, a 5xx — say it in those words, not as the code alone),
+`countries` and `no_country` (a row with no country is reported as exactly that, never folded into a
 country), and the `top_rows`. Don't add geography the
 rows don't contain. The point isn't the number — each failure is a replayable
 recording of a real customer hitting a real error.
+
+**This is a different population from the rest of the scenario, and it has to be said.** These are
+sessions that hit a server error anywhere in the application during the window, not sessions that hit
+*this* service: nothing in the data ties a session to a backend service — `user.sessions` carries no
+service field and spans carry no session id, so the join does not exist. Say it plainly once — "these
+are sessions that hit a server error in the window; the data doesn't tell us which of them hit
+payment" — and never present the count as the payment failures' victims. The replay is what closes
+the gap: open one and you see what that customer actually hit.
 
 **Success signal:** User asks about affected users, customer experience, or replay.
 
@@ -326,5 +346,5 @@ failed payment, any feedback or silence, is not in the DQL result; the replay sh
 **Deep link** (label "Affected sessions"):
 
 ```text
-https://playground.apps.dynatrace.com/ui/apps/dynatrace.error.inspector/error-explorer?tf=now-{{TF_REL_H}}h%3Bnow&problemId={{PROBLEM_ID}}&perspective=impact&sort=affected_users%3Adescending
+https://{{LINK_HOST}}/ui/apps/dynatrace.error.inspector/error-explorer?tf=now-{{TF_REL_H}}h%3Bnow&problemId={{PROBLEM_ID}}&perspective=impact&sort=affected_users%3Adescending
 ```

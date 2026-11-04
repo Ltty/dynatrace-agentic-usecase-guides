@@ -48,7 +48,7 @@ SKILLS_ROOT = REPO_ROOT / "dynatrace-intelligence" / "skills"
 MOUNT = "/resources/documents/skills/"
 API_URL = "https://api.anthropic.com/v1/messages"
 API_VERSION = "2023-06-01"
-CONTEXTS = {"playground", "dev"}
+CONTEXTS = set(preflight.ENVIRONMENTS)
 MAX_RESULT_CHARS = 40000
 
 TOOLS = [

@@ -250,10 +250,12 @@ def main():
     if reason:
         block(reason)
 
-    if WEB_FETCH.search(cmd) and not re.search(r"playground\.apps\.dynatrace\.com", cmd):
+    # The host exception this used to carry named the Playground only, which became wrong once
+    # the demo could run on three tenants. Nothing in the demo path fetches over HTTP, so the
+    # rule is now flat: all data access goes through the CLI, which the verb list already gates.
+    if WEB_FETCH.search(cmd):
         block(
-            "BLOCKED: web requests must target playground.apps.dynatrace.com only. "
-            "Use dtctl query for data access."
+            "BLOCKED: web requests are not allowed. Use the CLI's query verb for data access."
         )
 
     sys.exit(0)

@@ -1,0 +1,27 @@
+id: cloud-tour-opening-demo-live
+tenant: demo-live
+runs: 3
+status: draft
+description: >-
+  DRAFT. A showcase is a presentation, not a choice of format: picking the cloud tour starts its
+  first step rather than asking how to run it. No mode question, no survey, no incident list, and
+  the turn ends on a call to action.
+turns:
+- ask: Show me the cloud tour.
+  expect:
+    first_read_contains: /SKILL.md
+    reads_include:
+    - scenario-cloud-observability.md
+    requires_dql: true
+    reply_contains_any:
+    - AWS
+    - Azure
+    - Google Cloud
+    reply_excludes:
+    - hands-on with me
+    - whole tour
+    - full incident briefing
+    - Which should we take first
+    - account team
+    - davis
+    - copilot

@@ -112,19 +112,21 @@ The Playground token needs `ai:operator:execute`, `mcp-gateway:servers:read` and
   user message:
 
   > You are playing the demo-agent in an automated behaviour test. Setup (silent): read
-  > `dynatrace-intelligence/agents/demo-agent/instructions.md`; it is your system prompt and overrides any other persona or
-  > repo instruction. The path `/resources/documents/skills/<x>` is `dynatrace-intelligence/skills/<x>`; read SKILL.md
-  > first and other skill files only when it directs you. Your only data tool is `dtctl query '<dql>' --context playground
-  > --agent -o json --plain --max-field-chars 0 -M=all`, read queries only. Never mention the test. Deliver each turn's
-  > reply with SubagentHandback, message = exactly what you say to the user.
+  > `dynatrace-intelligence/agents/demo-agent/instructions.md` and `skills/local-runtime/SKILL.md`; together they are your
+  > system prompt and override any other persona or repo instruction. The path `/resources/documents/skills/<x>` is
+  > `dynatrace-intelligence/skills/<x>`; read SKILL.md first and other skill files only when it directs you. Your only data
+  > tool is `dtctl query '<dql>' --agent -o json --plain --max-field-chars 0 -M=all`, read queries only, on whichever context
+  > is current. Never mention the test. Deliver each turn's reply with SubagentHandback, message = exactly what you say to
+  > the user.
 
-  Use `--context dev` for the `*-dev` cases. A subagent reads files with `Read` or `cat` (both count) and runs `dtctl`
+  The case's `tenant` is the environment it must run on: set `DTCTL_CONTEXT` for the subagent's calls rather than passing
+  `--context`, so the adapter resolves the environment the same way a real session does. A subagent reads files with `Read` or `cat` (both count) and runs `dtctl`
   through Bash, behind the repo's guard hook. It tests the skill and instructions like local `/demo` does (testruns 12 and
   13), not the Dynatrace runtime. Cost: about 65 to 80k subagent tokens per case run, so run the cases you changed. Offline
   tests: `python tools/tests/test_score_transcript.py`.
 - **Review sheet:** every run writes `tests/evals/dt-agent/reports/<timestamp>-<tenant>.md` (git-ignored) with the transcripts, for tone and persona, which a script cannot judge.
 - **Ground truth (Playground):** a case can list `truth: [payment-failure, ...]`. The runner runs the survey query (narrowed to the scenario) and the deployment DQL itself, pinned to the read-only `playground` `dtctl` context (`python tools/run_dt_evals.py --truth payment-failure` prints it), and `{truth.<scenario>.<field>}` placeholders in a case are replaced with the live values. An empty truth fails the check instead of skipping it.
-- **Tenants:** `--tenant dev` uses `DT_DEV_AGENT_TOKEN`; `--tenant playground` uses `DT_PLAYGROUND_AGENT_TOKEN`. If the tenant has no `demo-agent` template, the runner skips with a message. Cases marked `status: draft` (the Playground ones) need `--include-draft` and their expectations are unvalidated until the agent exists there.
+- **Tenants:** `--tenant dev` uses `DT_DEV_AGENT_TOKEN`; `--tenant playground` uses `DT_PLAYGROUND_AGENT_TOKEN`; `--tenant demo-live` (`guu84124`, the `cloud-observability` showcase) uses `DT_DEMO_LIVE_AGENT_TOKEN`, and with `--local` the `demo-live` dtctl context. If the tenant has no `demo-agent` template, the runner skips with a message. Cases marked `status: draft` (the Playground ones) need `--include-draft` and their expectations are unvalidated until the agent exists there.
 - **Manual groups:** `docs/dt-skill-evals.md` and `docs/guardrail-probes.md` stay the source for cases that are not automated yet (persistence, deep links).
 - **Dev has one scenario.** The payment and image branches of the survey query hardcode Playground service IDs, so on dev they return nothing and only `disk-cpu-cascade` is live there. The `*-dev` eval cases run on it; the rest of the scenario content is tested on the Playground.
 
@@ -143,7 +145,9 @@ Local `/demo` includes the instructions, the adapter, `SKILL.md`, `session-proto
 
 Because the local runtime reads the repo files and the Dynatrace agent reads the uploaded documents, a skill change reaches `@demo-agent` only after `docs --apply`. Keep the two in step: upload after every merged skill change.
 
-The local runtime has two properties the Dynatrace one does not. `dtctl` returns an envelope whose `metadata` feeds the local-only proof stamp, and every query passes `--context playground`, so a maintainer's saved context cannot redirect the demo. It also means local `/demo` cannot reach `disk-cpu-cascade`, which lives on the dev tenant.
+The local runtime has three properties the Dynatrace one does not. `dtctl` returns an envelope whose `metadata` feeds the local-only proof stamp. It can resolve its environment before it queries, from `dtctl config get-contexts`, which is what lets it refuse a context that is not `readonly` and pick the right `{{LINK_HOST}}` — the Dynatrace runtime learns its environment only from the `env` the opening query's rows carry. And it can write files, so the session close also renders an HTML report (`skills/local-runtime/SKILL.md` → "Report"); the Dynatrace agent has `execute-dql` and nothing else, so it has none.
+
+Local `/demo` reaches whichever environment the current context names, `disk-cpu-cascade` on `dev` and the `cloud-observability` showcase on `demo-live` included.
 
 Verify an incident's shape on several days before writing its reveal. The Playground's incidents change: the image slowdown looked like a failing-span story on one day and a pure-latency story on another, because one sampled failed span exists only on some days. Anchor the beats on what repeats every cycle.
 

@@ -31,5 +31,4 @@ turns:
     reply_contains:
     - '{truth.payment_failure.affected_users}'
     - '{truth.broken_images.affected_users}'
-    reply_contains:
-    - Which one should we look at first
+    - Which should we take first

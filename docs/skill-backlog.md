@@ -108,7 +108,98 @@ Review against the skill-authoring best practices, then a pass to cut thinking t
 - Still to do (needs the user): repair the Error Inspector and Distributed Tracing links from URLs copied out of the apps
   (testrun 14 observations 1 and 2); see Open.
 
+## Done in the repo, 2026-11-02 (cloud-observability showcase; not uploaded, evals not run)
+
+- New scenario `cloud-observability`, the first showcase (no incident), on the `demo-live` tenant (`guu84124`): the Golden
+  Demo *Modern Cloud Observability* with the *Cut Cloud Costs Safely* Assist conversation folded in. Six beats: the estate,
+  one function, what runs on it (service and problem with AWS DevOps Agent notes), what acts on it (workflows, peak),
+  the bill and the 10% target, cost next to utilization (peak, ends on the cost action list). Source, verified values
+  and what was left out of the guides: `docs/scenarios/cloud-observability.md`.
+- The cost rule is narrower: cloud spend is the showcase's subject; Dynatrace's own pricing and the cost of the
+  conversation keep the one-line redirect (`instructions.md`, conversation-craft, SKILL.md principle 5).
+- Showcase mechanics: no survey branch; SKILL.md opening rows for the tour and for a cloud-cost direct start;
+  session-protocol → "Showcase" (mode question, tokens, handoff, close); walk-through's showcase report; local runtime
+  uses `--context demo-live` for it; `SHOWCASES` in the validator harvests tokens from beat results.
+- `validate_dt_skill.py --scenario cloud-observability`: 10 of 10 blocks pass live; `--links` resolves all six labels;
+  `dt_agent.py check` and the offline tests pass.
+- Eval harness: `demo-live` tenant (`guu84124`, `DT_DEMO_LIVE_AGENT_TOKEN`) in `run_dt_evals.py` and `local_agent.py`;
+  three draft cases: `cloud-tour-opening-demo-live`, `cloud-cost-demo-live`, `cost-pricing-demo-live` (Dynatrace
+  pricing still redirects there). Not run yet: no `ANTHROPIC_API_KEY` for `--local`, no agent on guu84124.
+- 2026-11-03, updated to the guide's final version (*Modern Cloud Observability — October 2027*): beat 4 is now "Agents
+  on the Problem" (the three agents' notes on problems, then the Kubernetes troubleshooting agent naming a CPU-limit
+  change behind an EasyTrade slowdown, peak); the workflows moved to an "Extra" offered after the close (prevent,
+  remediate, optimize); the close names the guide's four challenges. 12 of 12 blocks pass live.
+
+## Done in the repo, 2026-11-04 (three environments, showcase opening, HTML report; not uploaded)
+
+- **The demo runs on the current CLI context**, not a pinned one. `tools/preflight.py` owns
+  `ENVIRONMENTS` and `SCENARIO_ENVIRONMENTS`; the validator, the eval runner and the local agent read
+  it rather than repeating it. The same table is stated for the agent in `session-protocol.md` ->
+  "Environments", and `tools/tests/test_environments.py` fails when the two drift.
+- **Dropping the pin made the readonly safety level load-bearing**, so it is now a gate:
+  `preflight.py check` fails on a non-readonly context and the local adapter refuses to start.
+  Verified against `dev`, which is `readwrite-all` on at least one machine.
+- **Availability is tag AND probe.** A scenario is offered only where it is listed for this
+  environment and its row came back. The opening never names a scenario that lives elsewhere.
+- **`{{LINK_HOST}}` and `{{ROOT_CAUSE_ID}}`** replace the per-tenant host and root-cause service id
+  in all four scenario files, so the same scenario can run on two tenants.
+- **The opening is one turn**: greeting and survey merged, bullets per incident, one question. The
+  showcase is offered in it, with the live bill and the 10% target from a probe appended to the
+  opening query (beat 5's own query, reused).
+- **The probe is gated on the environment.** Measured on playground: the opening scans 50 MB without
+  it and 3.77 GB with it, for a row that cannot exist there.
+- **Showcase register** in `conversation-craft.md`: present tense, a beat ending on the next step
+  plus one alternative rather than two open options, one line per beat tying it to its challenge.
+- **HTML report**, local runtime only: `tools/render_report.py` + `report-template.html` +
+  `report-schema.json`, payload on stdin, output git-ignored under `reports/`. Nothing under
+  `dynatrace-intelligence/` references it, so the uploaded skill is unaffected.
+- The guard's web-egress exception named the Playground only; web fetches are now blocked outright.
+- Fixed along the way: `survey-live.yaml` had two `reply_contains` keys, so its two ground-truth
+  assertions had never run.
+
+### Validated in-session, 2026-11-04
+
+Run with the in-session subagent path (`docs/DYNATRACE-SKILL.md` -> "In-session evals") and scored
+with `score_transcript.py`. `status: draft` stays on all of them: that flag is about the *deployed*
+agent existing on the tenant, which these runs do not prove.
+
+| Case | Environment | Result |
+|---|---|---|
+| `opening-availability-live` | playground | PASS -- bullets, live user counts, no scenario from elsewhere |
+| `opening-cloud-teaser-demo-live` | demo-live | PASS -- the bill line read $13,320, the same figure the probe reports |
+| `cloud-cost-demo-live` | demo-live | PASS -- the PR's own draft case, never run before |
+| `opening-cloud-teaser-demo-live`, hosted path | demo-live | PASS -- same opening and same figure with no CLI access, using the follow-up probe |
+| `greeting` | dev | BLOCKED -- the context is readwrite-all, so the runtime refuses, which is the gate working |
+
+The showcase closing line came out in the new register ("Next is the databases ... Or we can jump
+straight to who owns each line"), which is what the register section was added for.
+
+The hosted path was run with no command-line access at all, to prove the Dynatrace runtime reaches
+the same opening: it surveyed, read `env` off the rows, ran the bill probe as a second query and
+narrated the same reply with the same $13,320.
+
 ## Open
+
+- **Deep links on demo-live have not been opened in a browser.** `--links` resolves all of them for
+  `payment-failure` and `cloud-observability` there, and the one known tenant-scoped part (the
+  problem link's segment) is handled, but no human has judged a demo-live link against its label.
+  That is AUTHORING step 4 and it is still owed, for the showcase's seven links especially.
+- **App ids and perspectives are the remaining tenant-scoped link risk.** The segment is fixed via
+  `{{PROBLEM_SEGMENTS}}`; app ids and `perspective=` values in the other links are assumed
+  portable because the apps are the same, which has not been proved by opening them.
+- **`dev` is still `readwrite-all`**, so the local runtime refuses to run there and the `*-dev` eval
+  cases cannot run: `dtctl config set-context dev --safety-level readonly`.
+- **The `dev` context must be set `readonly` before any `*-dev` case can run.** Verified in an
+  in-session eval: on a `readwrite-all` context the agent correctly refuses and prints
+  `dtctl config set-context dev --safety-level readonly`. That is the gate working, but it blocks the
+  dev cases until someone runs it in a terminal.
+- **Evals not run against the new behaviour.** No `ANTHROPIC_API_KEY` for `--local`, and the dev
+  agent still serves the previous upload. The new `opening-availability-live` and the rewritten
+  `greeting` are unvalidated.
+
+- **cloud-observability:** open the seven deep links in the browser (none opened yet; `--links` prints the Extra's as "Beat 7"); run the three
+  `demo-live` eval cases (`--local --tenant demo-live --include-draft`) and add one for the "do not shrink" peak; decide whether the deployed
+  `demo-agent` goes to `guu84124` (it runs DQL on its own tenant only).
 
 - **Deep links, testrun 14:** confirmed in the apps by the user, 2026-10-20: Error Inspector loads with a relative window
   (`tf=now-<N>h%3Bnow` plus the same parameters; payment and images), and Distributed Tracing loads with an absolute ISO

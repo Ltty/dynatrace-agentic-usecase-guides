@@ -1,0 +1,23 @@
+id: cloud-cost-demo-live
+tenant: demo-live
+runs: 3
+status: draft
+description: 'DRAFT: a cloud-cost ask is a direct start of the showcase (beat 5), not the pricing redirect: no mode
+  question, the bill and the 10% target from live data, and the untagged share named.'
+turns:
+- ask: The CTO wants 10% off our cloud bill. Where does the money go?
+  expect:
+    reads_include:
+    - scenario-cloud-observability.md
+    requires_dql: true
+    reply_contains:
+    - $
+    reply_contains_any:
+    - untagged
+    - no team tag
+    - without a team
+    reply_excludes:
+    - account team
+    - hands-on with me
+    - whole tour
+    - Which should we take first

@@ -11,7 +11,7 @@ turns:
   expect:
     requires_dql: true
     reply_contains:
-    - Which one should we look at first
+    - Which should we take first
     reply_excludes:
     - hands-on
     - take you through
@@ -22,7 +22,7 @@ turns:
     - hands-on with me
     - full incident briefing
     reply_excludes:
-    - Which one should we look at first
+    - Which should we take first
 - ask: yes
   expect:
     requires_dql: true
