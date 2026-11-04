@@ -32,22 +32,6 @@ SCENARIO_FILES = {
     "disk-cpu-cascade": SCENARIO_DIR / "scenario-disk-cpu-cascade.md",
     "cloud-observability": SCENARIO_DIR / "scenario-cloud-observability.md",
 }
-SESSION_PROTOCOL = SCENARIO_DIR / "session-protocol.md"
-
-# dtctl context each scenario's data lives on; anything not listed is on the Playground.
-SCENARIO_CONTEXT = {
-    "disk-cpu-cascade": "dev",
-    "cloud-observability": "demo-live",
-}
-DEFAULT_CONTEXT = "playground"
-
-# Showcases have no survey row: their beats supply the tokens (see harvest_showcase_state).
-SHOWCASES = {"cloud-observability"}
-
-# Runtime-only tokens: present in DQL until a live query result supplies the value.
-RUNTIME_ONLY = {"TRACE_ID"}
-
-
 # ---------------------------------------------------------------------------
 # Bootstrap: import preflight by file path (no package install needed).
 # ---------------------------------------------------------------------------
@@ -59,6 +43,28 @@ def _load_preflight():
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
+
+
+_PF = _load_preflight()
+
+SESSION_PROTOCOL = SCENARIO_DIR / "session-protocol.md"
+
+# The environment registry is preflight's; this module only reads it.
+ENVIRONMENTS = _PF.ENVIRONMENTS
+SCENARIO_ENVIRONMENTS = _PF.SCENARIO_ENVIRONMENTS
+DEFAULT_ENVIRONMENT = "playground"
+
+
+def environments_for(scenario):
+    """The environments a scenario's data lives on, most-default first."""
+    envs = SCENARIO_ENVIRONMENTS.get(scenario, ())
+    return sorted(envs, key=lambda e: e != DEFAULT_ENVIRONMENT)
+
+# Showcases have no survey row: their beats supply the tokens (see harvest_showcase_state).
+SHOWCASES = {"cloud-observability"}
+
+# Runtime-only tokens: present in DQL until a live query result supplies the value.
+RUNTIME_ONLY = {"TRACE_ID"}
 
 
 # ---------------------------------------------------------------------------
@@ -75,8 +81,21 @@ def extract_dql_blocks(md_path: Path) -> list[str]:
 
 
 def survey_dql(scenario: str | None = None) -> str:
-    """The survey query from session-protocol.md, optionally narrowed to one scenario's row."""
-    dql = extract_dql_blocks(SESSION_PROTOCOL)[0]
+    """The survey query from session-protocol.md, optionally narrowed to one scenario's row.
+
+    Keyed to the "## Session state" heading rather than to fence order, so adding a fence
+    elsewhere in that file cannot silently repoint the survey.
+    """
+    text = SESSION_PROTOCOL.read_text(encoding="utf-8")
+    start = text.find("\n## Session state")
+    if start < 0:
+        raise RuntimeError("session-protocol.md has no '## Session state' heading")
+    end = text.find("\n## ", start + 1)
+    section = text[start:end if end > 0 else len(text)]
+    fences = DQL_FENCE_RE.findall(section)
+    if not fences:
+        raise RuntimeError("no ```dql fence under '## Session state'")
+    dql = fences[0].strip()
     return dql + (f'\n| filter scenario == "{scenario}"' if scenario else "")
 
 
@@ -139,6 +158,7 @@ def extract_state_from_resolver(pf, envelope: dict) -> dict:
         "DQL_TO": row.get("window_to", "now()"),
         "TF_FROM_MS": str(row.get("tf_from_ms", "")),
         "TF_TO_MS": str(row.get("tf_to_ms", "")),
+        "ROOT_CAUSE_ID": str(row.get("root_cause_id", "")),
     }
 
 
@@ -176,9 +196,10 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         description="Validate Dynatrace skill scenario DQL blocks against the scenario's live tenant."
     )
     parser.add_argument(
-        "--context", default=None,
-        help="dtctl context to query (default: the scenario's own, else playground). Set per run, "
-             "never saved, so a different current context cannot redirect the validation."
+        "--environment", "--context", dest="environment", default=None,
+        help="environment to validate against (default: the scenario's own; required when a "
+             "scenario lives on more than one). Set per run, never saved, so a different current "
+             "context cannot redirect the validation."
     )
     parser.add_argument(
         "--links", action="store_true",
@@ -200,7 +221,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     return args
 
 
-def print_links(pf, scenario: str, md_path: Path) -> int:
+def print_links(pf, scenario: str, md_path: Path, environment: str) -> int:
     """Print each beat's label and substituted deep link for the scenario's live problem."""
     if scenario in SHOWCASES:
         state: dict = {}
@@ -219,6 +240,7 @@ def print_links(pf, scenario: str, md_path: Path) -> int:
                                   "--max-field-chars", "0")
         envelope = pf.parse_envelope(out)
         state = extract_state_from_resolver(pf, envelope) if envelope and envelope.get("ok") else {}
+    state["LINK_HOST"] = _PF.host_of(environment)
     if not state.get("PROBLEM_ID"):
         print(f"No live problem for {scenario}: nothing to substitute.")
         return 1
@@ -234,8 +256,19 @@ def print_links(pf, scenario: str, md_path: Path) -> int:
 
 def main(argv: list[str]) -> int:
     args = parse_args(argv)
-    args.context = args.context or SCENARIO_CONTEXT.get(args.scenario, DEFAULT_CONTEXT)
-    os.environ["DTCTL_CONTEXT"] = args.context
+    if args.environment is None and args.scenario:
+        envs = environments_for(args.scenario)
+        if len(envs) > 1:
+            print(f"error: {args.scenario} lives on {', '.join(envs)} — "
+                  f"pass --environment to say which", file=sys.stderr)
+            return 2
+        args.environment = envs[0] if envs else DEFAULT_ENVIRONMENT
+    args.environment = args.environment or DEFAULT_ENVIRONMENT
+    if args.environment not in ENVIRONMENTS:
+        print(f"error: unknown environment '{args.environment}' — "
+              f"known: {', '.join(ENVIRONMENTS)}", file=sys.stderr)
+        return 2
+    os.environ["DTCTL_CONTEXT"] = args.environment
 
     if args.scenario:
         md_paths = [SCENARIO_FILES[args.scenario]]
@@ -250,7 +283,7 @@ def main(argv: list[str]) -> int:
     pf = _load_preflight()
 
     if args.links:
-        return print_links(pf, args.scenario, md_paths[0])
+        return print_links(pf, args.scenario, md_paths[0], args.environment)
 
     blocks = [b for md_path in md_paths for b in extract_dql_blocks(md_path)]
     showcase = args.scenario in SHOWCASES
@@ -261,10 +294,10 @@ def main(argv: list[str]) -> int:
         print(f"No ```dql blocks found in {names}")
         return 0
 
-    print(f"Validating {names} — {len(blocks)} DQL block(s) on dtctl context '{args.context}'")
+    print(f"Validating {names} — {len(blocks)} DQL block(s) on environment '{args.environment}'")
     print("=" * 60)
 
-    placeholders: dict[str, str] = {}
+    placeholders: dict[str, str] = {"LINK_HOST": _PF.host_of(args.environment)}
     passed = failed = skipped = 0
     last_producer_records: list[dict] = []
 

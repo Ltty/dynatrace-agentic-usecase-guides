@@ -93,9 +93,17 @@ if DTCTL_TAG_URL=$(curl -fsSL --retry 3 -o /dev/null -w '%{url_effective}' \
     STATUS_DTCTL="OK ($("${DTCTL_INSTALL_DIR}/dtctl" version 2>/dev/null | head -1))"
 
     echo ""
-    echo "      Configuring playground context..."
+    echo "      Configuring demo contexts..."
+    # Every demo environment is readonly; each still needs its own sign-in
+    # (python tools/preflight.py login <environment>). playground is the one made current.
     "${DTCTL_INSTALL_DIR}/dtctl" config set-context playground \
       --environment https://playground.apps.dynatrace.com \
+      --safety-level readonly 2>/dev/null || true
+    "${DTCTL_INSTALL_DIR}/dtctl" config set-context dev \
+      --environment https://fxz0998d.dev.apps.dynatracelabs.com \
+      --safety-level readonly 2>/dev/null || true
+    "${DTCTL_INSTALL_DIR}/dtctl" config set-context demo-live \
+      --environment https://guu84124.apps.dynatrace.com \
       --safety-level readonly 2>/dev/null || true
     "${DTCTL_INSTALL_DIR}/dtctl" config use-context playground 2>/dev/null || true
   else

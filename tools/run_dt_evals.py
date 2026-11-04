@@ -40,11 +40,6 @@ REPO_ROOT = Path(__file__).parent.parent
 CASES_DIR = REPO_ROOT / "tests" / "evals" / "dt-agent"
 REPORTS_DIR = CASES_DIR / "reports"
 AGENT = "demo-agent"
-TENANTS = {
-    "dev": ("https://fxz0998d.dev.apps.dynatracelabs.com", "DT_DEV_AGENT_TOKEN"),
-    "playground": ("https://playground.apps.dynatrace.com", "DT_PLAYGROUND_AGENT_TOKEN"),
-    "demo-live": ("https://guu84124.apps.dynatrace.com", "DT_DEMO_LIVE_AGENT_TOKEN"),
-}
 FORBIDDEN = [
     r"\bbeats?\b", r"step \d+ of \d+", r"\bthe demo\b", r"\bas an ai\b", r"\bI can['’]?t\b",
     r"\bI'?m read-only\b", r"\bI am read-only\b",
@@ -66,6 +61,13 @@ def load_module(name: str):
     sys.modules[name] = module
     spec.loader.exec_module(module)
     return module
+
+
+# Derived from the one registry in preflight.py, so a tenant is never declared twice.
+TENANTS = {
+    env: (cfg["url"], cfg["token_var"])
+    for env, cfg in load_module("preflight").ENVIRONMENTS.items()
+}
 
 
 # ---------------------------------------------------------------------------
@@ -178,7 +180,7 @@ def ground_truth(scenario_id: str) -> dict:
     validate = load_module("validate_dt_skill")
     if scenario_id in validate.SHOWCASES:
         return {}  # no survey row, no incident: showcase cases assert on shape, not on truth values
-    os.environ["DTCTL_CONTEXT"] = validate.SCENARIO_CONTEXT.get(scenario_id, validate.DEFAULT_CONTEXT)
+    os.environ["DTCTL_CONTEXT"] = validate.environments_for(scenario_id)[0]
     pf = validate._load_preflight()
     scenario_file = validate.SCENARIO_FILES[scenario_id]
 

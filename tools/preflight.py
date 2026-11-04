@@ -5,11 +5,13 @@ preflight.py — connectivity gate, scenario liveness, and dtctl helpers.
 Modes:
   python tools/preflight.py                  # connectivity + auth check (same as `check`)
   python tools/preflight.py preflight        # is each scenario's problem live? (uses the skill's resolver DQL)
+  python tools/preflight.py env              # the current environment key and its link host
   python tools/preflight.py dtctl-path       # how to invoke dtctl: bare `dtctl` if on PATH, else the full path
-  python tools/preflight.py login            # browser OAuth flow
+  python tools/preflight.py login [<env>]    # browser OAuth flow (default: playground)
 
-Also the shared helpers other tools import: run_dtctl, parse_envelope, _flatten_records,
-substitute_placeholders, check.
+Also the shared helpers and the environment registry other tools import: run_dtctl,
+parse_envelope, _flatten_records, substitute_placeholders, check, ENVIRONMENTS,
+SCENARIO_ENVIRONMENTS, current_context, host_of, scenarios_for.
 
 Exit codes:
   0 = all checks passed / all scenarios live
@@ -125,6 +127,70 @@ def substitute_placeholders(text: str, placeholders: dict,
 
 
 # ---------------------------------------------------------------------------
+# Environments
+# ---------------------------------------------------------------------------
+#
+# The demo runs on whichever dtctl context is current; these are the ones it knows.
+# The same table is stated for the agent in the skill's session-protocol.md -> "Environments",
+# and tools/tests/test_environments.py fails if the two drift apart.
+
+ENVIRONMENTS = {
+    "playground": {"url": "https://playground.apps.dynatrace.com",
+                   "token_var": "DT_PLAYGROUND_AGENT_TOKEN"},
+    "dev": {"url": "https://fxz0998d.dev.apps.dynatracelabs.com",
+            "token_var": "DT_DEV_AGENT_TOKEN"},
+    "demo-live": {"url": "https://guu84124.apps.dynatrace.com",
+                  "token_var": "DT_DEMO_LIVE_AGENT_TOKEN"},
+}
+
+# Which environments each scenario's data exists on. A scenario is offered only where it is
+# listed here AND its probe returns a row.
+SCENARIO_ENVIRONMENTS = {
+    "payment-failure": ("playground", "demo-live"),
+    "broken-images": ("playground", "demo-live"),
+    "disk-cpu-cascade": ("dev",),
+    "cloud-observability": ("demo-live",),
+}
+
+
+def host_of(env: str) -> str:
+    """The bare link host for an environment ({{LINK_HOST}} in the skill)."""
+    return urllib.parse.urlparse(ENVIRONMENTS[env]["url"]).netloc
+
+
+def env_for_url(url: str):
+    """The environment key whose tenant URL matches, or None."""
+    host = urllib.parse.urlparse(url).netloc
+    return next((e for e in ENVIRONMENTS if host_of(e) == host), None)
+
+
+def scenarios_for(env: str) -> list:
+    """Scenario ids tagged for an environment, in registry order."""
+    return [s for s, envs in SCENARIO_ENVIRONMENTS.items() if env in envs]
+
+
+def current_context():
+    """The dtctl context marked current, as
+    {name, url, safety_level, environment}. environment is None for a tenant we
+    do not know. Returns None when dtctl cannot report its contexts.
+    """
+    rc, out, _ = run_dtctl("config", "get-contexts")
+    envelope = parse_envelope(out)
+    if rc != 0 or not envelope or not envelope.get("ok"):
+        return None
+    for row in envelope.get("result") or []:
+        if str(row.get("Current", "")).strip() == "*":
+            url = row.get("Environment", "")
+            return {
+                "name": row.get("Name", ""),
+                "url": url,
+                "safety_level": row.get("SafetyLevel", ""),
+                "environment": env_for_url(url),
+            }
+    return None
+
+
+# ---------------------------------------------------------------------------
 # Connectivity check
 # ---------------------------------------------------------------------------
 
@@ -157,10 +223,22 @@ def check_connectivity() -> bool:
         print("\n  Run: python tools/preflight.py login")
         return False
 
-    rc, out, _ = run_dtctl("config", "describe-context", "playground")
-    readonly = "readonly" in out.lower() if rc == 0 else False
+    ctx = current_context()
+    if ctx is None:
+        check("current context", False, "dtctl could not report its contexts")
+        return False
+
+    known = ctx["environment"] is not None
+    all_ok &= check(f"environment = {ctx['environment'] or 'unknown'}", known,
+                    f"context '{ctx['name']}'" if known else
+                    f"context '{ctx['name']}' points at {ctx['url']}, which is not a demo environment")
+
+    # The demo used to pin --context playground, so a readwrite context could not be reached.
+    # It now runs on the current context, which is what makes this a gate rather than a note.
+    readonly = ctx["safety_level"].lower() == "readonly"
     all_ok &= check("safety level = readonly", readonly,
-                    "" if readonly else "run: dtctl config set-context playground --safety-level readonly")
+                    "" if readonly else
+                    f"run: dtctl config set-context {ctx['name']} --safety-level readonly")
 
     rc, out, _ = run_dtctl("query", "fetch dt.davis.problems | limit 1 | fields event.id")
     envelope = parse_envelope(out)
@@ -244,13 +322,13 @@ def _extract_redirect_base(auth_url: str) -> str | None:
         return None
 
 
-def _run_client_credentials_login():
+def _run_client_credentials_login(env: str = "playground"):
     """Non-interactive login using the OAuth client-credentials grant.
     Activated when DTCTL_CLIENT_ID and DTCTL_CLIENT_SECRET are both set.
     Note: this grant issues no refresh token (RFC 6749 §4.4.3); re-run on expiry.
     """
     print()
-    print("  Dynatrace Playground Sign-In (client credentials — no browser)")
+    print(f"  Dynatrace Sign-In — {env} (client credentials — no browser)")
     print("  " + "-" * 40)
     print()
     print("  DTCTL_CLIENT_ID and DTCTL_CLIENT_SECRET are set; using client credentials grant.")
@@ -261,8 +339,8 @@ def _run_client_credentials_login():
         DTCTL,
         "--no-agent",
         "auth", "login",
-        "--context", "playground",
-        "--environment", "https://playground.apps.dynatrace.com",
+        "--context", env,
+        "--environment", ENVIRONMENTS[env]["url"],
         "--safety-level", "readonly",
         "--client-id", os.environ["DTCTL_CLIENT_ID"],
         "--client-secret", os.environ["DTCTL_CLIENT_SECRET"],
@@ -278,27 +356,31 @@ def _run_client_credentials_login():
     sys.exit(0 if ok else 1)
 
 
-def codespace_login():
+def codespace_login(env: str = "playground"):
     """dtctl auth login with auto-completion detection and paste-back relay."""
     import threading
     import time
 
+    if env not in ENVIRONMENTS:
+        print(f"Unknown environment '{env}'. Known: {', '.join(ENVIRONMENTS)}", file=sys.stderr)
+        sys.exit(2)
+
     if os.environ.get("DTCTL_CLIENT_ID") and os.environ.get("DTCTL_CLIENT_SECRET"):
-        _run_client_credentials_login()
+        _run_client_credentials_login(env)
         return
 
     cmd = [
         DTCTL,
         "--no-agent",  # suppress JSON envelope when CLAUDECODE env var is set
         "auth", "login",
-        "--context", "playground",
-        "--environment", "https://playground.apps.dynatrace.com",
+        "--context", env,
+        "--environment", ENVIRONMENTS[env]["url"],
         "--safety-level", "readonly",
         "--timeout", "10m",
     ]
 
     print()
-    print("  Dynatrace Playground Sign-In")
+    print(f"  Dynatrace Sign-In — {env}")
     print("  " + "-" * 40)
     print()
 
@@ -470,8 +552,14 @@ def preflight_report() -> int:
     print("=== scenario liveness ===")
     print()
 
-    # The demo always queries the read-only Playground, whatever the saved context is.
-    os.environ["DTCTL_CONTEXT"] = "playground"
+    ctx = current_context()
+    env = ctx["environment"] if ctx else None
+    label = env or "unknown"
+    if ctx:
+        label += f" ({ctx['name']})"
+    print(f"Environment: {label}")
+    print()
+
     if not _dql_reachable():
         print("[FAIL] DQL not reachable — run /demo-doctor to fix auth first")
         return 2
@@ -496,9 +584,10 @@ def preflight_report() -> int:
     except Exception as e:
         survey_error = str(e)
     for scenario_id in skill.SCENARIO_FILES:
-        context = skill.SCENARIO_CONTEXT.get(scenario_id, skill.DEFAULT_CONTEXT)
-        if context != skill.DEFAULT_CONTEXT:
-            print(f"[SKIP] {scenario_id} — its data lives on the '{context}' tenant, not the Playground")
+        envs = SCENARIO_ENVIRONMENTS.get(scenario_id, ())
+        if env is not None and env not in envs:
+            print(f"[SKIP] {scenario_id} — not in this environment "
+                  f"(it lives on {', '.join(envs) or 'no registered environment'})")
             continue
         total += 1
         try:
@@ -538,11 +627,20 @@ def main():
         print("dtctl" if shutil.which("dtctl") else DTCTL.replace("\\", "/"))
         sys.exit(0)
 
+    if args[0] == "env":
+        ctx = current_context()
+        if not ctx or not ctx["environment"]:
+            print("unknown", file=sys.stderr)
+            sys.exit(1)
+        print(f"{ctx['environment']} {host_of(ctx['environment'])}")
+        sys.exit(0)
+
     if args[0] == "login":
-        codespace_login()
+        codespace_login(args[1] if len(args) > 1 else "playground")
         # codespace_login() always calls sys.exit() itself; this is unreachable.
 
-    print(f"Usage: {sys.argv[0]} [check|preflight|dtctl-path|login]", file=sys.stderr)
+    print(f"Usage: {sys.argv[0]} [check|preflight|env|dtctl-path|login [<environment>]]",
+          file=sys.stderr)
     sys.exit(2)
 
 
