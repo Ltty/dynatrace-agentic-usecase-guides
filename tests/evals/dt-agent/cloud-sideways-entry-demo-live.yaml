@@ -1,0 +1,19 @@
+id: cloud-sideways-entry-demo-live
+tenant: demo-live
+runs: 3
+status: draft
+description: >-
+  DRAFT. A question *about* the cloud line is answered first and then gets the mode choice, rather
+  than diving into the bill. This is the path that previously reached the beats without delivery
+  ever being chosen (testrun 15, issue 2).
+turns:
+- ask: What do you mean, where 10% of it is?
+  expect:
+    reply_contains_any:
+    - hands-on
+    - whole tour
+    reply_excludes:
+    - CTO
+    - cloud-observability
+    - davis
+    - copilot

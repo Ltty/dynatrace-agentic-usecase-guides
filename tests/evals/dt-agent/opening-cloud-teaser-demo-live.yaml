@@ -4,9 +4,10 @@ runs: 3
 status: draft
 description: >-
   DRAFT, unvalidated until the agent exists on guu84124. On demo-live the opening lists the live
-  incident as a bullet and then offers the cloud tour on its own line with the real bill and the
-  10% target, ending on one question that names every option in plain words. It must not list an
-  image incident (those services are the showcase's own) and must not name a scenario id.
+  incident as a bullet, offers the cloud tour with the real bill AND what the untagged share means,
+  proposes one of them, and ends on one question naming every option in plain words. It must not
+  list an image incident (those services are the showcase's own), must not name a scenario id, and
+  must not attribute the 10% to anyone.
 turns:
 - ask: Hi
   expect:
@@ -18,8 +19,10 @@ turns:
     - $
     - payment
     reply_contains_any:
-    - 10%
-    - cloud bill
+    - no team tag
+    - no owner
+    - nobody is accountable
+    - unowned
     reply_excludes:
     - payment-failure
     - broken-images
@@ -28,6 +31,7 @@ turns:
     - disk
     - demo-live
     - guu84124
+    - CTO
     - Environment looks clean
     - davis
     - copilot
