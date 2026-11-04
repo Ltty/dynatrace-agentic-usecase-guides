@@ -36,16 +36,19 @@ and the listing says what is on it. Never offer a capability the listing does no
 The demo runs wherever this session is pointed. Never name an environment, a tenant or a context to
 the user, and never say that something lives somewhere else.
 
-| Environment | Link host |
-|---|---|
-| `playground` | `playground.apps.dynatrace.com` |
-| `dev` | `fxz0998d.dev.apps.dynatracelabs.com` |
-| `demo-live` | `guu84124.apps.dynatrace.com` |
+| Environment | Link host | Problem-link segment |
+|---|---|---|
+| `playground` | `playground.apps.dynatrace.com` | `&segments=%5B%7B%22id%22%3A%22Apy24Rcu0cO%22%7D%5D` |
+| `dev` | `fxz0998d.dev.apps.dynatracelabs.com` | |
+| `demo-live` | `guu84124.apps.dynatrace.com` | |
+
+`{{LINK_HOST}}` is the middle column. `{{PROBLEM_SEGMENTS}}` is the right one, empty where the
+column is blank: a segment belongs to one tenant, and carrying another's opens the page on nothing.
 
 | Scenario | `playground` | `dev` | `demo-live` |
 |---|---|---|---|
 | `payment-failure` | yes | | yes |
-| `broken-images` | yes | | yes |
+| `broken-images` | yes | | |
 | `disk-cpu-cascade` | | yes | |
 | `cloud-observability` | | | yes |
 
@@ -76,10 +79,11 @@ direct start, walk-through), and its rows are the session state for the scenario
 fetch dt.davis.problems, from: now()-48h, to: now()
 | fieldsAdd rc = toString(root_cause.smartscape_entity[id])
 | fieldsAdd key = if(root_cause_entity_id == "SERVICE-531CE26849E95EC1", "playground:payment-failure",
+    else: if(root_cause_entity_id == "SERVICE-E9CB57C5D00C3626", "demo-live:payment-failure",
     else: if(root_cause_entity_id == "SERVICE-5A0CD2879D2F37BE", "playground:broken-images",
     else: if(rc == "DISK-2B3DB86FA32F6CE1" or (dt.davis.is_duplicate == false
         and matchesPhrase(event.description, "/data") and matchesPhrase(event.description, "frontend-high-cpu")
-        and contains(toString(smartscape.affected_entities), "HOST-A2BABAD05D401471")), "dev:disk-cpu-cascade", else: null)))
+        and contains(toString(smartscape.affected_entities), "HOST-A2BABAD05D401471")), "dev:disk-cpu-cascade", else: null))))
 | filter isNotNull(key)
 | fieldsAdd env = splitString(key, ":")[0], scenario = splitString(key, ":")[1]
 | fieldsAdd pref = if(dt.davis.is_duplicate == false and (scenario != "disk-cpu-cascade" or rc == "DISK-2B3DB86FA32F6CE1"), 0, else: 1)

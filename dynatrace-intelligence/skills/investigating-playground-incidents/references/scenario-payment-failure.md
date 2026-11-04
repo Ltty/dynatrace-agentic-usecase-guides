@@ -35,7 +35,8 @@ The failure rate comes from the service deep dive (beat 3), never from the probl
 
 | Name | ID |
 |---|---|
-| astroshop-payment (root cause) | `SERVICE-531CE26849E95EC1` |
+| astroshop-payment (root cause), `playground` | `SERVICE-531CE26849E95EC1` |
+| astroshop-payment (root cause), `demo-live` | `SERVICE-E9CB57C5D00C3626` |
 | astroshop-checkout (listed as affected) | `SERVICE-5ACC60E0079F8E6D` |
 | Charge endpoint | `endpoint.name == "Charge"` |
 | Segment (problem deep link) | `Apy24Rcu0cO` |
@@ -93,7 +94,7 @@ checkout calls payment until the trace in beat 4 shows it. State the actual numb
 **Deep link** (label "Problem in Dynatrace"):
 
 ```text
-https://{{LINK_HOST}}/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TF_FROM_MS}}&to={{TF_TO_MS}}&segments=%5B%7B%22id%22%3A%22Apy24Rcu0cO%22%7D%5D
+https://{{LINK_HOST}}/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TF_FROM_MS}}&to={{TF_TO_MS}}{{PROBLEM_SEGMENTS}}
 ```
 
 ---

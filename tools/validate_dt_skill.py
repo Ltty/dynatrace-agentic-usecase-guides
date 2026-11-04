@@ -241,6 +241,7 @@ def print_links(pf, scenario: str, md_path: Path, environment: str) -> int:
         envelope = pf.parse_envelope(out)
         state = extract_state_from_resolver(pf, envelope) if envelope and envelope.get("ok") else {}
     state["LINK_HOST"] = _PF.host_of(environment)
+    state["PROBLEM_SEGMENTS"] = ENVIRONMENTS[environment].get("segments", "")
     if not state.get("PROBLEM_ID"):
         print(f"No live problem for {scenario}: nothing to substitute.")
         return 1
@@ -297,7 +298,10 @@ def main(argv: list[str]) -> int:
     print(f"Validating {names} — {len(blocks)} DQL block(s) on environment '{args.environment}'")
     print("=" * 60)
 
-    placeholders: dict[str, str] = {"LINK_HOST": _PF.host_of(args.environment)}
+    placeholders: dict[str, str] = {
+        "LINK_HOST": _PF.host_of(args.environment),
+        "PROBLEM_SEGMENTS": ENVIRONMENTS[args.environment].get("segments", ""),
+    }
     passed = failed = skipped = 0
     last_producer_records: list[dict] = []
 

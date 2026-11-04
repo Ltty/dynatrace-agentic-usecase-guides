@@ -55,20 +55,23 @@ def parsed_tables():
             header = [c for c in cells[1:]]
             continue
         if header is None:
-            hosts[cells[0]] = cells[1]
+            hosts[cells[0]] = cells[1:]
         else:
             envs = {header[i] for i, c in enumerate(cells[1:]) if c}
             avail[cells[0]] = envs
     return hosts, avail
 
 
-def test_link_hosts_match_the_registry():
+def test_link_hosts_and_segments_match_the_registry():
     pf = load("preflight")
     hosts, _ = parsed_tables()
     assert hosts, "no environment table found under '## Environments'"
     assert set(hosts) == set(pf.ENVIRONMENTS), (sorted(hosts), sorted(pf.ENVIRONMENTS))
-    for env, host in hosts.items():
-        assert host == pf.host_of(env), (env, host, pf.host_of(env))
+    for env, cells in hosts.items():
+        assert cells[0] == pf.host_of(env), (env, cells[0], pf.host_of(env))
+        stated = cells[1] if len(cells) > 1 else ""
+        assert stated == pf.ENVIRONMENTS[env].get("segments", ""), (
+            env, stated, pf.ENVIRONMENTS[env].get("segments", ""))
 
 
 def test_availability_matches_the_registry():

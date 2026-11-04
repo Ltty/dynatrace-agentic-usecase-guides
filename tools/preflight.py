@@ -134,20 +134,23 @@ def substitute_placeholders(text: str, placeholders: dict,
 # The same table is stated for the agent in the skill's session-protocol.md -> "Environments",
 # and tools/tests/test_environments.py fails if the two drift apart.
 
+# "segments" is the problem link's segment parameter, which is a tenant-scoped object: a segment
+# uid from one tenant is a dangling reference on another, and the page opens on nothing.
 ENVIRONMENTS = {
     "playground": {"url": "https://playground.apps.dynatrace.com",
-                   "token_var": "DT_PLAYGROUND_AGENT_TOKEN"},
+                   "token_var": "DT_PLAYGROUND_AGENT_TOKEN",
+                   "segments": "&segments=%5B%7B%22id%22%3A%22Apy24Rcu0cO%22%7D%5D"},
     "dev": {"url": "https://fxz0998d.dev.apps.dynatracelabs.com",
-            "token_var": "DT_DEV_AGENT_TOKEN"},
+            "token_var": "DT_DEV_AGENT_TOKEN", "segments": ""},
     "demo-live": {"url": "https://guu84124.apps.dynatrace.com",
-                  "token_var": "DT_DEMO_LIVE_AGENT_TOKEN"},
+                  "token_var": "DT_DEMO_LIVE_AGENT_TOKEN", "segments": ""},
 }
 
 # Which environments each scenario's data exists on. A scenario is offered only where it is
 # listed here AND its probe returns a row.
 SCENARIO_ENVIRONMENTS = {
     "payment-failure": ("playground", "demo-live"),
-    "broken-images": ("playground", "demo-live"),
+    "broken-images": ("playground",),
     "disk-cpu-cascade": ("dev",),
     "cloud-observability": ("demo-live",),
 }
@@ -539,6 +542,34 @@ def _dql_reachable() -> bool:
     return rc == 0 and bool(env) and env.get("ok", False)
 
 
+def _showcase_live(skill, scenario_id):
+    """A showcase is live when its own probe returns a figure; it has no problem record.
+
+    The probe is the scenario's bill query -- the block that returns total_usd, which is also
+    what the opening appends to the survey.
+    """
+    import datetime as _dt
+    # The block stamps elapsed_min against the opening's time; here there is no opening, so now().
+    survey_at = _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z")
+    for raw in skill.extract_dql_blocks(skill.SCENARIO_FILES[scenario_id]):
+        if "total_usd" not in raw:
+            continue
+        dql = substitute_placeholders(raw, {"SURVEY_AT": survey_at}, pass_through_unknown=True)
+        if skill.remaining_tokens(dql):
+            continue
+        _, out, _ = run_dtctl("query", skill.strip_dql_comments(dql), "-o", "json",
+                              "--max-field-chars", "0")
+        envelope = parse_envelope(out)
+        if not (envelope and envelope.get("ok")):
+            continue
+        records = _flatten_records(envelope)
+        if records and records[0].get("total_usd"):
+            row = records[0]
+            return True, f"${row['total_usd']} over 30 days, 10% = ${row.get('target_usd', '?')}"
+        return False, "EMPTY - the bill returned no charges"
+    return False, "BROKEN - no probe block found in the scenario file"
+
+
 def preflight_report() -> int:
     """Print a go/no-go line per scenario, using the Dynatrace skill's own resolver DQL.
 
@@ -591,6 +622,12 @@ def preflight_report() -> int:
             continue
         total += 1
         try:
+            if scenario_id in skill.SHOWCASES:
+                live, detail = _showcase_live(skill, scenario_id)
+                check(scenario_id, live, detail)
+                if live:
+                    live_ids.append(scenario_id)
+                continue
             if survey_error:
                 raise RuntimeError(survey_error)
             row = rows_by_scenario.get(scenario_id)

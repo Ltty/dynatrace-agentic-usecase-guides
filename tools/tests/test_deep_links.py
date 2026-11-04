@@ -18,7 +18,7 @@ v = importlib.util.module_from_spec(spec)
 sys.modules["validate_dt_skill"] = v
 spec.loader.exec_module(v)
 
-KNOWN_TOKENS = {"LINK_HOST", "ROOT_CAUSE_ID", "PROBLEM_ID", "TF_FROM_MS", "TF_TO_MS", "DQL_FROM", "DQL_TO", "TF_REL_H", "TF_FROM_ISO", "TF_TO_ISO"}
+KNOWN_TOKENS = {"LINK_HOST", "ROOT_CAUSE_ID", "PROBLEM_SEGMENTS", "PROBLEM_ID", "TF_FROM_MS", "TF_TO_MS", "DQL_FROM", "DQL_TO", "TF_REL_H", "TF_FROM_ISO", "TF_TO_ISO"}
 
 
 def test_every_beat_has_a_labelled_link():
