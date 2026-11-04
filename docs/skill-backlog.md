@@ -157,6 +157,22 @@ Review against the skill-authoring best practices, then a pass to cut thinking t
 - Fixed along the way: `survey-live.yaml` had two `reply_contains` keys, so its two ground-truth
   assertions had never run.
 
+### Validated in-session, 2026-11-04
+
+Run with the in-session subagent path (`docs/DYNATRACE-SKILL.md` -> "In-session evals") and scored
+with `score_transcript.py`. `status: draft` stays on all of them: that flag is about the *deployed*
+agent existing on the tenant, which these runs do not prove.
+
+| Case | Environment | Result |
+|---|---|---|
+| `opening-availability-live` | playground | PASS -- bullets, live user counts, no scenario from elsewhere |
+| `opening-cloud-teaser-demo-live` | demo-live | PASS -- the bill line read $13,320, the same figure the probe reports |
+| `cloud-cost-demo-live` | demo-live | PASS -- the PR's own draft case, never run before |
+| `greeting` | dev | BLOCKED -- the context is readwrite-all, so the runtime refuses, which is the gate working |
+
+The showcase closing line came out in the new register ("Next is the databases ... Or we can jump
+straight to who owns each line"), which is what the register section was added for.
+
 ## Open
 
 - **Deep links on demo-live have not been opened in a browser.** `--links` resolves all of them for
