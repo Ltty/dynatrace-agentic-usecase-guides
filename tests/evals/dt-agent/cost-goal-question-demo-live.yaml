@@ -1,0 +1,26 @@
+id: cost-goal-question-demo-live
+tenant: demo-live
+runs: 3
+status: draft
+description: >-
+  DRAFT. A cost ask carrying no figure states the bill first — the total and what the untagged share
+  means — and then asks for a goal. It must not propose 10% before asking: that takes the decision
+  away from the user and makes the number sound arbitrary. Testrun 16, issue 1.
+turns:
+- ask: I want to look at my cloud costs
+  expect:
+    reads_include:
+    - scenario-cloud-observability.md
+    requires_dql: true
+    reply_contains:
+    - $
+    reply_contains:
+    - 'no team tag'
+    reply_contains_any:
+    - goal in mind
+    - propose one
+    reply_excludes:
+    - CTO
+    - cloud-observability
+    - davis
+    - copilot
