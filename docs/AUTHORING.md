@@ -147,18 +147,22 @@ line the walk-through shows while it pulls the first query of every beat, naming
    the Playground in testruns 12 and 13. A scenario on more than one environment needs one Stable-IDs
    row per environment, and `--environment` becomes required when validating it.
 2. `python tools/dt_agent.py check` — layout rules; `python tools/tests/test_deep_links.py` — every beat has a
-   labelled deep link that uses only known tokens.
-3. `python tools/validate_dt_skill.py --scenario <id> [--environment <env>]` — runs the opening query (narrowed to the scenario) and **every** beat query live,
+   labelled deep link that uses only known tokens and a **Why this step** line.
+3. **The narrative pass.** Read the scenario against "The narrative standard" below and write a verdict into
+   `docs/narrative-review.md`: which principles it satisfies, which it does not, and the line that fails. A
+   read-through is not a pass. Nothing automated can judge this, which is why it is a step rather than a test —
+   and why the three incident scenarios each carry findings nobody had noticed until somebody did it.
+4. `python tools/validate_dt_skill.py --scenario <id> [--environment <env>]` — runs the opening query (narrowed to the scenario) and **every** beat query live,
    including chained ones, and fails on a bad field name or `round()` call. Do not call a scenario done
    until it passes clean.
-4. `python tools/validate_dt_skill.py --scenario <id> --links` prints each beat's label and its URL with the live
+5. `python tools/validate_dt_skill.py --scenario <id> --links` prints each beat's label and its URL with the live
    problem's values. Open every one for a problem that has ended and judge it against its label: a link that opens a
    chat, an empty view (an app that falls back to its default last-30-minutes window) or an error fails. A link
    matching the beats file is not a pass (testruns 10 and 11 marked the Assist link as one; testrun 14 found it opens
    the assistant). Each app writes its own time-range format: copy the URL from the app, never from another app's link.
-5. `python tools/preflight.py preflight` — the scenario shows as live, or as SKIP when its data lives on another
+6. `python tools/preflight.py preflight` — the scenario shows as live, or as SKIP when its data lives on another
    tenant.
-6. Upload and evaluate: `docs/DYNATRACE-SKILL.md`. Add an eval case under `tests/evals/dt-agent/` for any new
+7. Upload and evaluate: `docs/DYNATRACE-SKILL.md`. Add an eval case under `tests/evals/dt-agent/` for any new
    behaviour. Run a full `/demo` session and write it up as a `docs/testrun-NN.md`.
 
 ## The narrative standard

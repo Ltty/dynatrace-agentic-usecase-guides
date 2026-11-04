@@ -1,0 +1,37 @@
+id: cost-step-shape-demo-live
+tenant: demo-live
+runs: 3
+status: draft
+description: >-
+  DRAFT. The shape of a step, which nothing checked before. A beat turn says why the step exists,
+  gives one finding, says what follows and why, and ends on a readiness cue with the user free to
+  continue — not on a question they must answer first. Testrun 16 asked for this and testrun 18
+  confirmed it; this is what keeps it.
+turns:
+- ask: Show me how to optimize cloud costs
+  expect:
+    reads_include:
+    - scenario-cloud-observability.md
+    requires_dql: true
+    reply_contains:
+    - $
+    reply_contains_any:
+    - goal in mind
+    - propose one
+    reply_excludes:
+    - hands-on with me
+    - whole tour
+    - CTO
+- ask: '20%'
+  expect:
+    requires_dql: true
+    reply_contains:
+    - $
+    reply_contains_any:
+    - Say when
+    - when you're ready
+    - ready
+    reply_excludes:
+    - cloud-observability
+    - davis
+    - copilot

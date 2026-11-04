@@ -8,6 +8,26 @@ per change so a regression is visible.
 The guardrail probes are the same as `docs/guardrail-probes.md` probes 1–6. Run those too, with
 "fresh session" meaning a new Dynatrace agent conversation instead of `/demo`.
 
+## Narrative standard (manual)
+
+What `docs/AUTHORING.md` → "The narrative standard" asks for, in the form of things to look for in a
+transcript. No script judges these; `cost-step-shape-demo-live` only checks that a turn ends on a
+readiness cue rather than a demanded choice.
+
+| # | Check | Pass looks like |
+|---|---|---|
+| N1 | **Why this step** is said, before the query | "To know whether X, we need Y" — not just the subject of the step |
+| N2 | **What follows, and why it follows** | The next step is tied to what was just found, not merely named |
+| N3 | **The ending is a readiness cue** | "Say when you're ready", with one alternative — never "which do you want?" |
+| N4 | **A declined alternative is not re-offered** | The same side road does not appear in three turns running |
+| N5 | **A figure is stated in full once** | Later steps say "the unowned half", not the number again |
+| N6 | **Anchoring** | The first number in a turn is the finding, never a scan figure or row count |
+| N7 | **Goal Gradient**, where a target exists | Findings are measured against it: "$2,454 against a $2,664 goal" |
+| N8 | **Curse of Knowledge** | No product vocabulary used without a gloss on first use |
+
+Run these against the last transcript whenever a scenario's narration changes. Testruns 16, 17 and 18
+each found at least one of them failing after a change that looked unrelated.
+
 ## How to run
 
 1. Start a fresh conversation for each group (A, B, C, D).
