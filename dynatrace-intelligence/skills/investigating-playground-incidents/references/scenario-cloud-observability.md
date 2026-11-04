@@ -146,6 +146,8 @@ them, and say "the last 30 days of charges imported so far": the bill arrives on
 
 ## Beat 1 — The Estate
 
+**Why this step:** To talk about what the cloud costs and what runs on it, we first need what is actually out there — across every provider, in one place.
+
 **Objective:** User sees all three clouds in one place: how many resources each one holds, from one query, with no cloud
 console opened.
 
@@ -178,6 +180,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.clouds/home
 ---
 
 ## Beat 2 — One Function in Depth
+
+**Why this step:** Counting resources says nothing about any one of them, so we take a single function and see it the way the provider describes it.
 
 **Objective:** User sees one resource the way the cloud provider describes it — configuration, tags, owner, cloud
 relationships — without opening AWS.
@@ -220,6 +224,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.clouds/smartscape/functions?perspective=
 ---
 
 ## Beat 3 — What Runs on It
+
+**Why this step:** Configuration does not tell us whether anything depends on it — for that we need the service running on the function and what has gone wrong on it.
 
 **Objective:** User connects the infrastructure to the application: the service running on the function, how it
 behaves, and the latest problem on it, with the business context and the AWS DevOps Agent's notes on the same record.
@@ -298,6 +304,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?fr
 
 **`peak_moment: true`**
 
+**Why this step:** A problem with full context is what an AI agent can actually work, so the next thing to see is the agents doing exactly that on these records.
+
 **Objective:** User sees AI agents work problems with the context Dynatrace already holds: three agents writing onto
 problem records around the clock, and one Kubernetes problem where the troubleshooting agent names the change behind a
 slowdown and proposes the fix.
@@ -344,15 +352,17 @@ fetch dt.davis.problems, from: now()-7d, to: now()
           affected_users = dt.davis.affected_users_count, owning_team = team }
 | sort if(event.category == "SLOWDOWN", 0, else: 1) asc, if(isNotNull(change_at), 0, else: 1) asc, event.start desc
 | limit 1
-| fieldsAdd rc_at = indexOf(note, "Root Cause")
+| fieldsAdd rc_at = indexOf(note, "Root Cause"), fix_at = indexOf(note, "Recommended Fix")
 | fieldsAdd agent_root_cause = if(rc_at >= 0, substring(note, from: rc_at, to: rc_at + 500), else: substring(note, from: 0, to: 500))
+| fieldsAdd agent_fix = if(fix_at >= 0, substring(note, from: fix_at, to: fix_at + 300), else: "")
 | fields display_id, title = event.name, status = event.status, started = event.start, ended = event.end, affected_users,
-    owning_team, agent_workload = workload, agent_notes, agent_root_cause, change_at, changed_workload, change,
+    owning_team, agent_workload = workload, agent_notes, agent_root_cause, agent_fix, change_at, changed_workload, change,
     change_lead_min = round(toDouble(event.start - change_at) / 60000000000, decimals: 0)
 ```
 
 A slowdown with a resource-limit change in the two hours before it comes first; without one, the newest annotated
-EasyTrade problem. `change` is the Kubernetes spec-change event's own text; `agent_root_cause` is the start of the
+EasyTrade problem. `change` is the Kubernetes spec-change event's own text; `agent_fix` is the note's own
+"Recommended Fix" section, which is what staging step 5 quotes; `agent_root_cause` is the start of the
 agent's note at its root-cause heading.
 
 **Reveal:** First the agents: one row each, with the problems they wrote on in 7 days and their note types — the AWS
@@ -381,7 +391,9 @@ hours before it, and give the agent's root cause alone.
    it — goes from alert to a named cause and a proposed fix without anyone assembling the evidence by hand. AI is only as
    good as the context it gets.
 4. The agent's root cause, quoted and attributed, then the agents table, one row per agent.
-5. The proposed fix in one line, as the agent's recommendation. Name the team only from **this**
+5. The proposed fix in one line, quoted from `agent_fix` — the note's own "Recommended Fix" — as the
+   agent's recommendation, not something applied. Empty `agent_fix` means the note carried no fix
+   section: say that, and do not infer one from the root cause. Name the team only from **this**
    problem's `owning_team`; it is often null, and then it is "the owning team", never the team
    beat 3 returned for a different problem.
 
@@ -394,6 +406,8 @@ https://{{LINK_HOST}}/ui/apps/community.cloudsreagents/
 ---
 
 ## Beat 5 — The Bill and the Target
+
+**Why this step:** To find money we can take off the bill, we first have to know what the bill is and how much of it nobody is accountable for.
 
 **Objective:** User sees the real bill answer the question the SRE put: what a 10% working assumption is in dollars,
 where the money goes, and how much of it has no owner.
@@ -430,6 +444,7 @@ fetch bizevents, from: now()-7d
 | filter toTimestamp(focus.ChargePeriodStart) >= now()-30d and toTimestamp(focus.ChargePeriodStart) < now()
 | parse focus.Tags, "JSON:tags"
 | summarize usd = round(sum(toDouble(focus.EffectiveCost)), decimals: 0),
+    untagged_usd = round(sum(if(isNull(tags[dt_owner_team]), toDouble(focus.EffectiveCost), else: 0.0)), decimals: 0),
     teams = collectDistinct(coalesce(tags[dt_owner_team], "UNTAGGED")),
     by: { service = focus.ServiceName, operation = aws.x_Operation, usage = focus.SkuMeter }
 | sort usd desc
@@ -445,7 +460,10 @@ unavailable — check the import first when that happens, rather than widening t
 your assumption, not a target anyone set. The `top_categories`, with
 their dollars. `untagged_usd` and `untagged_pct`: that share of the bill carries no team tag, so nobody is asked to
 explain or reduce it. The largest single line is usually CloudWatch log ingestion (`PutLogEvents`, billed per byte); state
-whichever line is first, its dollars and its `teams`, and compare it with the target. What can be cut from it is a
+whichever line is first, its dollars, and how much of it is `untagged_usd`. **`teams` is the set of tags that
+appear anywhere on that line, not how the dollars split** — a line that is almost entirely untagged still lists
+every team that touched it, so never read it as ownership. `untagged_usd` against `usd` is the split. Compare the
+line with the target. What can be cut from it is a
 retention and volume decision for its owners; the bill shows the size, not the waste.
 
 **Success signal:** User asks which of it is waste, or who owns a line.
@@ -462,6 +480,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.biz.carbon/cost-explorer?from=now%28%29-
 
 **`peak_moment: true`**
 
+**Why this step:** The bill alone cannot tell us what is safe to cut — for that we need utilisation sitting next to the cost of each resource.
+
 **Objective:** User sees why the bill alone is not enough: a resource that looks idle on the bill can be full where it
 matters, and a resource with no utilization data cannot be judged at all. Every action ends with an owner.
 
@@ -472,7 +492,7 @@ fetch bizevents, from: now()-7d
 | filter event.type == "cost.real.spend"
 | filter toTimestamp(focus.ChargePeriodStart) >= now()-30d and toTimestamp(focus.ChargePeriodStart) < now()
 | filter focus.ServiceName == "Amazon Relational Database Service" and contains(focus.ResourceId, ":db:")
-| parse focus.ResourceId, "LD ':db:' LD:db"
+| fieldsAdd db = splitString(focus.ResourceId, ":db:")[1]
 | parse focus.Tags, "JSON:tags"
 | summarize usd_30d = round(sum(toDouble(focus.EffectiveCost)), decimals: 0), teams = collectDistinct(tags[dt_owner_team]), by: { db }
 | lookup [timeseries { cpu = avg(cloud.aws.rds.CPUUtilization.By.DBInstanceIdentifier), mem = min(cloud.aws.rds.FreeableMemory.By.DBInstanceIdentifier) },
@@ -554,6 +574,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.biz.carbon/cost-explorer
 
 **On request only, after the close.** Not a beat: it is not in the walk-through report and not in the beat count. Run
 it when the user asks what can be automated, about workflows, or takes the close's offer of it.
+
+**Why this step:** Agents investigate and hand back a recommendation; the last thing worth seeing is what the same data drives without anyone in the loop.
 
 **Objective:** Agents investigate; workflows act. User sees the three kinds of automation the same data drives: prevent
 (resize a volume before it fills), remediate (fail a Lambda over to a healthy region), optimize (a regular cost

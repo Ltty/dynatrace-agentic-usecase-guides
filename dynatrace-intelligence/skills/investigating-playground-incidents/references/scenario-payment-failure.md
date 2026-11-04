@@ -60,6 +60,8 @@ which one a number counts.
 
 ## Beat 1 — The Page
 
+**Why this step:** Before we chase a cause we need the blast radius: what is failing, for how many, and whose service it is.
+
 **Objective:** User grasps the blast radius: root-cause service, impacted users, onset, that
 checkout is listed as affected, and which team owns the failing service.
 
@@ -100,6 +102,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?fr
 ---
 
 ## Beat 2 — The Change
+
+**Why this step:** A failure that starts at a point in time usually starts with a change, so the next thing worth knowing is what shipped just before it.
 
 **Objective:** User sees which deployment lines up with the start of the failure, who shipped
 it, and a concise read of the timing naming the commit and who it goes to.
@@ -142,6 +146,8 @@ https://{{LINK_HOST}}/ui/intent/dynatrace.davis.copilot/ask-question#%7B%22promp
 ---
 
 ## Beat 3 — Service Deep Dive
+
+**Why this step:** A deploy landing near the start is not yet a cause — to tie them together we need the failure rate either side of it.
 
 **Objective:** User reads the Charge endpoint's failure rate over time and sees the spike align
 with the deployment marker.
@@ -199,6 +205,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.services/explorer/services?detailsId={{R
 ## Beat 4 — Failing Traces
 
 **`peak_moment: true`**
+
+**Why this step:** We know the rate moved with the deploy; to say what actually broke we need the exception itself and the request it happened in.
 
 **Objective:** User sees the exact exception, source file, and line, and the whole request it
 broke: where the failure originates, how it propagates upstream, and which calls stayed clean.
@@ -290,6 +298,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.distributedtracing/explorer?filter=reque
 ## Beat 5 — The Humans
 
 **`peak_moment: true`**
+
+**Why this step:** A root cause is only half the handoff — the owning team also needs to know who this reached and what they experienced.
 
 **Objective:** User understands the real-world impact: how many sessions hit errors, where, and
 that session replay shows exactly what a customer saw.

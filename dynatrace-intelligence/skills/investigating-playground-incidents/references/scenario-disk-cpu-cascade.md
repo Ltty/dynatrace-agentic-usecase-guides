@@ -69,6 +69,8 @@ No `avg_order_value_usd` is defined, and the problem record has no affected-user
 
 ## Beat 1 — The Page
 
+**Why this step:** Before anything else we need what the platform itself concluded: which entity is the root cause and what is only affected.
+
 **Objective:** User grasps the blast radius: the `/data` disk is the root cause Dynatrace Intelligence
 named, CPU saturation on the same host is listed as affected, and the problem record also lists the platform's
 own agent failing to update.
@@ -108,6 +110,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?fr
 ---
 
 ## Beat 2 — The Disk
+
+**Why this step:** The root cause is a disk, so the first thing to establish is how little space there is and whether it is a spike or a standing condition.
 
 **Objective:** User sees the free space on `/data` over the whole window and confirms it is critically low — not a
 spike, a sustained floor.
@@ -149,6 +153,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.infraops/explorer?entityId=HOST-A2BABAD0
 ---
 
 ## Beat 3 — The CPU
+
+**Why this step:** The CPU is on the same host and in the same problem — to say whether the disk explains it we have to look at what the CPU data does and does not show.
 
 **Objective:** User sees the CPU and I/O wait on the host over the same window, and what that does and does not
 say about how the CPU relates to the disk.
@@ -200,6 +206,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.infraops/explorer?entityId=HOST-A2BABAD0
 ## Beat 4 — The Platform Victim
 
 **`peak_moment: true`**
+
+**Why this step:** One symptom the data does tie to the disk in so many words is the platform's own agent, which is worth seeing because it shows the blast radius reaching the monitoring itself.
 
 **Objective:** User sees that Dynatrace's own OneAgent tried to auto-update and failed, with the failure message
 naming the full disk — the monitoring platform itself is affected by the condition it reports.
@@ -262,6 +270,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.infraops/explorer?entityId=HOST-A2BABAD0
 ---
 
 ## Beat 5 — The Handoff
+
+**Why this step:** Everything we have now has to become something the owning host's team can act on, with the limits of the data stated.
 
 **Objective:** User has everything needed to act: the root cause, what the data shows on the host, the blocked
 OneAgent version, and the one step the data supports.

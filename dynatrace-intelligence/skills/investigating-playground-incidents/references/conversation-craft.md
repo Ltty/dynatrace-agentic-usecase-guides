@@ -32,19 +32,36 @@ complete, well-narrated investigation.
 It is a set, not a counter: the user can arrive at any beat and walk them in any order, so "are we
 done" is `beats_completed` against the track's beats, never "did beat 6 just run".
 
-### Set the scene (2–4 lines, never more)
+### The shape of a beat turn
 
-- What situation are we looking at?
-- Where is the interesting thing?
-- Offer a direction, don't just ask for permission.
-- End on exactly two concrete options, each saying what it will show ("the deploy that lines up with the
-  start", "the failing requests behind it"), never yes/no. A third option goes into the read as context.
-  (Explore only: a walk-through ends on a closing line, see `references/walk-through.md`.)
-- Beat 1 starts the moment the user chooses hands-on: no menu of angles before it.
+Every turn answers "so what?" before the user has to ask it. Five parts, in this order. Leave none of
+them out; the one most often missed is the fourth.
 
-Wrong: "Want me to look at the traces?"
-Right (illustrative, from payment-failure): "The failure rate jumped hard right after a deploy.
-Check the deployment first, or look at what's actually breaking in the traces?"
+1. **Why this step** — the beat's `Why this step` line, said before the query, in terms of what we are
+   trying to settle. "To know whether the deploy caused this, we need the failure rate either side of it."
+2. **The evidence** — all queries first, then a table of 3–5 fields (below).
+3. **What it means** — your read, and what it changes about the question we are answering. Not just
+   "the rate jumped to 61%" but what that settles and what it leaves open.
+4. **What that makes next** — the next step *and why it follows from what we just saw*. "The rate moves
+   at the deploy, so the deploy is now the thing to read — what shipped in it is the next question."
+   Naming the next step without the reason is the gap that leaves a user asking "so what?".
+5. **The readiness cue** — see below.
+
+Beat 1 starts the moment the user chooses hands-on: no menu of angles before it.
+
+### How a turn ends
+
+**One rule, for every scenario and both peak and ordinary beats.** The turn ends on the next step, the
+reason it follows, and an invitation to continue — with one alternative named so the user knows they can
+steer, but never a choice they must make before they can go on.
+
+Right: "Next I'd put utilisation next to the bill, so we only cut what's safe to touch. Say when you're
+ready — or if you'd rather see who owns the spend first, we can start there."
+
+Wrong: "Want me to look at the traces?" — a yes/no with nothing behind it.
+Wrong: "The deploy, or the failing requests?" — a decision demanded before the user can simply continue.
+
+A walk-through turn ends on its closing line instead (`references/walk-through.md`).
 
 ### Act: all queries first, then narration
 
@@ -62,12 +79,12 @@ After all queries are done, present:
 The first number in the turn is the one that sticks, so make it the one that matters — the impact,
 the cost, the finding — never a row count or a scan figure.
 
-### Narrate your own read, then invite the next step
+### Narrate your own read
 
 **This is the most important rule.**
 
 State what the evidence means. Don't withhold it waiting for the user to guess. Attach the
-interpretation to a forward-looking option, not a period.
+interpretation to what it makes possible next, not to a period.
 
 Your read covers only what results in this conversation show. A link to data you haven't queried
 yet is the next step, not a finding: "the deploy lands 2 minutes before the problem — next, check
@@ -77,12 +94,11 @@ whether the failures start with it", not "the failures follow it closely".
 
 In the same response, not a separate turn: the label from the beat's **Deep link** line, a colon, then the URL with
 its `{{TOKENS}}` substituted from session state. The label says what the link opens: never "same view" for a link
-that is not the view the answer shows. The turn's last line is the choice or closing line, after the link.
+that is not the view the answer shows. The turn's last line is the readiness cue or closing line, after the link.
 
 **A turn never ends on the link itself.** When the beat just completed was the last one outstanding
 (`beats_completed` covers the track), what follows the link is the session close — in this turn, not the
-next one (`references/session-protocol.md` → "Session close"). Otherwise it is the beat's own choice or
-closing line.
+next one (`references/session-protocol.md` → "Session close"). Otherwise it is the beat's own readiness cue.
 
 ---
 
@@ -129,7 +145,7 @@ exactly. The general shape:
 1. Land the key finding **alone on its own line** before any commentary.
 2. Pause — blank line.
 3. Explain what kind of finding it is and why it matters.
-4. Give the concrete next action, after the deep link.
+4. Then the turn's own ending, after the deep link: what follows and why, and the readiness cue.
 
 Don't compress a peak moment into the same flat table-plus-sentence rhythm as an ordinary beat.
 It should read as a beat, a pause, a different register — more weight.
@@ -139,18 +155,14 @@ It should read as a beat, a pause, a different register — more weight.
 ## Showcase register
 
 A scenario whose Business context says `kind: showcase` is a tour: nothing is broken, nobody is
-paged, and the user is being shown what the platform already knows. Everything in this file applies
-except the three things below.
+paged, and the user is being shown what the platform already knows. Everything in this file applies,
+with these additions.
 
 - **Tense and stakes.** Present tense, no urgency, no clock. Never "we need to", never "before this
   gets worse". A problem shown inside a tour is an example of the platform working, not a page.
-- **How a beat ends.** An investigation beat ends on two options because the next move is genuinely
-  open. A tour has an order, so a beat ends on the next step named in plain words, plus one thing
-  the user could take instead: "Next is the service actually running on that function — or we can
-  jump to what it costs." Still never a yes/no, and still never a quiz.
-- **Whose question it answers.** Each beat's Objective says which challenge it is answering. Say
-  that connection once per beat, in the beat's own words, so the tour reads as an argument rather
-  than a sequence of screens.
+- **Whose question it answers.** A tour has a fixed order, so part 1 of the turn also says which of
+  the tour's challenges this step answers — in the beat's own words, once per beat, so it reads as an
+  argument rather than a sequence of screens.
 - **Say the approach before the first query.** One line naming the steps, then take them in that
   order: "Three steps. First what the bill actually says, then utilisation next to it so we only cut
   what's safe, then who owns what." The user should know the shape before it starts, and a named set
@@ -261,13 +273,12 @@ Never escalate in length or get coy.
 
 | Context | Limit |
 |---|---|
-| Scene-setting (explore) | 2–4 lines + 1 question/choice |
-| Beat turn (explore) | ≤10 lines (3–5 fields, interpretation, deep link, choice); a peak moment's staging may run longer |
+| Beat turn (explore) | ≤12 lines: why this step, 3–5 fields, the read, what follows and why, deep link, readiness cue; a peak moment's staging may run longer |
 | Side quest | ≤6 lines, then re-anchor |
 | Opening report (walk-through) | Up to 14 lines, prose |
 | Evidence turn (walk-through) | 8–12 lines: claim, table, what it adds, deep link, closing line |
 | Session close | Per `references/session-protocol.md` → "Session close"; the handoff block is its own length |
 
-Never use bullet points for scene-setting. Use prose. The one exception is the opening listing,
+Never use bullet points for narration. Use prose. The one exception is the opening listing,
 which is one bullet per available scenario (session-protocol -> "Problem survey").
 Never use prose for evidence — use a table or tight bullets.

@@ -140,7 +140,7 @@ a quiz; the read comes first.
 ## Check before sending
 
 - [ ] Every value comes from a current result or session state, labelled with its population.
-- [ ] My read is stated, and the turn ends on two concrete options — not a yes/no, not a quiz. Exceptions: a clean-environment reply ends after its single line, a survey reply ends on its one question, and a walk-through turn ends on its closing line.
+- [ ] The turn says why this step, what the evidence means, what follows and **why it follows**, then the readiness cue with one alternative named. Exceptions: a clean-environment reply ends after its single line, a survey reply ends on its one question, and a walk-through turn ends on its closing line.
 - [ ] One status line before the first query, no tool call after the narration, no text between tool calls.
 - [ ] A survey names only scenarios that returned a problem.
 - [ ] Peak-moment beats follow their `staging`.
