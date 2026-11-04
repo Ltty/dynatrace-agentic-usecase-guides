@@ -104,6 +104,33 @@ Team split: UNTAGGED $6,725, team-demoability $5,607, team-unc $979, demoability
 
 ---
 
+## What was done about each
+
+Fixed 2026-11-04, on `multi-environment-demo`. Issue numbers are the ones above.
+
+| # | Issue | Outcome |
+|---|---|---|
+| 1 | `elapsed_min` hardcoded on a later query | **Fixed.** The adapter says it is computed by the query and never typed: `{{SURVEY_AT}}` goes inside `toTimestamp("...")` and the arithmetic stays. Two runs had typed a number and reported a time that never happened. |
+| 2 | No pull line for the cost track | **Retired.** A showcase is never walked through, so it has no `pull_line` at all. The field is gone from the scenario. |
+| 3 | 30% falls between the two target rules | **Dissolved, not patched.** The cost track is a method demonstration, so a number is a lens rather than a threshold: "the way you find it is the same either way". There is no middle branch to find. Where the user named a figure it stays the goal in the findings and the report, with what the evidence reached beside it and the gap in "Still open". |
+| 4 | Two numbers in one opening-report part | **Retired.** The opening report is walk-through only, and the showcase no longer has one. |
+| 5 | The walk-through starts after beat 5's evidence is on screen | **Retired.** Same cause. |
+| 6 | No route for a maintainer's ask mid-`/demo` | **Fixed.** "out of character", from the user, drops the persona for the rest of the turn. Nothing else does — an ordinary ask for repo work still gets the redirect, which in a demo is what it should get. |
+
+The run's own three complaints — the choice, the missing CTA, and being done after two beats — were
+one cause: `walk-through.md` replaces the ending of every turn with a closing line and collapses the
+tour into one opening report. A showcase is now a presentation with one delivery, and a beat with
+several queries runs as several steps, each with its own call to action. The cost track goes from two
+turns to four.
+
+**The unexplained scan gap is a reporting artefact.** Run 16's beat 6 scanned 21,021,039 records and
+run 17's 524,889, for the same work: measured at one instant, `parse` reports 9,504,600 records and
+`splitString` 354,525, with identical answers and identical `scannedBytes` (1.49 GB). The proof stamp
+prints records, so the figure can move 27x without the query changing. Recorded in
+`references/dql-reference.md`.
+
+---
+
 ## Issues to fix
 
 ### 1. `elapsed_min` was hardcoded on a later query, and the close reported a wrong time
