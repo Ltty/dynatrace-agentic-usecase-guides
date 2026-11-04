@@ -125,10 +125,12 @@ The envelope is `{ok, result: {kind, constant, records}, context: {total}, metad
 - A full row is `result.constant` merged with the record; the record wins, and an absent key is null.
 - Proof stamp (local only; the Dynatrace agent shows none): one line per beat, from its first query,
   `queryId <metadata.queryId, copied exactly> · <metadata.scannedRecords> records scanned · <metadata.executionTimeMilliseconds> ms`.
-  **It goes directly above the deep link, at the end of the turn — never before the narration.** A scan
-  figure printed first becomes the first number the user reads, which is the one that sticks; the finding
-  has to have that place. Never in the opening or the clean-environment reply, and none if the envelope
-  has no metadata.
+  **One per step, in the turn's tail** (`conversation-craft.md` → "Link and close"): immediately before
+  the deep link, or before the readiness cue on a step that has no link — never before the narration and
+  never after the cue. A scan figure printed first becomes the first number the user reads, which is the
+  one that sticks; the finding has to have that place. A step that ran a query always carries one, link
+  or no link. Never in the opening or the clean-environment reply, and none if the envelope has no
+  metadata.
   Drop the record count when it is 0 and keep the rest: some objects report none, and "0 records scanned" above a
   populated table reads as a broken query rather than as proof.
 - `ok: false` or a non-zero exit is a failed query; follow the skill's error handling.

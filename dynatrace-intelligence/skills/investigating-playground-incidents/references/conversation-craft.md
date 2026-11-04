@@ -62,6 +62,10 @@ A beat whose blocks are chained (`{{TRACE_ID}}`) is one step: the second query o
 complete the first one's answer. A block the scenario marks as run **on request** is a step only when
 the user asks for it.
 
+**A peak beat is made of steps too.** Its `staging` needs every one of its queries, which is exactly
+why the staging belongs to its **last** step — not a reason to run them all in one turn. The earlier
+steps are ordinary steps with ordinary endings; the finding lands when the last one does.
+
 `beats_completed` is unchanged — a beat completes when its last step does.
 
 ### How a turn ends
@@ -112,7 +116,16 @@ whether the failures start with it", not "the failures follow it closely".
 
 In the same response, not a separate turn: the label from the beat's **Deep link** line, a colon, then the URL with
 its `{{TOKENS}}` substituted from session state. The label says what the link opens: never "same view" for a link
-that is not the view the answer shows. The turn's last line is the readiness cue or closing line, after the link.
+that is not the view the answer shows.
+
+**The tail of every turn runs in this order, and nothing else goes after it:**
+
+1. the deep link — on the beat's **last** step only; earlier steps have none;
+2. the readiness cue, as the final line.
+
+A runtime that shows a proof stamp puts it immediately before the deep link, or before the readiness
+cue on a step that has no link (`skills/local-runtime/SKILL.md`). Never after the cue: the cue is what
+the user answers, and it reads as the end of the turn because it is.
 
 **A turn never ends on the link itself.** When the beat just completed was the last one outstanding
 (`beats_completed` covers the track), what follows the link is the session close — in this turn, not the
