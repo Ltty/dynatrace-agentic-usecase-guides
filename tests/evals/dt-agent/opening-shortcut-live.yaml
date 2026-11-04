@@ -12,6 +12,6 @@ turns:
     reply_contains_any:
     - '{truth.payment_failure.commit7s}'
     reply_excludes:
-    - Which one should we look at first
+    - Which should we take first
     - hands-on with me
     - full incident briefing

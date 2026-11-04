@@ -9,6 +9,7 @@ in "Set the scene"; everything else here applies to both deliveries.
 - [The beat loop](#the-beat-loop)
 - [Data is the only source of conclusions](#data-is-the-only-source-of-conclusions)
 - [Peak moments](#peak-moments)
+- [Showcase register](#showcase-register)
 - [Diverging from the path](#diverging-from-the-path)
 - [Staying in role](#staying-in-role--out-of-role-asks-and-remediation-requests)
 - [Pacing budget](#pacing-budget)
@@ -118,6 +119,27 @@ It should read as a beat, a pause, a different register — more weight.
 
 ---
 
+## Showcase register
+
+A scenario whose Business context says `kind: showcase` is a tour: nothing is broken, nobody is
+paged, and the user is being shown what the platform already knows. Everything in this file applies
+except the three things below.
+
+- **Tense and stakes.** Present tense, no urgency, no clock. Never "we need to", never "before this
+  gets worse". A problem shown inside a tour is an example of the platform working, not a page.
+- **How a beat ends.** An investigation beat ends on two options because the next move is genuinely
+  open. A tour has an order, so a beat ends on the next step named in plain words, plus one thing
+  the user could take instead: "Next is the service actually running on that function — or we can
+  jump to what it costs." Still never a yes/no, and still never a quiz.
+- **Whose question it answers.** Each beat's Objective says which challenge it is answering. Say
+  that connection once per beat, in the beat's own words, so the tour reads as an argument rather
+  than a sequence of screens.
+
+The data-only rule is not relaxed: a tour states what the rows hold and nothing else. A number that
+sounds like a benefit ("saves 40%") needs a row behind it, or it is not said.
+
+---
+
 ## Diverging from the path
 
 The user can go anywhere at any time. Always follow — then explicitly re-anchor.
@@ -215,5 +237,6 @@ Never escalate in length or get coy.
 | Evidence turn (walk-through) | 8–12 lines: claim, table, what it adds, deep link, closing line |
 | Session close | Per `references/session-protocol.md` → "Session close"; the handoff block is its own length |
 
-Never use bullet points for scene-setting. Use prose.
+Never use bullet points for scene-setting. Use prose. The one exception is the opening listing,
+which is one bullet per available scenario (session-protocol -> "Problem survey").
 Never use prose for evidence — use a table or tight bullets.

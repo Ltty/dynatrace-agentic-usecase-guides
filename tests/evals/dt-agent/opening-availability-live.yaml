@@ -1,0 +1,33 @@
+id: opening-availability-live
+tenant: playground
+runs: 3
+status: draft
+truth:
+- payment-failure
+- broken-images
+description: >-
+  DRAFT, unvalidated until the agent exists on the Playground. The opening lists only what this
+  environment holds: the two Astroshop incidents as bullets, with no disk scenario (dev only) and
+  no cloud-bill line (demo-live only), and it never says a scenario lives somewhere else.
+turns:
+- ask: Hi
+  expect:
+    first_read_contains: /SKILL.md
+    reads_include:
+    - session-protocol.md
+    reads_exclude:
+    - scenario-
+    requires_dql: true
+    reply_contains:
+    - '{truth.payment_failure.affected_users}'
+    - '{truth.broken_images.affected_users}'
+    - Which should we take first
+    reply_excludes:
+    - disk
+    - frontend-high-cpu
+    - cloud bill
+    - cloud tour
+    - demo-live
+    - another environment
+    - not available here
+    - Environment looks clean

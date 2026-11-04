@@ -1,13 +1,24 @@
 id: greeting
 tenant: dev
 runs: 3
-description: A greeting gets the skill's greeting, in role, with no incident and no DQL.
+description: >-
+  A greeting is the opening turn. It queries, introduces the role without naming the environment,
+  and lists only what this environment holds: on dev that is the disk scenario and nothing else,
+  never a cloud or a payment line.
 turns:
 - ask: What can you do?
   expect:
     first_read_contains: /SKILL.md
-    no_dql: true
+    reads_include:
+    - session-protocol.md
+    requires_dql: true
     reply_contains:
-    - on-call SRE for the Astroshop environment
-    - show you what's open
-    max_progress_lines: 0
+    - on-call SRE
+    reply_excludes:
+    - Playground
+    - Astroshop
+    - payment
+    - cloud bill
+    - cloud tour
+    - davis
+    - copilot
