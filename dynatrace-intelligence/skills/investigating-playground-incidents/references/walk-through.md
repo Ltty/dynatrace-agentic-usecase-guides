@@ -139,7 +139,7 @@ itself the handoff, that turn is the block.
 | "what next", "what do we do", "wrap it up", "give me the summary" | The handoff block now (session-protocol → "Handoff block"), plus any held-back block its rows need, then the session close, payoff line included |
 | "was it a bug", "was that the fix", "was it global" | The exact replies below |
 | a specific question | Answer it from data, querying if needed, then one line back to the thread |
-| "let me look myself", "what would you check" | Set `delivery` to `explore` and end on exactly two entry angles |
+| "let me look myself", "what would you check" | Set `delivery` to `explore` and end as the beat loop says — the next step, why it follows, and the readiness cue |
 
 If the user asks to be walked through it again after steering, set `delivery` back to
 `walk-through` and continue from the next evidence turn not yet delivered.

@@ -51,14 +51,40 @@ not use (`description` is read by beat 1). Date arithmetic and any cost figure b
 
 ### 3. Write the beats
 
-In `scenario-<id>.md`, one `## Beat N — Title` section each, with: **Objective**, **Evidence DQL**,
-**Reveal**, **Success signal**, **Deep link**, and for a climax `**peak_moment: true**` plus **Staging**.
-Optional: an **Objection** paragraph (skeptic pushback and the answer, used only when the user raises it) and a
-**Fold in on a jump** note when a beat's evidence is needed even if the user skips it.
+In `scenario-<id>.md`, one `## Beat N — Title` section each, with: **Why this step**, **Objective**,
+**Evidence DQL**, **Reveal**, **Success signal**, **Deep link**, and for a climax `**peak_moment: true**` plus
+**Staging**. Optional: an **Objection** paragraph (skeptic pushback and the answer, used only when the user
+raises it) and a **Fold in on a jump** note when a beat's evidence is needed even if the user skips it.
+
+**Why this step** and **Objective** are not the same thing, and both are required.
+
+- **Why this step** is one sentence the agent *says*, before the query, naming what the step is for in terms of
+  what the scenario is settling: "To know whether the deploy caused this, we need the failure rate either side of
+  it." Without it the user is left asking "so what?" at every step.
+  `tools/tests/test_deep_links.py` fails a beat that has none.
+- **Objective** is for you, the author: what the user ends up seeing. It is never read out.
+
+**A beat with several Evidence DQL blocks runs as several turns** — one query, one finding, one call to action
+each (`conversation-craft.md` → "One query, one turn"). A chained pair counts as one. Write the blocks in the
+order you want them taken, and put the Staging and the deep link on the last one: they close the beat.
 
 - Window every query with `from: "{{DQL_FROM}}", to: "{{DQL_TO}}"`, never `now()-Nh`: these are the incident
   window from the survey row (15 minutes of padding each side), so the query works however long ago it closed.
-  Other tokens: `{{PROBLEM_ID}}`, `{{TF_FROM_MS}}`, `{{TF_TO_MS}}` (deep links), `{{TRACE_ID}}` (chained).
+  A showcase has no incident window and uses relative windows instead.
+- **Never write a tenant's host, or an entity id the survey resolves, into a link or a query.** A scenario can run
+  on more than one environment, and a literal host sends the user to the wrong one. The full token list, all of
+  which `test_deep_links.py` knows:
+
+  | Token | What it is |
+  |---|---|
+  | `{{LINK_HOST}}` | the environment's host — **every** deep link starts `https://{{LINK_HOST}}/` |
+  | `{{PROBLEM_SEGMENTS}}` | the problem link's segment parameter, empty outside the environment that has one |
+  | `{{ROOT_CAUSE_ID}}` | the root-cause entity, from the survey row, instead of a hardcoded `SERVICE-…` |
+  | `{{PROBLEM_ID}}`, `{{TF_FROM_MS}}`, `{{TF_TO_MS}}`, `{{TF_REL_H}}`, `{{TF_FROM_ISO}}`, `{{TF_TO_ISO}}` | the problem and its window, in each app's own format |
+  | `{{DQL_FROM}}`, `{{DQL_TO}}`, `{{SURVEY_AT}}`, `{{TRACE_ID}}` | query windows, the elapsed anchor, and a chained value |
+
+  An auxiliary id that the survey does *not* resolve (a second service, a host) stays literal, in the Scope
+  table, with a row per environment.
 - Never use `limit` where the beat's claim is about *everything* (all deploys, all distinct exceptions, the
   total sessions). Aggregate instead: `summarize … by:` per commit or per exception, oldest first, with
   `first_seen` / `last_seen`. A `sort desc | limit 5` once hid the deploy that caused the incident.
@@ -185,6 +211,9 @@ uses the same file layout, beats, reveals, deep links and data-only rule, with t
 
 - **No survey branch.** The user asks for it; the survey never finds or names it. Add the opening phrases to SKILL.md's
   opening table instead.
+- **Tracks, when a showcase has more than one story in it.** A `## Tracks` section maps each arc to its beats
+  and what it closes on, so entering in the middle walks one arc forward rather than backwards through another.
+  The session close fires when the track's beats have all run, in whatever order they ran.
 - **One delivery.** A showcase is a presentation: no `mode_question`, no `pull_line`, and
   `references/walk-through.md` does not apply to it. It is always guided step by step, with a call to action after
   every step.

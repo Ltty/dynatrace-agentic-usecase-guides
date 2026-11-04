@@ -99,7 +99,8 @@ Adding a scenario: `docs/AUTHORING.md`.
 
 - `python tools/dt_agent.py check|pack|docs|template|invoke` — check, copy, upload and test the Dynatrace
   skill and `demo-agent`; every write is a dry run unless `--apply`. Procedure: `docs/DYNATRACE-SKILL.md`
-- `python tools/validate_dt_skill.py --scenario <id>` — runs every DQL block of a scenario live
+- `python tools/validate_dt_skill.py --scenario <id> [--environment <env>]` — runs every DQL block of a
+  scenario live; `--environment` is required for a scenario that lives on more than one
 - `python tools/run_dt_evals.py --local` — the same cases on this machine, with a Claude model and `dtctl` instead of a
   deployed agent (needs `ANTHROPIC_API_KEY`; `tools/local_agent.py`)
 - `python tools/run_dt_evals.py --tenant dev|playground|demo-live` — the `demo-agent` behaviour cases (3 runs each,

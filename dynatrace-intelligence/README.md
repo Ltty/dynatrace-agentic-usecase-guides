@@ -39,8 +39,8 @@ dynatrace-intelligence/
 Every scenario runs in two deliveries: the user explores with the SRE as a peer (default), or the SRE
 reports the incident to them as to a manager and ends with a handoff block. The survey offers the second
 once, after the entry angles. `walk-through.md` holds its rules; SKILL.md, session-protocol and the agent
-instructions only route to it. Scenarios author no walk-through content, but they supply a `symptom`, an optional
-`pull_line` and a `Goes to` row, and the handoff block draws on their Handoff fields table, so a scenario with no
+instructions only route to it. Incidents only: a showcase is a presentation and never reaches it. Scenarios author no walk-through content,
+but they supply a `symptom`, a `Goes to` row, and a `pull_line` where they can be walked through, and the handoff block draws on their Handoff fields table, so a scenario with no
 owner or no user count must say so there.
 
 The survey runs one query for every scenario and reads only `session-protocol.md`; a scenario file is read once the

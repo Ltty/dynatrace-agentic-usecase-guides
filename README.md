@@ -11,7 +11,8 @@ environment you are pointed at, and lists only that. Pick an incident and it dig
 the page, the change that caused it, the failing requests, who was affected, and a handoff to the owning team.
 Every number comes from a query it ran in front of you, and it says where the data stops. Or ask to be walked
 through it: you get the whole story first, then each claim proved, ending in a handoff block. Where the
-environment has the cloud estate on it, it can also give you the cloud tour and show where 10% of the bill is.
+environment has the cloud estate on it, it can also show you how to find money on a cloud bill from real
+data — what the bill says, where it concentrates, what is safe to touch, and who owns it.
 
 Locally, the session close also renders an HTML report you can open and forward.
 

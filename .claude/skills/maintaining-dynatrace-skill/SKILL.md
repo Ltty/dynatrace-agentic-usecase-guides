@@ -28,7 +28,7 @@ holds the rules that must hold every time.
 
 ## Workflow
 
-- Skill change: edit, `python tools/dt_agent.py check`, `validate_dt_skill.py` for all three scenarios,
+- Skill change: edit, `python tools/dt_agent.py check`, `validate_dt_skill.py` for every scenario on each environment it lists,
   `docs` dry run, approved `docs --apply`, then the evals.
 - Agent change: edit `dynatrace-intelligence/agents/demo-agent/`, `render`, `template` dry run, approved `template --apply`,
   then `invoke`.
