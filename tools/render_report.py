@@ -103,6 +103,10 @@ def derive(payload: dict) -> dict:
     cost = payload.get("cost") or {}
     ctx["has_cost"] = bool(cost.get("total") or cost.get("target") or cost.get("untagged"))
     ctx["has_actions"] = bool(cost.get("actions"))
+    if cost.get("actions"):
+        # An absent owner is a finding (that spend has none), not a gap in the report. Show it as a
+        # dash so the cell reads as "none" rather than as something the renderer failed to fill.
+        ctx["cost"] = {**cost, "actions": [{"owner": "—", **a} for a in cost["actions"]]}
     return ctx
 
 
