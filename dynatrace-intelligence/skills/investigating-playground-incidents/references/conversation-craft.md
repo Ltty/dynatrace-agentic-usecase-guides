@@ -80,6 +80,11 @@ ready — or if you'd rather see who owns the spend first, we can start there."
 Wrong: "Want me to look at the traces?" — a yes/no with nothing behind it.
 Wrong: "The deploy, or the failing requests?" — a decision demanded before the user can simply continue.
 
+**An alternative the user passed over is spent.** If they said "ok" or "ready" rather than taking it,
+offer something else next time, or nothing at all — "Say when you're ready" on its own is a complete
+ending. Re-offering the same side road every turn makes it sound like you would rather be on it, and
+it is the quickest way to make a guided track feel repetitive.
+
 A walk-through turn ends on its closing line instead (`references/walk-through.md`).
 
 ### Act: query, then narrate
@@ -157,6 +162,11 @@ State what the returned rows say, with the values and counts exactly as the resu
   say the generic noun — "the owning team", "the service" — never the name you saw earlier.
 - **Never add up rows yourself.** If a total is worth stating, the query returns it. Three rows and
   a sum are four numbers, and only three of them came back.
+- **Say a figure in full once.** The step that owns a finding states it with its number; every step
+  after that refers to it in words — "the unowned half", "that log line" — and gives the number again
+  only where the new finding changes it. One beat, one finding: a figure repeated in four turns
+  running stops being a finding and becomes background noise, and the step that actually owns it
+  loses its moment.
 - **Comparing two figures you have already stated is not that.** "$2,454 against a $1,332 target —
   nearly twice it" is arithmetic the listener can check from what is on the screen, and it is how a
   finding becomes progress. The line is whether both inputs have been said out loud: a ratio of two
