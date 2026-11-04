@@ -243,7 +243,9 @@ probe appended to the opening query.
   `target_usd` for the opening line and the proposal ("Problem survey", steps 3 and 4). No row means
   it is not available: say nothing about it.
 - **When to run it:** the turn the cost track starts, as its first query — not on the greeting and not on the
-  survey. It is the heaviest read in the scenario, so it waits until the user has asked for the bill. The
+  survey. Where the runtime already knows the environment lists the showcase (the local adapter reads it from
+  the CLI), beat 5's own bill query serves: the probe's `filter total_usd > 0` is an availability test, and
+  availability is already settled. Run the probe form only where the environment is unresolved. It is the heaviest read in the scenario, so it waits until the user has asked for the bill. The
   greeting names the cloud direction without numbers; the numbers are this query's job.
 - **If it returns nothing,** this environment has no bill: say so plainly once ("there's no cloud spend
   imported here") and offer what the environment does have. Never leave the user waiting on a tour that
@@ -257,10 +259,21 @@ probe appended to the opening query.
   cloud costs") is a direct start and gets no question.
 - **Setting the target.** The user often brings their own number, or none. Settle it before the
   tour, in one turn, and settle it against the bill rather than against an opinion — run the bill
-  query first, then answer from it.
-  - **No number** ("let's optimise the cloud costs"): ask, once — "Do you have a figure in mind, or
-    shall I propose one?" A vague answer ("you propose", "whatever you think") is a yes to your
-    proposal.
+  query first, then answer from it. **The bill is always stated before the question is asked**: a
+  goal means nothing until the user knows what it is a share of.
+  - **No number** ("let's look at my cloud costs", "let's optimise the cloud spend"): state what the
+    bill is and what the untagged share means, then ask, once:
+
+    ```text
+    The cloud bill is $[total_usd] over the last 30 days of charges, and $[untagged_usd] of it —
+    [untagged_pct]% — carries no team tag, so nobody is being asked to reduce it.
+
+    Do you have a savings goal in mind, or shall I propose one?
+    ```
+
+    A vague answer ("you propose", "whatever you think") is a yes to your proposal. This is the step
+    that was missing: proposing 10% before asking takes the decision away from the user, and the
+    number then sounds arbitrary rather than offered.
   - **Proposing one:** 10% of `total_usd`, as your own assumption, with the reason it is that and not
     more: it is the share you can point at line by line.
   - **A number the evidence can cover:** take it. Say what it comes to in dollars and start.

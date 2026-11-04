@@ -51,7 +51,9 @@ once and use its output instead. Every query is:
 <dtctl> query '<dql>' --agent -o json --plain --max-field-chars 0 -M=queryId,scannedRecords,executionTimeMilliseconds
 ```
 
-- Use `<dtctl>` as given above. Wrap the DQL in single quotes; it may span several lines.
+- Use `<dtctl>` as given above. Wrap the DQL in single quotes; it may span several lines. DQL that itself
+  contains a single quote cannot go in that wrapper as written — escape each one as `'"'"'`, or use a form that
+  needs none (`splitString(x, ":db:")` rather than a `parse` pattern with quoted literals).
 - No `--context`: every query runs on the current context, which is the environment resolved above.
   Never pass `--context` to reach another tenant, and never switch contexts mid-session.
 - Substitute every `{{TOKEN}}` yourself before the call, as the skill describes. There is no
@@ -91,6 +93,8 @@ It prints the file it wrote.
 - **An action is what to do, why, and whose it is.** Each entry in `cost.actions` carries `label`
   (the action), `why` (the evidence that makes it the right call) and `owner` (from the team split,
   omitted when the spend has none). An action with no `why` is a line item, not a recommendation.
+  **Never a saving.** No result holds what an action would save, so no `why` claims one; the report
+  says in its own words that these are places to look, not a forecast.
 - **`evidence`** is the deep links you already gave, each with the label you used for it.
 - **If the session continues past the close** — the Extra, or a beat the user went back for — render
   again at the end of that turn and give the new path. A report that silently omits what came after

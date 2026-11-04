@@ -69,6 +69,7 @@
   }
   .owner .k { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--warm); font-weight: 600; }
   .open { color: var(--muted); font-style: italic; }
+  .basis { color: var(--muted); font-size: 14px; margin: 14px 0 0; }
   footer.btm { margin-top: 44px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
   @media print {
     body { background: #fff; }
@@ -139,6 +140,9 @@
     {{#cost.actions}}<tr><td><span class="k">{{label}}</span>{{#detail}}<span class="d">{{detail}}</span>{{/detail}}</td><td>{{why}}</td><td class="o">{{owner}}</td></tr>{{/cost.actions}}
     </tbody>
   </table>
+  <p class="basis">These are where the money is and where the evidence is thinnest &mdash; the best
+  places to look first. None of them is a forecast: what comes off the bill depends on what each
+  owner decides, and shows up on the next one.</p>
   {{/has_actions}}
   {{#has_timeline}}
   <h2>What we looked at</h2>

@@ -120,7 +120,9 @@ There is no survey row. Every token comes from a result in this conversation:
 | `{{PROBLEM_ID}}`, `{{TF_FROM_MS}}`, `{{TF_TO_MS}}` | Beat 3's problem query (`problem_id`, `tf_from_ms`, `tf_to_ms`) |
 
 `{{SURVEY_AT}}` never moves once set. Entering the tour at any beat is fine: the opening query or the probe already
-anchored it, and re-anchoring on a later beat is what makes `elapsed_min` run backwards. A jump to beat 4 or later
+anchored it, and re-anchoring on a later beat is what makes `elapsed_min` run backwards. When a beat's own query
+**is** the conversation's first — a cost ask straight from the greeting, say — there is nothing to subtract yet:
+`elapsed_min` is `0` on that query, and its `queried_at` is the anchor for every query after it. A jump to beat 4 or later
 does not need beat 3's problem: beat 4 finds its own.
 
 ## Handoff fields
@@ -466,6 +468,25 @@ every team that touched it, so never read it as ownership. `untagged_usd` agains
 line with the target. What can be cut from it is a
 retention and volume decision for its owners; the bill shows the size, not the waste.
 
+**Evidence DQL — the untagged spend, on request** (the user asks what the unowned half is):
+
+```dql
+fetch bizevents, from: now()-7d
+| filter event.type == "cost.real.spend"
+| filter toTimestamp(focus.ChargePeriodStart) >= now()-30d and toTimestamp(focus.ChargePeriodStart) < now()
+| parse focus.Tags, "JSON:tags"
+| filter isNull(tags[dt_owner_team])
+| summarize usd = round(sum(toDouble(focus.EffectiveCost)), decimals: 0),
+    by: { category = focus.ServiceCategory, service = focus.ServiceName, operation = aws.x_Operation }
+| sort usd desc
+| limit 6
+```
+
+Run it when the user asks where the unowned money sits — they do, and it is the natural question after the
+untagged share is named. The lines are the same shape as the largest-lines query, filtered to rows with no
+`dt_owner_team`. Name the categories as returned; a category is not a product, so never say "which is
+CloudWatch" unless `service` says so.
+
 **Success signal:** User asks which of it is waste, or who owns a line.
 
 **Deep link** (label "Cost explorer by service category"):
@@ -547,20 +568,32 @@ tag changed inside the window; list both, as returned.
 5. The cost action list (it is this scenario's handoff block), built only from beat 5 and 6 results:
 
    ```text
-   Cloud cost action list — last 30 days of charges
+   Cloud cost findings — last 30 days of charges
    Working target: 10% of $[total_usd] = $[target_usd] (my assumption, not a figure anyone set)
-   Largest line:  [service] [operation], $[usd], tagged [teams]
-   Do not shrink: [db] ([cpu_avg_pct]% CPU, [free_mem_min_mb] MB free) — low CPU, no memory headroom
-   Monitor first: [dbs] databases, $[usd_30d], no utilization data
-   No owner:      $[untagged_usd] ([untagged_pct]%) carries no team tag
+
+   What we know
+     Unowned:      $[untagged_usd] ([untagged_pct]%) carries no team tag — nobody is asked to reduce it
+     Concentrated: [service] [operation], $[usd], of which $[untagged_usd for that line] is untagged
+     Unmeasured:   [dbs] databases, $[usd_30d], with no CPU or memory series at all
+     Not to touch: [db] ([cpu_avg_pct]% CPU, [free_mem_min_mb] MB free) — low CPU, no memory headroom
+
    Goes to:       [the teams from the team split] — they act, we supply the evidence
    Evidence:
      Cost explorer:  [this beat's deep link]
    Still open:    which lines close the gap to $[target_usd] is the owners' call
    ```
 
-   A row without a source is left out. These recommendations come from an analysis, so each owner reviews an item
-   before applying it: say that once, in the line after the block.
+   **These are findings, not a forecast.** The block says where the money is and where the evidence is
+   thinnest — the best places to look first. It never says what any of them would save. Say that in the
+   line after the block, in your own words.
+
+   A row without a source is left out. These come from an analysis, so each owner reviews an item before
+   applying it: say that once, in the line after the block.
+
+   **No per-item saving exists, and none is to be estimated.** Users ask for one — twice in testrun 16 —
+   and no result holds it: a saving is what happens after an owner acts and the next bill arrives. Say
+   that plainly, give the dollars in play per line, and never split the working target across items as
+   though it were a forecast.
 
 **Deep link** (label "Cost explorer"):
 
