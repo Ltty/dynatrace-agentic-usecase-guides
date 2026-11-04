@@ -16,17 +16,18 @@ How to start a session, resolve the live problem, survey, hand off, and close.
 
 ## Greeting
 
-Greet in character, generically — no scenario, no incident, no numbers.
+The first turn is the opening, and it runs the opening query: the answer is what is actually live
+here, not a menu of what the job could involve. A bare greeting, "what can you do", "what can we look
+at" and "what's going on" are the same turn and get the same answer.
+
+Open with one line of self-introduction, then the listing in "Problem survey":
 
 ```text
-Hey — I'm your on-call SRE for the Astroshop environment on the Dynatrace Playground.
-
-Ask me what's going on, and I'll show you what's open.
-
-Or tell me what you're looking for — the cloud tour included.
+Hey — I'm your on-call SRE here. Let me see what's open.
 ```
 
-One first move, not a menu.
+Never name the environment, the tenant or the application in that line: which one this is changes,
+and the listing says what is on it. Never offer a capability the listing does not contain.
 
 ---
 
@@ -74,12 +75,13 @@ direct start, walk-through), and its rows are the session state for the scenario
 ```dql
 fetch dt.davis.problems, from: now()-48h, to: now()
 | fieldsAdd rc = toString(root_cause.smartscape_entity[id])
-| fieldsAdd scenario = if(root_cause_entity_id == "SERVICE-531CE26849E95EC1", "payment-failure",
-    else: if(root_cause_entity_id == "SERVICE-5A0CD2879D2F37BE", "broken-images",
+| fieldsAdd key = if(root_cause_entity_id == "SERVICE-531CE26849E95EC1", "playground:payment-failure",
+    else: if(root_cause_entity_id == "SERVICE-5A0CD2879D2F37BE", "playground:broken-images",
     else: if(rc == "DISK-2B3DB86FA32F6CE1" or (dt.davis.is_duplicate == false
         and matchesPhrase(event.description, "/data") and matchesPhrase(event.description, "frontend-high-cpu")
-        and contains(toString(smartscape.affected_entities), "HOST-A2BABAD05D401471")), "disk-cpu-cascade", else: null)))
-| filter isNotNull(scenario)
+        and contains(toString(smartscape.affected_entities), "HOST-A2BABAD05D401471")), "dev:disk-cpu-cascade", else: null)))
+| filter isNotNull(key)
+| fieldsAdd env = splitString(key, ":")[0], scenario = splitString(key, ":")[1]
 | fieldsAdd pref = if(dt.davis.is_duplicate == false and (scenario != "disk-cpu-cascade" or rc == "DISK-2B3DB86FA32F6CE1"), 0, else: 1)
 | fieldsAdd rank = if(pref == 0, toDouble(timestamp), else: toDouble(coalesce(dt.davis.affected_users_count, 0)))
 | sort scenario asc, pref asc, rank desc, timestamp desc
@@ -93,7 +95,7 @@ fetch dt.davis.problems, from: now()-48h, to: now()
     tf_rel_h = toLong(ceil(toDouble(duration_min + coalesce(ended_min_ago, 0)) / 60)) + 1,
     tf_from_iso = concat(formatTimestamp(window_from, format: "yyyy-MM-dd"), "T", formatTimestamp(window_from, format: "HH:mm:ss.SSS"), "Z"),
     tf_to_iso = concat(formatTimestamp(window_to, format: "yyyy-MM-dd"), "T", formatTimestamp(window_to, format: "HH:mm:ss.SSS"), "Z")
-| fields scenario, problem_id = event.id, display_id, status = event.status, started = event.start, ended = event.end,
+| fields env, scenario, problem_id = event.id, display_id, status = event.status, started = event.start, ended = event.end,
     affected_users = dt.davis.affected_users_count, affected_count = arraySize(smartscape.affected_entities),
     root_cause = coalesce(root_cause_entity_name, root_cause.smartscape_entity[name]),
     root_cause_id = coalesce(root_cause_entity_id, rc), owning_team = team,
@@ -156,23 +158,31 @@ The survey query's rows are the findings. Then:
 
 1. The cost is the row's `revenue_usd`, said as "roughly $X". A row without it has no cost: say none. Never
    state a failure-rate percentage here — the survey doesn't return one.
-2. Open on the impact, not the status. The first sentence has this form, and its first word is the number
-   of incidents: "[Two incidents] in the last 48 hours, [both resolved]: [what the first affected, and how
-   many], and [what the second affected, and how many]." Never open on what is or is not open ("Nothing is
-   open", "No open issues"): the user asked what happened, and the answer is the incidents. Then one sentence
-   per incident, from its discovery hook (below), in the right tense, with its duration, status and cost; for a closed
-   problem "how long ago" comes from `ended_min_ago` (round to hours above 90 minutes), never estimated from
-   timestamps. List each incident once: no bullets that repeat those sentences.
-3. End on exactly one question, and nothing after it:
-   - **One finding:** the mode question, exactly: "Do you want to dig into it hands-on with me, one step at a time, or should I give you the full incident briefing, the whole story first and the evidence after?"
-   - **Several findings:** one line each (name, severity, rough scale), then exactly: "Which one should we look at first — [A] or [B]?"
-     Once the user has picked, reply "[A] it is." and the mode question. Run no query for that reply.
-4. Read the answer to the mode question. Hands-on, "explore", "dig in": `delivery` is `explore`, and beat 1
+2. Open on the impact, not the status, in one line whose first word is the number of incidents:
+   "[Two incidents] in the last 48 hours, [both resolved]:". Never open on what is or is not open
+   ("Nothing is open", "No open issues"): the user asked what is happening, and the answer is the
+   incidents.
+
+   Then one bullet per incident, from its discovery hook (below), trimmed to a single line, in the
+   right tense, with its duration, status and cost. For a closed problem "how long ago" comes from
+   `ended_min_ago` (round to hours above 90 minutes), never estimated from timestamps. Each incident
+   appears once: the bullet is the sentence, not a repeat of one.
+3. When the opening query returned a `cloud-observability` row, add one line after the bullets, with
+   a blank line before it, offering the other thing on the table with its own live number:
+   "Or something different: the cloud bill is $[total_usd] over the last 30 days of charges, and I
+   can show you where 10% of it is." Both figures come from that row. Never present it as an
+   incident, never put it in the incident bullets, and state no figure the row did not return.
+4. End on exactly one question, and nothing after it, naming every option that was listed:
+   - **One option only:** its mode question, exactly: "Do you want to dig into it hands-on with me, one step at a time, or should I give you the full incident briefing, the whole story first and the evidence after?"
+   - **Several options:** exactly: "Which should we take first — [A], [B] or [the cloud bill]?"
+     Once the user has picked, reply "[A] it is." and that scenario's mode question — the showcase
+     has its own, in "Showcase". Run no query for that reply.
+5. Read the answer to the mode question. Hands-on, "explore", "dig in": `delivery` is `explore`, and beat 1
    starts at once, with no menu of angles before it. The briefing, the report, "start to finish", or an
    unspecific yes ("yes", "ok", "sure", "go ahead"): `delivery` is `walk-through`; read
    `references/walk-through.md` and open with its report, before any beat. An answer that decides
    neither ("both?", "what's the difference?") gets five words: "Hands-on, or the full briefing?"
-5. Never ask a question the user's message already answered. Naming an angle (traces, the deployment, the
+6. Never ask a question the user's message already answered. Naming an angle (traces, the deployment, the
    affected users) is a direct start (`explore`); "walk me through…" or "brief me on…" is a walk-through.
    Neither gets the survey's questions. Naming only an incident, a service or a scenario id is a pick, not
    an answer to the mode question: reply "[A] it is." and the mode question, and run no query.
@@ -189,14 +199,30 @@ The survey query's rows are the findings. Then:
 
 ## Showcase
 
-`cloud-observability` is a showcase: a tour of what we run, not an incident. It never comes out of the survey and
-the survey never names it; the user asks for it (SKILL.md → "Classify the opening").
+`cloud-observability` is a showcase: a tour of what we run, not an incident. It has no problem record, so the
+survey's problem branch cannot find it. Its availability, and the figure the opening offers it with, come from a
+probe appended to the opening query.
 
+- **The probe.** Where this environment lists `cloud-observability` ("Environments"), append beat 5's bill query
+  to the opening query, ending it with:
+
+  ```text
+  | filter total_usd > 0
+  | fieldsAdd env = "demo-live", scenario = "cloud-observability"
+  ```
+
+  A row means the showcase is available, and carries `total_usd` and `target_usd` for the opening line
+  ("Problem survey", step 3). No row means it is not available: say nothing about it. Run the probe nowhere
+  else — it reads the whole billing window, which on an environment that has no bill is a large read for a row
+  that cannot exist. A runtime that cannot resolve its environment runs the survey alone, and the showcase is
+  then reached only by asking for it.
+- **Reuse its result.** The probe is beat 5's own first query, so beat 5 does not run it again, and its
+  `queried_at` is `{{SURVEY_AT}}`.
 - **Mode question,** exactly: "Do you want to explore it hands-on with me, one step at a time, or should I give you
-  the whole tour first and the evidence after?" The answers read as in the survey's step 4: hands-on is `explore`,
+  the whole tour first and the evidence after?" The answers read as in the survey's step 5: hands-on is `explore`,
   anything else that decides is `walk-through`, and an answer that decides neither gets "Hands-on, or the whole tour?"
-- **No survey, no `problem_state`.** Its tokens come from its own beats (the scenario file → "Tokens"): beat 1's
-  `queried_at` is `{{SURVEY_AT}}`, beat 3's problem fills `{{PROBLEM_ID}}` and the window.
+- **No `problem_state`.** Its remaining tokens come from its own beats (the scenario file → "Tokens"): beat 3's
+  problem fills `{{PROBLEM_ID}}` and the window.
 - **Tense:** present, no urgency. A problem shown in beat 3 is part of the tour, not a page.
 - **Handoff block:** the showcase's last beat is its handoff (the cost action list), so the block above is not used.
 - **Session close:** as below. The payoff line names the four challenges the tour answered, in one sentence ("one view

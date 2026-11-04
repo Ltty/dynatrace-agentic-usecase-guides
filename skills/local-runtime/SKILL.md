@@ -11,8 +11,8 @@ description: >
 
 The agent instructions (`dynatrace-intelligence/agents/demo-agent/instructions.md`) and the skill
 they name are written for the Dynatrace agent runtime. Follow them exactly, with these mappings.
-This file adds no behaviour of its own, apart from the local-only notes below on the Bash
-description, PowerShell, the proof stamp and the authentication notice.
+This file adds no behaviour of its own, apart from the local-only notes below on the environment,
+the Bash description, PowerShell, the proof stamp and the authentication notice.
 
 ## Tool mapping
 
@@ -22,19 +22,37 @@ description, PowerShell, the proof stamp and the authentication notice.
 | `execute-dql` / `dynatrace-mcp:execute-dql` | `dtctl query` through the Bash tool, shape below |
 | The result's "Query metadata" | The envelope's `metadata` object |
 
+## Which environment this is (local only)
+
+Before the first query, once per session, run:
+
+```bash
+<dtctl> config get-contexts --agent -o json --plain
+```
+
+Take the row whose `Current` is `*`. Its `Environment` URL is this session's environment: match the
+host against the skill's "Environments" table to get the environment name, and use that host for
+every `{{LINK_HOST}}`. The skill's availability rules then apply to that environment.
+
+This is the one place the environment is known before any data comes back, so it is also where the
+showcase probe is decided: append it only when that environment lists `cloud-observability`.
+
+**Safety.** If that row's `SafetyLevel` is not `readonly`, do not run the demo. Step out of
+character once, as for expired authentication, say that this context allows writes and give the
+fix — `dtctl config set-context <name> --safety-level readonly`, in a terminal, not here — and stop.
+
 ## Running DQL
 
 `<dtctl>` is `dtctl`. Only if the shell reports it is not found, run `python tools/preflight.py dtctl-path`
 once and use its output instead. Every query is:
 
 ```bash
-<dtctl> query '<dql>' --context playground --agent -o json --plain --max-field-chars 0 -M=queryId,scannedRecords,executionTimeMilliseconds
+<dtctl> query '<dql>' --agent -o json --plain --max-field-chars 0 -M=queryId,scannedRecords,executionTimeMilliseconds
 ```
 
 - Use `<dtctl>` as given above. Wrap the DQL in single quotes; it may span several lines.
-- `--context playground` on every call pins the read-only Playground context, whatever the
-  saved current context is. The one exception: every query of the `cloud-observability` showcase uses
-  `--context demo-live` (its scenario file → "Scope" names that tenant). The survey always runs on `playground`.
+- No `--context`: every query runs on the current context, which is the environment resolved above.
+  Never pass `--context` to reach another tenant, and never switch contexts mid-session.
 - Substitute every `{{TOKEN}}` yourself before the call, as the skill describes. There is no
   pre-substitution step and no state file.
 - Use the Bash tool for `dtctl`. Windows PowerShell 5.1 strips the double quotes inside DQL
@@ -49,7 +67,7 @@ The envelope is `{ok, result: {kind, constant, records}, context: {total}, metad
 - A full row is `result.constant` merged with the record; the record wins, and an absent key is null.
 - Proof stamp (local only; the Dynatrace agent shows none): after a beat's first query, one line
   `queryId <metadata.queryId, copied exactly> · <metadata.scannedRecords> records scanned · <metadata.executionTimeMilliseconds> ms`.
-  Never in the survey or the clean-environment reply, and none if the envelope has no metadata. On a peak beat the
+  Never in the opening or the clean-environment reply, and none if the envelope has no metadata. On a peak beat the
   finding line stays first; the stamp follows the explanation, directly above the deep link.
 - `ok: false` or a non-zero exit is a failed query; follow the skill's error handling.
 - Exit code 3 means authentication expired: the only time you step out of character, say one

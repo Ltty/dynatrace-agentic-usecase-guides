@@ -52,9 +52,9 @@ we run, from the clouds down to one function and on to the bill, from live data.
 | `disk-cpu-cascade` | [references/scenario-disk-cpu-cascade.md](references/scenario-disk-cpu-cascade.md) | disk space, CPU saturation, host resource contention, OneAgent update failures (dev tenant) |
 | `cloud-observability` | [references/scenario-cloud-observability.md](references/scenario-cloud-observability.md) | showcase, no incident: cloud tour, AWS/Azure/Google Cloud, Clouds app, Smartscape, AI agents on problems (AWS DevOps Agent, Cloud SRE Agents, Kubernetes troubleshooting), workflows, cloud costs, the 10% savings target (demo-live tenant) |
 
-One survey query finds the live problem of every scenario (session-protocol → "Session state"); the scenarios
-that return a row are the findings. A showcase is not in the survey: it is asked for, never found. A scenario
-file is read only once its scenario is chosen.
+One opening query finds what is live here (session-protocol → "Session state" and "Environments"); the rows
+that come back are the findings, and a showcase comes back from the probe appended to it. A scenario file is
+read only once its scenario is chosen.
 
 Other references: [session-protocol.md](references/session-protocol.md) (greeting, the survey query and state,
 survey, handoff block, close) · [conversation-craft.md](references/conversation-craft.md) (beat loop, data-only
@@ -76,11 +76,9 @@ one batch of parallel calls with no text before or between them. Anything alread
 
 | The user's opening | Reads (one batch) | Then |
 |---|---|---|
-| Greeting, "what can you do?" | none beyond session-protocol | Greeting; no query |
-| Problem survey — "what's wrong?", "any issues?", "root-cause the latest", "what changed?" (even "root-cause") | none | Status line "Checking for open issues.", the survey query, the survey reply: ends on one question, skipped when the message already answers it |
-| Pick — only a scenario's id or service | none | "[A] it is." and the mode question; no query |
-| Showcase — "show me cloud observability", "the cloud tour", "what runs on our clouds" | none | "The cloud tour it is." and the showcase mode question (session-protocol → "Showcase"); no query |
-| Cloud cost — "cut cloud costs", "save 10% on the cloud bill", "where does the cloud money go" | the showcase file, `conversation-craft.md` | Status line "Pulling the cloud bill.", beat 1's query (for its token) and beat 5; no question |
+| Opening — a greeting, "what can you do?", "what's wrong?", "any issues?", "root-cause the latest", "what changed?" | none beyond session-protocol | Status line "Checking what's open.", the opening query, then the listing: bullets, the cloud line when its row came back, one question |
+| Pick — only a scenario's id, a service, or the cloud tour | none | "[A] it is." and that scenario's mode question; no query |
+| Cloud cost — "cut cloud costs", "save 10% on the cloud bill", "where does the cloud money go" | the showcase file, `conversation-craft.md` | Status line "Pulling the cloud bill.", beat 5; no question |
 | Direct start — names an angle (traces, deployment, affected users) | that scenario's file, `conversation-craft.md` | Status line naming the lookup ("Checking the deployments on the payment service."), the survey query if no row is held, then the beat loop at that angle; no question |
 | Walk-through — "walk me through it", "brief me", "give me the incident report", or the briefing chosen | that scenario's file, `conversation-craft.md`, `walk-through.md` | The scenario's `pull_line` as status line, then `walk-through.md` |
 | Hands-on chosen after the mode question | that scenario's file, `conversation-craft.md` | One status line, then beat 1 |
@@ -91,8 +89,8 @@ even while you read files, and exactly one status line before the first query. L
 
 ### 2. Gather context
 
-Run the survey query once per conversation and keep its rows as session state (session-protocol → "Session
-state"). A scenario with no row has no live problem. A showcase runs no survey: its beats supply its tokens.
+Run the opening query once per conversation and keep its rows as session state (session-protocol → "Session
+state"). A scenario with no row is not offered; the showcase's row also carries its opening figure.
 
 ### 3. Run the investigation
 
