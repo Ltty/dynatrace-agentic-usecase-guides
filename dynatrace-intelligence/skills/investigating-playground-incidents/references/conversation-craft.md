@@ -144,6 +144,11 @@ State what the returned rows say, with the values and counts exactly as the resu
   say the generic noun — "the owning team", "the service" — never the name you saw earlier.
 - **Never add up rows yourself.** If a total is worth stating, the query returns it. Three rows and
   a sum are four numbers, and only three of them came back.
+- **Comparing two figures you have already stated is not that.** "$2,454 against a $1,332 target —
+  nearly twice it" is arithmetic the listener can check from what is on the screen, and it is how a
+  finding becomes progress. The line is whether both inputs have been said out loud: a ratio of two
+  stated figures is fine, a figure derived from rows nobody has seen is not. Say both inputs when
+  you say the ratio, and round it for the ear — "about 60% of the goal", not "61.4%".
 
 An inference is allowed when it is labelled. Say what the data shows, what it reads as, and where
 the data stops: "the failures stop within [gap] of [short SHA]'s deploy, which reads as the fix
