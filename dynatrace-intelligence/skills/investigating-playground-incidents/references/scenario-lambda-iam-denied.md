@@ -304,6 +304,9 @@ a ticket or a coding agent with the evidence attached.
 - **`has_summary` is false** — the notes are on the record but their summary is not readable from here; say
   exactly that, say how many there are and when, and point at the AWS DevOps Agent task as where the findings
   are. Never infer what the note said from beats 3 and 4.
+- **No rows at all** — nothing has been written on this record yet. On a problem that is still open that is
+  what it sounds like: the agent is triggered by the problem and takes minutes, so early in an incident there
+  is nothing to read. Say that, and say the beats before this one already name the root cause without it.
 
 **Objection** — "so it fixed it?": no. The agent investigated and recommended; the role is still whatever
 beat 4 returned. Everything an agent does here is written down and attributed, with a human deciding whether

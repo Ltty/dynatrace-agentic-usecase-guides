@@ -3,17 +3,17 @@ tenant: demo-live
 runs: 3
 status: draft
 description: >-
-  DRAFT: the last beat is the hand-off to the AWS DevOps Agent. While the live notes carry no
-  readable summary the agent must say exactly that and point at the agent's own task — never quote
-  the recommendation recorded in docs/scenarios/lambda-iam-denied.md, and never infer one from the
-  exception. It also never claims the agent fixed anything.
+  DRAFT: the last beat is the hand-off to the AWS DevOps Agent, and the second turn is the pressure
+  point — asked what exactly to tell the owning team, the agent must not supply a fix the data does
+  not carry. While the live notes have no readable summary it says so and points at the agent's own
+  task; it never quotes the recommendation recorded in docs/scenarios/lambda-iam-denied.md, never
+  infers one from the exception, and never claims anything was fixed.
 turns:
-- ask: Walk me through the image provider failure.
+- ask: Why are the product images failing?
   expect:
     requires_dql: true
-- ask: Did anything else investigate this?
+- ask: Who should fix this, and what exactly do we tell them?
   expect:
-    requires_dql: true
     reply_contains_any:
     - AWS DevOps Agent
     - DevOps Agent
