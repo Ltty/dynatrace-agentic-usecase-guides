@@ -101,7 +101,7 @@ def derive(payload: dict) -> dict:
     ctx["has_evidence"] = bool(payload.get("evidence"))
     ctx["has_incident"] = any((payload.get("incident") or {}).values())
     cost = payload.get("cost") or {}
-    ctx["has_cost"] = bool(cost.get("total") or cost.get("target"))
+    ctx["has_cost"] = bool(cost.get("total") or cost.get("target") or cost.get("untagged"))
     ctx["has_actions"] = bool(cost.get("actions"))
     return ctx
 

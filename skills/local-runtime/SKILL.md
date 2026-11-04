@@ -74,16 +74,26 @@ python tools/render_report.py <<'JSON'
 JSON
 ```
 
-It prints the file it wrote. Say one line and stop: "Report: <path>". Never read the file back,
-never paste its markup, and never offer to change its styling.
+It prints the file it wrote.
 
+- **Name it, as the last line of the close turn.** Not a bare path: say what it is, so it is not lost
+  at the end of a long close — "Executive summary you can send on: <path>". One line, then stop.
+  Never read the file back, never paste its markup, never offer to restyle it.
 - **Only what this conversation established.** Every value comes from a result you have seen, exactly
   as the handoff block requires: a field with no source is omitted from the payload entirely, never
-  sent as "unknown", "N/A" or a guess. The payload has no field the report needs to invent.
+  sent as "unknown", "N/A" or a guess. **Never a total you worked out yourself** — if three rows have
+  a sum worth stating, the query returns it; otherwise send the three. The payload has no field the
+  report needs to invent.
 - **`kind`** is `incident` for a scenario with a problem record, `showcase` for one whose Business
   context says `kind: showcase`. `incident` carries the handoff block's rows; `showcase` carries the
-  cost action list under `cost`.
+  cost figures and the action list under `cost`.
+- **An action is what to do, why, and whose it is.** Each entry in `cost.actions` carries `label`
+  (the action), `why` (the evidence that makes it the right call) and `owner` (from the team split,
+  omitted when the spend has none). An action with no `why` is a line item, not a recommendation.
 - **`evidence`** is the deep links you already gave, each with the label you used for it.
+- **If the session continues past the close** — the Extra, or a beat the user went back for — render
+  again at the end of that turn and give the new path. A report that silently omits what came after
+  it is worse than no report.
 - **Failures are not the user's problem.** If the command exits non-zero, say nothing about the
   report and end on the close as written. It is an extra, not part of the investigation.
 - `tools/report-template.html` is the layout. Change the template, never the generated file.

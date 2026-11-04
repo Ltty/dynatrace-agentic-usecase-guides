@@ -3,24 +3,59 @@
   "title": "demo session report",
   "type": "object",
   "additionalProperties": false,
-  "required": ["kind", "environment", "scenario", "title"],
+  "required": [
+    "kind",
+    "environment",
+    "scenario",
+    "title"
+  ],
   "properties": {
-    "kind": { "enum": ["incident", "showcase"] },
-    "environment": { "type": "string", "minLength": 1 },
-    "scenario": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
-    "title": { "type": "string", "minLength": 1 },
-    "display_id": { "type": "string" },
-    "headline": { "type": "string" },
-    "generated_at": { "type": "string" },
-    "goes_to": { "type": "string" },
-    "still_open": { "type": "string" },
+    "kind": {
+      "enum": [
+        "incident",
+        "showcase"
+      ]
+    },
+    "environment": {
+      "type": "string",
+      "minLength": 1
+    },
+    "scenario": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "display_id": {
+      "type": "string"
+    },
+    "headline": {
+      "type": "string"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "goes_to": {
+      "type": "string"
+    },
+    "still_open": {
+      "type": "string"
+    },
     "window": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "from": { "type": "string" },
-        "to": { "type": "string" },
-        "duration": { "type": "string" }
+        "from": {
+          "type": "string"
+        },
+        "to": {
+          "type": "string"
+        },
+        "duration": {
+          "type": "string"
+        }
       }
     },
     "stats": {
@@ -28,11 +63,20 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["label", "value"],
+        "required": [
+          "label",
+          "value"
+        ],
         "properties": {
-          "label": { "type": "string" },
-          "value": { "type": "string" },
-          "note": { "type": "string" }
+          "label": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          }
         }
       }
     },
@@ -41,10 +85,17 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["time", "what"],
+        "required": [
+          "time",
+          "what"
+        ],
         "properties": {
-          "time": { "type": "string" },
-          "what": { "type": "string" }
+          "time": {
+            "type": "string"
+          },
+          "what": {
+            "type": "string"
+          }
         }
       }
     },
@@ -52,30 +103,59 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "when": { "type": "string" },
-        "detected": { "type": "string" },
-        "impact": { "type": "string" },
-        "rate": { "type": "string" },
-        "cause": { "type": "string" }
+        "when": {
+          "type": "string"
+        },
+        "detected": {
+          "type": "string"
+        },
+        "impact": {
+          "type": "string"
+        },
+        "rate": {
+          "type": "string"
+        },
+        "cause": {
+          "type": "string"
+        }
       }
     },
     "cost": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "total": { "type": "string" },
-        "target": { "type": "string" },
+        "total": {
+          "type": "string"
+        },
+        "target": {
+          "type": "string"
+        },
         "actions": {
           "type": "array",
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["label", "detail"],
+            "required": [
+              "label"
+            ],
             "properties": {
-              "label": { "type": "string" },
-              "detail": { "type": "string" }
+              "label": {
+                "type": "string"
+              },
+              "detail": {
+                "type": "string"
+              },
+              "why": {
+                "type": "string"
+              },
+              "owner": {
+                "type": "string"
+              }
             }
           }
+        },
+        "untagged": {
+          "type": "string"
         }
       }
     },
@@ -84,10 +164,18 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["label", "url"],
+        "required": [
+          "label",
+          "url"
+        ],
         "properties": {
-          "label": { "type": "string" },
-          "url": { "type": "string", "pattern": "^https://" }
+          "label": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "pattern": "^https://"
+          }
         }
       }
     }

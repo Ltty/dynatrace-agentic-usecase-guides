@@ -47,10 +47,18 @@
   ol.timeline .t {
     flex: 0 0 92px; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 14px;
   }
-  ul.actions { list-style: none; margin: 0; padding: 0; }
-  ul.actions li { padding: 11px 0; border-bottom: 1px solid var(--line); }
-  ul.actions li:last-child { border-bottom: 0; }
-  ul.actions .k { font-weight: 600; }
+  table.actions { width: 100%; border-collapse: collapse; margin: 0; }
+  table.actions th {
+    text-align: left; font-size: 12px; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--muted); font-weight: 600; padding: 0 12px 8px 0; border-bottom: 1px solid var(--line);
+  }
+  table.actions td { padding: 12px 12px 12px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  table.actions tr:last-child td { border-bottom: 0; }
+  table.actions .k { display: block; font-weight: 600; }
+  table.actions .d { display: block; font-size: 14px; color: var(--muted); margin-top: 2px; }
+  table.actions td.o { white-space: nowrap; font-size: 14px; }
+  table.actions th:nth-child(1), table.actions td:nth-child(1) { width: 38%; }
+  table.actions th:nth-child(3), table.actions td:nth-child(3) { width: 20%; }
   ul.links { list-style: none; margin: 0; padding: 0; }
   ul.links li { padding: 7px 0; }
   ul.links a { color: var(--accent); text-decoration: none; overflow-wrap: anywhere; }
@@ -92,12 +100,14 @@
   </ul>
   {{/has_stats}}
 
+  {{#is_incident}}
   {{#has_timeline}}
   <h2>Timeline</h2>
   <ol class="timeline">
     {{#timeline}}<li><span class="t">{{time}}</span><span>{{what}}</span></li>{{/timeline}}
   </ol>
   {{/has_timeline}}
+  {{/is_incident}}
 
   {{#is_incident}}
   {{#has_incident}}
@@ -114,18 +124,28 @@
 
   {{#is_showcase}}
   {{#has_cost}}
-  <h2>The bill against the target</h2>
+  <h2>The bill against the working target</h2>
   <dl class="facts">
     {{#cost.total}}<div><dt>Last 30 days</dt><dd>{{cost.total}}</dd></div>{{/cost.total}}
-    {{#cost.target}}<div><dt>10% target</dt><dd>{{cost.target}}</dd></div>{{/cost.target}}
+    {{#cost.target}}<div><dt>Working target</dt><dd>{{cost.target}}</dd></div>{{/cost.target}}
+    {{#cost.untagged}}<div><dt>No owner</dt><dd>{{cost.untagged}}</dd></div>{{/cost.untagged}}
   </dl>
   {{/has_cost}}
   {{#has_actions}}
-  <h2>Cost action list</h2>
-  <ul class="actions">
-    {{#cost.actions}}<li><span class="k">{{label}}</span> — {{detail}}</li>{{/cost.actions}}
-  </ul>
+  <h2>Action items</h2>
+  <table class="actions">
+    <thead><tr><th>Action</th><th>Why</th><th>Owner</th></tr></thead>
+    <tbody>
+    {{#cost.actions}}<tr><td><span class="k">{{label}}</span>{{#detail}}<span class="d">{{detail}}</span>{{/detail}}</td><td>{{why}}</td><td class="o">{{owner}}</td></tr>{{/cost.actions}}
+    </tbody>
+  </table>
   {{/has_actions}}
+  {{#has_timeline}}
+  <h2>What we looked at</h2>
+  <ol class="timeline">
+    {{#timeline}}<li><span class="t">{{time}}</span><span>{{what}}</span></li>{{/timeline}}
+  </ol>
+  {{/has_timeline}}
   {{/is_showcase}}
 
   {{#goes_to}}

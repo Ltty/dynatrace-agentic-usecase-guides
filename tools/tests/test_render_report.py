@@ -36,8 +36,18 @@ INCIDENT = {
 SHOWCASE = {
     "kind": "showcase", "environment": "demo-live", "scenario": "cloud-observability",
     "title": "Where 10% is",
-    "cost": {"total": "$14,122", "target": "$1,412",
-             "actions": [{"label": "Largest line", "detail": "CloudWatch, $2,415"}]},
+    "timeline": [{"time": "last 30 days", "what": "the bill"}],
+    "cost": {
+        "total": "$14,122", "target": "$1,412", "untagged": "$7,605 (54%)",
+        "actions": [
+            {"label": "Cut CloudWatch log retention", "detail": "PutLogEvents, $2,415",
+             "why": "billed per byte, and larger on its own than the whole target",
+             "owner": "team-unc"},
+            {"label": "Do not shrink sf-live-postgres",
+             "why": "3.8% CPU but 121 MB free memory — no headroom to take",
+             "owner": "team-demoability"},
+        ],
+    },
 }
 
 MINIMAL = {
@@ -62,7 +72,7 @@ def test_each_kind_shows_only_its_own_section():
     assert "Cost action list" not in inc and "Cloud cost summary" not in inc
 
     show = render(SHOWCASE)
-    assert "Cloud cost summary" in show and "Cost action list" in show
+    assert "Cloud cost summary" in show and "Action items" in show
     assert "What the evidence shows" not in show and "Incident report" not in show
 
 
@@ -135,6 +145,30 @@ def test_an_unclosed_section_is_an_error_not_silent_output():
     except ValueError:
         return
     raise AssertionError("an unclosed section rendered silently")
+
+
+def test_an_action_carries_its_reason_and_its_owner():
+    out = render(SHOWCASE)
+    assert "billed per byte" in out, "the why is missing"
+    assert "team-unc" in out, "the owner is missing"
+    assert "<th>Action</th>" in out and "<th>Why</th>" in out and "<th>Owner</th>" in out
+    # a row without a detail line must still render
+    assert "Do not shrink sf-live-postgres" in out
+
+
+def test_an_action_list_outranks_the_tour_in_a_cost_report():
+    out = render(SHOWCASE)
+    actions = out.index("Action items")
+    looked_at = out.index("What we looked at")
+    assert actions < looked_at, "the tour timeline must sit below the action items"
+    assert "<h2>Timeline</h2>" not in out, "a cost report has no lead Timeline heading"
+
+
+def test_an_incident_keeps_its_timeline_at_the_top():
+    out = render(INCIDENT)
+    assert "<h2>Timeline</h2>" in out
+    assert "What we looked at" not in out
+    assert out.index("Timeline") < out.index("What the evidence shows")
 
 
 if __name__ == "__main__":
