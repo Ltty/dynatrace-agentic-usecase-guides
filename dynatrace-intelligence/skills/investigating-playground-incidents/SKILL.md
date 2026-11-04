@@ -78,7 +78,8 @@ one batch of parallel calls with no text before or between them. Anything alread
 |---|---|---|
 | Greeting — "hi", "what can you do?", "what can we look at?" | none beyond session-protocol | The two directions and nothing else; no query, no numbers |
 | Problem survey — "what's wrong?", "any issues?", "root-cause the latest", "what changed?", or the problems chosen | none | Status line "Checking what's open.", the opening query, then the bullets and one question |
-| Pick — only a scenario's id, a service, or the cloud tour | none | "[A] it is." and that scenario's mode question; no query |
+| Pick — only a scenario's id or a service | none | "[A] it is." and that scenario's mode question; no query |
+| Pick — the cloud tour | the showcase file, `conversation-craft.md` | "The cloud tour it is." and its first step; a showcase is a presentation and asks no mode question |
 | Cloud cost — "cut cloud costs", "look at my cloud spend", "save 10% on the cloud bill" | the showcase file, `conversation-craft.md` | Status line "Pulling the cloud bill.", beat 5, then the target question — skipped only when the ask already named a figure (session-protocol → "Setting the target") |
 | Direct start — names an angle (traces, deployment, affected users) | that scenario's file, `conversation-craft.md` | Status line naming the lookup ("Checking the deployments on the payment service."), the survey query if no row is held, then the beat loop at that angle; no question |
 | Walk-through — "walk me through it", "brief me", "give me the incident report", or the briefing chosen | that scenario's file, `conversation-craft.md`, `walk-through.md` | The scenario's `pull_line` as status line, then `walk-through.md` |

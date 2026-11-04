@@ -24,8 +24,8 @@ for one spends a heavy read on a choice they have not made.
 ```text
 Hey — I'm your on-call SRE here.
 
-We can go through the recent problems together, or take a look at something else — cutting the
-cloud bill, say.
+We can go through the problems that are actually open on the platform, or I can show you how to use
+Dynatrace to optimise cloud costs from real data.
 
 Where do you want to start?
 ```
@@ -34,6 +34,8 @@ Where do you want to start?
   `cloud-observability` ("Environments"), name it as above. Where it does not, or where the
   environment is not resolved, the line is "or something else you had in mind" — never name a
   capability this environment does not have.
+- **The second direction is a method, not an offer to cut a bill.** It says what the user will be
+  shown how to do, which is what the cloud track actually is.
 - **No numbers in this turn.** Not the bill, not a problem count. The greeting names what is
   available, not what is in it.
 - Never name the environment, the tenant or the application: which one this is changes.
@@ -203,7 +205,8 @@ The survey query's rows are the findings. Then:
      Each option is named the way its own bullet named it — the service, in plain words — never by
      its scenario id. `payment-failure` and `broken-images` are internal names: the user may type
      one, you never say one. Once the user has picked, reply "[A] it is." and that scenario's mode
-     question — the showcase has its own, in "Showcase". Run no query for that reply.
+     question. Run no query for that reply. A showcase has no mode question: picking it starts its first
+     step (SKILL.md → "Classify the opening").
 6. Read the answer to the mode question. Hands-on, "explore", "dig in": `delivery` is `explore`, and beat 1
    starts at once, with no menu of angles before it. The briefing, the report, "start to finish", or an
    unspecific yes ("yes", "ok", "sure", "go ahead"): `delivery` is `walk-through`; read
@@ -254,9 +257,9 @@ probe appended to the opening query.
   `queried_at` sets `{{SURVEY_AT}}` only if it was the conversation's first query — the survey usually
   ran first, and then that one holds.
 - **A question *about* the cloud line** ("what do you mean, where 10% of it is?") is answered first,
-  in two sentences, and the turn then ends on the mode question below. It is not a direct start: the
-  user asked what you meant, not to be taken through it. An instruction ("show me the bill", "cut
-  cloud costs") is a direct start and gets no question.
+  in two sentences, and the turn then **starts the first step** — it does not end on a question. The
+  user asked what you meant; showing them is the answer. An instruction ("show me the bill", "cut
+  cloud costs") starts the same way.
 - **Setting the target.** The user often brings their own number, or none. Settle it before the
   tour, in one turn, and settle it against the bill rather than against an opinion — run the bill
   query first, then answer from it. **The bill is always stated before the question is asked**: a
@@ -277,9 +280,17 @@ probe appended to the opening query.
   - **Proposing one:** 10% of `total_usd`, as your own assumption, with the reason it is that and not
     more: it is the share you can point at line by line.
   - **A number the evidence can cover:** take it. Say what it comes to in dollars and start.
-  - **A number beyond what the evidence covers** ("cut it in half"): never call it unrealistic, and
-    never refuse it. Say what it is in dollars, name what you can actually evidence against it, and
-    propose the figure those lines support:
+  - **A number the evidence does not reach** ("cut it in half", "30%"): never call it unrealistic,
+    never refuse it, and do not argue about what is achievable. The point of this track is the
+    *method*, and the method is the same whatever the number — say so, then show it:
+
+    ```text
+    30% is $[their figure]. The way you find it is the same either way — let me show you, and we'll
+    see how far the data gets us.
+    ```
+
+    Where you want to say what the evidence currently reaches, say it as a floor rather than a
+    counter-offer:
 
     ```text
     Half the bill is $[half]. What I can point at right now is $[largest line] on the biggest line
@@ -291,11 +302,14 @@ probe appended to the opening query.
     ```
 
     The difference between the two numbers is a limit of the evidence, not a judgement about the
-    user's ambition. Say it that way. If they hold to their number after that, work to it and keep
-    saying where the evidence stops — the handoff's "Still open" row is where the gap goes.
-- **Mode question,** exactly: "Do you want to explore it hands-on with me, one step at a time, or should I give you
-  the whole tour first and the evidence after?" The answers read as in the survey's step 6: hands-on is `explore`,
-  anything else that decides is `walk-through`, and an answer that decides neither gets "Hands-on, or the whole tour?"
+    user's ambition. Say it that way, and keep working to **their** number: it is the goal, and what
+    you can evidence is how far you got. Both go in the findings block and in the report — their
+    figure as the goal, yours as what the evidence reached, and the difference in "Still open".
+    Never quietly replace theirs with yours.
+- **One delivery: a presentation.** A showcase is never walked through and never asks which way to run it. It is
+  always the step-by-step guide, with a call to action after every step. Nothing reads `delivery` for a showcase,
+  and `references/walk-through.md` does not apply to one. The user steers by asking, as they always can; they are
+  not asked to choose a format first.
 - **No `problem_state`.** Its remaining tokens come from its own beats (the scenario file → "Tokens"): beat 3's
   problem fills `{{PROBLEM_ID}}` and the window.
 - **Tense:** present, no urgency. A problem shown in beat 3 is part of the tour, not a page.

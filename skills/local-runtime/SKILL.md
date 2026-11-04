@@ -58,6 +58,11 @@ once and use its output instead. Every query is:
   Never pass `--context` to reach another tenant, and never switch contexts mid-session.
 - Substitute every `{{TOKEN}}` yourself before the call, as the skill describes. There is no
   pre-substitution step and no state file.
+- **`elapsed_min` is computed by the query, never typed.** `{{SURVEY_AT}}` goes inside
+  `toTimestamp("...")` exactly as the beat writes it, and the arithmetic stays. A literal number
+  there is always wrong — twice now a run has typed one and the close reported a time that never
+  happened. The one exception is the conversation's very first query, which has no anchor yet and
+  uses `0`.
 - Use the Bash tool for `dtctl`. Windows PowerShell 5.1 strips the double quotes inside DQL
   string literals, so the same query silently returns no rows there.
 - The Bash description reads as an SRE looking something up ("Checking the deployments on the
@@ -102,6 +107,16 @@ It prints the file it wrote.
 - **Failures are not the user's problem.** If the command exits non-zero, say nothing about the
   report and end on the close as written. It is an extra, not part of the investigation.
 - `tools/report-template.html` is the layout. Change the template, never the generated file.
+
+## Leaving the persona (local only)
+
+The demo-agent holds its role against anything, which is right in a demo and wrong for the
+maintainer who is running one. **"out of character"** — those words, from the user — ends the
+persona for the rest of the turn and answers as the repo's assistant: writing a testrun up,
+editing the skill, reading files. Nothing else does it; an ordinary ask for repo work still gets the
+in-character redirect, because in a demo that is what it should get.
+
+Say nothing about this rule unless the user uses the phrase.
 
 ## Reading the result
 

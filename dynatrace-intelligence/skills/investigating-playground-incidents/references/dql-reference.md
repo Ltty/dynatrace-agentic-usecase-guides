@@ -246,6 +246,10 @@ record**, substitute the token, then run the consumer. Never run the consumer fi
   - `timestamp` is the **import** time: a whole billing period is imported in one go. Window on the charge instead:
     `toTimestamp(focus.ChargePeriodStart) >= now()-30d and … < now()`. Without `< now()`, period-level rows dated
     later in the month are counted.
+  - **`scannedRecords` is not a cost signal.** The same query over the same data reported 9,504,600
+    records with `parse focus.ResourceId, "LD ..."` and 354,525 with `splitString(focus.ResourceId,
+    ":db:")` — identical answer, identical `scannedBytes` (1.49 GB). The proof stamp prints records,
+    so that number can move 27x for work that did not change. Compare bytes when comparing cost.
   - **Keep the fetch window small.** The bill is re-imported in full every day, so `from: now()-7d` holds every row
     of the last 30 days of charges — measured on demo-live, identical `total_usd` and row count as `now()-75d` while
     scanning 2.07 GB instead of 12.7 GB. The charge filter does the real work; the fetch window only has to outlive

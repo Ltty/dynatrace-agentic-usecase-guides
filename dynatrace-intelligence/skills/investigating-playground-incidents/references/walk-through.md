@@ -1,6 +1,7 @@
 # Walk-Through
 
-How to run a scenario as a walk-through: you are the SRE calling a manager about an incident. The
+How to run a scenario as a walk-through: you are the SRE calling a manager about an incident. **Incidents only** —
+a showcase is always a presentation and never reaches this file (session-protocol → "Showcase"). The
 manager is not technical and wants the story first: what happened, how it connects, what it cost,
 why it happened. The evidence comes after, as the proof for what you already said.
 
@@ -72,10 +73,6 @@ evidence turns.
    the trace has not run yet. The verbatim exception, file, line and trace chain wait for their evidence turn.
 5. **The offer, exactly:** "I can show you how we know each of these, starting with [the second beat's
    subject, in plain words]."
-
-**A showcase** (no incident) reports the tour instead of a story: one plain sentence per beat Objective, in beat
-order, each with at most one number; no timeline, no "What broke". The owner part names the teams the cost beats
-return. The offer and the rest of this file apply as written; "manager" reads as whoever asked for the tour.
 
 A part with no source in the results is left out. Beat 1's deep link closes it. The report stands in for
 beat 1: its evidence turn is not repeated.

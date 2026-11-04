@@ -31,8 +31,7 @@ workflow runs and costs change every day — read them from the live result.
 | `kind` | `showcase` |
 | `service_name` | "cloud estate" |
 | `symptom` | "the cloud estate, what runs on it and what it costs" |
-| `pull_line` | "Pulling the clouds, the image function, its service and latest problem, the agents' notes and the bill together." |
-| `mode_question` | "Do you want to explore it hands-on with me, one step at a time, or should I give you the whole tour first and the evidence after?" |
+| delivery | presentation only — no `pull_line`, no `mode_question`, no walk-through |
 
 No `avg_order_value_usd`: no revenue figure. The costs in beats 5 and 6 are the cloud bill (FOCUS `EffectiveCost`, the
 price actually paid after discounts), not lost revenue; never mix the two.
@@ -40,9 +39,12 @@ price actually paid after discounts), not lost revenue; never mix the two.
 **Framing.** Present tense, no urgency, still "we". The tour answers four challenges that grow with cloud complexity: no
 unified view (beats 1 and 2: all clouds in one place, one resource in depth), manual correlation (beat 3: the service on
 the function and one problem with its root cause and business impact), wasted AI potential (beat 4: agents that work
-problems with the same connected context), and rising cloud cost (beats 5 and 6). Beats 5 and 6 answer the question
-every cloud bill eventually gets: how much of this could we not be paying? Open beat 5 by putting that question
-yourself, then answer it from the data, the way an analyst would.
+problems with the same connected context), and rising cloud cost (beats 5 and 6).
+
+**The cost track is a method demonstration**, not a savings engagement: what it shows is *how* to find money on a
+cloud bill from real data — what the bill says, where it concentrates, what is safe to touch, and who owns it. A
+figure the user brings is a lens that makes the method concrete, never a target the session is scored against. Open
+beat 5 by putting the question yourself, then answer it from the data, the way an analyst would.
 
 **The 10% is this scenario's own constant,** the same way beat 6's CPU and memory thresholds are. No row returns it
 and nobody in the session asked for it, so it is never "the target" and never attributed to a CTO or any other

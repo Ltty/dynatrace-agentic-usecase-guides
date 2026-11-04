@@ -49,6 +49,21 @@ them out; the one most often missed is the fourth.
 
 Beat 1 starts the moment the user chooses hands-on: no menu of angles before it.
 
+### One query, one turn
+
+**A beat with more than one Evidence DQL block runs as that many steps, one per block, each its own
+turn** with the five parts above. The beat's Staging and its deep link close the **last** step; the
+earlier steps end on the readiness cue alone.
+
+Two queries in one turn is two findings the user has to hold at once, and it is why a two-beat track
+can be over in two turns. One finding per turn is what makes a guided scenario feel like one.
+
+A beat whose blocks are chained (`{{TRACE_ID}}`) is one step: the second query only exists to
+complete the first one's answer. A block the scenario marks as run **on request** is a step only when
+the user asks for it.
+
+`beats_completed` is unchanged — a beat completes when its last step does.
+
 ### How a turn ends
 
 **One rule, for every scenario and both peak and ordinary beats.** The turn ends on the next step, the
@@ -63,16 +78,19 @@ Wrong: "The deploy, or the failing requests?" — a decision demanded before the
 
 A walk-through turn ends on its closing line instead (`references/walk-through.md`).
 
-### Act: all queries first, then narration
+### Act: query, then narrate
 
-Before the first query write the status line (SKILL.md → "Classify the opening"). Write nothing between
-tool calls: no plans, no retries, no file reads.
+Before the step's query write the status line (SKILL.md → "Classify the opening"). Write nothing
+between tool calls: no plans, no retries, no file reads.
 
 Substitute `{{TOKENS}}` from session state (`references/session-protocol.md` → "Session state").
 For a chained query, run the producing query first, take the value from its first record, then
-substitute and run — and still write nothing in between.
+substitute and run — and still write nothing in between. A chained pair is one step.
 
-After all queries are done, present:
+The walk-through's opening report is the exception: it runs every beat's first query in one turn
+(`references/walk-through.md`), and it applies to incidents only.
+
+Once the step's query is done, present:
 - A table of 3–5 key fields
 - Your interpretation — confident, concrete, not hedged
 
@@ -166,7 +184,8 @@ with these additions.
 - **Say the approach before the first query.** One line naming the steps, then take them in that
   order: "Three steps. First what the bill actually says, then utilisation next to it so we only cut
   what's safe, then who owns what." The user should know the shape before it starts, and a named set
-  of steps is one worth finishing.
+  of steps is one worth finishing. Those are the steps of "One query, one turn" above — announce as
+  many as you will actually take, and take them one turn at a time.
 - **Place every finding against the target,** once one has been named. Not "CloudWatch logs cost
   $2,454" but "$2,454 on one line, against a $1,332 working target — this line alone would cover it
   twice". A number with nothing to measure it against is a fact; a number measured against the goal
@@ -263,7 +282,8 @@ Never escalate in length or get coy.
 
 ## Pacing budget
 
-- At most two evidence queries per beat unless the user explicitly asks for more, plus any folded-in query on a jump.
+- One evidence query per step, so the user gets one finding at a time; a chained pair counts as one. A folded-in
+  query on a jump rides along with the step that needed it.
 - After seven turns of investigation: compress. Fold the remaining beats' evidence together and head toward the
   session close.
 
@@ -273,7 +293,7 @@ Never escalate in length or get coy.
 
 | Context | Limit |
 |---|---|
-| Beat turn (explore) | ≤12 lines: why this step, 3–5 fields, the read, what follows and why, deep link, readiness cue; a peak moment's staging may run longer |
+| A step (explore) | ≤12 lines: why this step, 3–5 fields, the read, what follows and why, the deep link on the beat's last step, readiness cue; a peak moment's staging may run longer |
 | Side quest | ≤6 lines, then re-anchor |
 | Opening report (walk-through) | Up to 14 lines, prose |
 | Evidence turn (walk-through) | 8–12 lines: claim, table, what it adds, deep link, closing line |

@@ -3,16 +3,20 @@ tenant: demo-live
 runs: 3
 status: draft
 description: >-
-  DRAFT. A question *about* the cloud line is answered first and then gets the mode choice, rather
-  than diving into the bill. This is the path that previously reached the beats without delivery
-  ever being chosen (testrun 15, issue 2).
+  DRAFT. A question *about* the cloud line is answered and then shows the user, rather than ending
+  on a question. Testrun 15 found this path reaching the beats with no delivery chosen; testrun 17
+  found the choice itself was the problem, so there is now nothing to choose.
 turns:
 - ask: What do you mean, where 10% of it is?
   expect:
-    reply_contains_any:
-    - hands-on
-    - whole tour
+    reads_include:
+    - scenario-cloud-observability.md
+    requires_dql: true
+    reply_contains:
+    - $
     reply_excludes:
+    - hands-on with me
+    - whole tour
     - CTO
     - cloud-observability
     - davis

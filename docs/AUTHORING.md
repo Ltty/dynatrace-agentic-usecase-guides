@@ -184,7 +184,10 @@ A showcase shows a capability instead of resolving an incident (`scenario-cloud-
 uses the same file layout, beats, reveals, deep links and data-only rule, with these differences:
 
 - **No survey branch.** The user asks for it; the survey never finds or names it. Add the opening phrases to SKILL.md's
-  opening table instead (a tour ask gets the mode question; a specific angle is a direct start).
+  opening table instead.
+- **One delivery.** A showcase is a presentation: no `mode_question`, no `pull_line`, and
+  `references/walk-through.md` does not apply to it. It is always guided step by step, with a call to action after
+  every step.
 - **Its own tokens.** A "Tokens" section says which beat result fills each token: beat 1's `queried_at` is
   `{{SURVEY_AT}}`, and a beat that returns `problem_id`, `tf_from_ms` and `tf_to_ms` fills the problem link. Windows
   are relative (`now()-24h`, `now()-7d`), since there is no incident window.
@@ -192,7 +195,6 @@ uses the same file layout, beats, reveals, deep links and data-only rule, with t
   each row comes from.
 - **Register it** in `SHOWCASES` in `tools/validate_dt_skill.py` as well as `SCENARIO_FILES`; the validator then skips
   the survey and harvests the tokens from the beat results, for both the live run and `--links`.
-- **Mode question:** the showcase one in session-protocol → "Showcase".
 - **Extras** (optional): a `## Extra — <title>` section after the last beat, for a guide part that is offered after the
   close and is not in the walk-through report. It has its own evidence DQL, reveal and labelled deep link; the validator
   runs its query and `test_deep_links.py` counts its link.
