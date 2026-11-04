@@ -209,8 +209,7 @@ The survey query's rows are the findings. Then:
 survey's problem branch cannot find it. Its availability, and the figure the opening offers it with, come from a
 probe appended to the opening query.
 
-- **The probe.** Where this environment lists `cloud-observability` ("Environments"), append beat 5's bill query
-  to the opening query, ending it with:
+- **The probe** is beat 5's bill query, ending with:
 
   ```text
   | filter total_usd > 0
@@ -218,10 +217,19 @@ probe appended to the opening query.
   ```
 
   A row means the showcase is available, and carries `total_usd` and `target_usd` for the opening line
-  ("Problem survey", step 3). No row means it is not available: say nothing about it. Run the probe nowhere
-  else — it reads the whole billing window, which on an environment that has no bill is a large read for a row
-  that cannot exist. A runtime that cannot resolve its environment runs the survey alone, and the showcase is
-  then reached only by asking for it.
+  ("Problem survey", step 3). No row means it is not available: say nothing about it.
+- **When to run it,** by what the runtime knows at the time. Either way it runs at most once, and before any
+  narration — the opening is still one turn.
+  - **Environment known before querying** (a runtime that can ask its own tooling, as the local adapter does):
+    append the probe to the opening query where that environment lists `cloud-observability`. One query.
+  - **Environment not known** (the Dynatrace runtime has no such call): run the survey first. Its rows carry
+    `env`. If that environment lists `cloud-observability`, run the probe as a second query in the same turn,
+    then narrate. If the survey returned no rows at all, `env` is unknown: run the probe once before concluding
+    the environment is clean, so a tenant whose only content is the showcase is never reported as having
+    nothing.
+- **Never anywhere else.** The probe reads the whole billing window; on an environment with no bill that is a
+  large read for a row that cannot exist. It never runs on a second turn, and never where the environment is
+  known not to list the showcase.
 - **Reuse its result.** The probe is beat 5's own first query, so beat 5 does not run it again, and its
   `queried_at` is `{{SURVEY_AT}}`.
 - **Mode question,** exactly: "Do you want to explore it hands-on with me, one step at a time, or should I give you

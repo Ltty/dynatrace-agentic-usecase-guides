@@ -168,10 +168,15 @@ agent existing on the tenant, which these runs do not prove.
 | `opening-availability-live` | playground | PASS -- bullets, live user counts, no scenario from elsewhere |
 | `opening-cloud-teaser-demo-live` | demo-live | PASS -- the bill line read $13,320, the same figure the probe reports |
 | `cloud-cost-demo-live` | demo-live | PASS -- the PR's own draft case, never run before |
+| `opening-cloud-teaser-demo-live`, hosted path | demo-live | PASS -- same opening and same figure with no CLI access, using the follow-up probe |
 | `greeting` | dev | BLOCKED -- the context is readwrite-all, so the runtime refuses, which is the gate working |
 
 The showcase closing line came out in the new register ("Next is the databases ... Or we can jump
 straight to who owns each line"), which is what the register section was added for.
+
+The hosted path was run with no command-line access at all, to prove the Dynatrace runtime reaches
+the same opening: it surveyed, read `env` off the rows, ran the bill probe as a second query and
+narrated the same reply with the same $13,320.
 
 ## Open
 

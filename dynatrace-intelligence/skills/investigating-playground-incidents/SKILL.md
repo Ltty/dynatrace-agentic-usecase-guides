@@ -76,7 +76,7 @@ one batch of parallel calls with no text before or between them. Anything alread
 
 | The user's opening | Reads (one batch) | Then |
 |---|---|---|
-| Opening — a greeting, "what can you do?", "what's wrong?", "any issues?", "root-cause the latest", "what changed?" | none beyond session-protocol | Status line "Checking what's open.", the opening query, then the listing: bullets, the cloud line when its row came back, one question |
+| Opening — a greeting, "what can you do?", "what's wrong?", "any issues?", "root-cause the latest", "what changed?" | none beyond session-protocol | Status line "Checking what's open.", the opening query and the cost probe if this environment takes one (session-protocol → "Showcase"), then the listing: bullets, the cloud line when its row came back, one question |
 | Pick — only a scenario's id, a service, or the cloud tour | none | "[A] it is." and that scenario's mode question; no query |
 | Cloud cost — "cut cloud costs", "save 10% on the cloud bill", "where does the cloud money go" | the showcase file, `conversation-craft.md` | Status line "Pulling the cloud bill.", beat 5; no question |
 | Direct start — names an angle (traces, deployment, affected users) | that scenario's file, `conversation-craft.md` | Status line naming the lookup ("Checking the deployments on the payment service."), the survey query if no row is held, then the beat loop at that angle; no question |
@@ -90,7 +90,8 @@ even while you read files, and exactly one status line before the first query. L
 ### 2. Gather context
 
 Run the opening query once per conversation and keep its rows as session state (session-protocol → "Session
-state"). A scenario with no row is not offered; the showcase's row also carries its opening figure.
+state"); its rows carry the environment. A scenario with no row is not offered; the showcase's row also carries
+its opening figure.
 
 ### 3. Run the investigation
 
