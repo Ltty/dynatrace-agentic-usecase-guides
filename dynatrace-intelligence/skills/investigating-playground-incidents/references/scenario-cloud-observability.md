@@ -39,9 +39,15 @@ price actually paid after discounts), not lost revenue; never mix the two.
 **Framing.** Present tense, no urgency, still "we". The tour answers four challenges that grow with cloud complexity: no
 unified view (beats 1 and 2: all clouds in one place, one resource in depth), manual correlation (beat 3: the service on
 the function and one problem with its root cause and business impact), wasted AI potential (beat 4: agents that work
-problems with the same connected context), and rising cloud cost (beats 5 and 6). Beats 5 and 6 are the question a CTO
-puts to Dynatrace Assist: "we need 10% off the cloud bill — where?" Open beat 5 with that question in one line, then
-answer it from the data, the way an analyst would. The workflows that prevent, remediate and optimize are an extra,
+problems with the same connected context), and rising cloud cost (beats 5 and 6). Beats 5 and 6 answer the question
+every cloud bill eventually gets: how much of this could we not be paying? Open beat 5 by putting that question
+yourself, then answer it from the data, the way an analyst would.
+
+**The 10% is this scenario's own constant,** the same way beat 6's CPU and memory thresholds are. No row returns it
+and nobody in the session asked for it, so it is never "the target" and never attributed to a CTO or any other
+stakeholder the conversation does not contain. It is the SRE's working assumption, said as one — "my working
+assumption is there's at least 10% in here" — and motivated by a figure that did come back, the untagged share.
+State it that way every time it is used, including in the action list and the report. The workflows that prevent, remediate and optimize are an extra,
 offered after the close.
 
 Cloud cost is in scope here: the bill is part of this scenario. Dynatrace's own pricing and licensing are not.
@@ -89,15 +95,16 @@ problems, Kubernetes spec changes), `dt.system.events` (workflow executions), `b
 
 ## Tokens
 
-There is no survey row. Every token comes from a beat result in this conversation:
+There is no survey row. Every token comes from a result in this conversation:
 
 | Token | Source |
 |---|---|
-| `{{SURVEY_AT}}` | Beat 1's `queried_at` (the first look); later beats' `elapsed_min` count from it |
+| `{{SURVEY_AT}}` | The `queried_at` of the **first query of the conversation**, whatever that query was, fixed from then on |
 | `{{PROBLEM_ID}}`, `{{TF_FROM_MS}}`, `{{TF_TO_MS}}` | Beat 3's problem query (`problem_id`, `tf_from_ms`, `tf_to_ms`) |
 
-A jump past beat 1 runs beat 1's query in the same turn first (it is short), so `{{SURVEY_AT}}` exists. A jump to beat 4
-or later does not need beat 3's problem: beat 4 finds its own.
+`{{SURVEY_AT}}` never moves once set. Entering the tour at any beat is fine: the opening query or the probe already
+anchored it, and re-anchoring on a later beat is what makes `elapsed_min` run backwards. A jump to beat 4 or later
+does not need beat 3's problem: beat 4 finds its own.
 
 ## Handoff fields
 
@@ -107,7 +114,7 @@ There is no incident to hand off. The handoff is the **cost action list** that b
 | Value | Source |
 |---|---|
 | `Goes to` | Beat 6's team split: the owner teams by their `dt_owner_team` tag; the untagged spend is named as having no owner |
-| Target | Beat 5 `target_usd` (10% of `total_usd`) |
+| Working assumption | Beat 5 `target_usd` (10% of `total_usd`) — the SRE's, never "the target" |
 | Largest line | Beat 5's cost-lines query, first row, with its `teams` |
 | Do not shrink | Beat 6 rows with verdict "low CPU, no memory headroom" |
 | Monitor first | Beat 6 row "no utilization data": `dbs` and `usd_30d` |
@@ -136,7 +143,7 @@ smartscapeNodes "*"
 | fieldsAdd queried_at = now()
 ```
 
-`queried_at` is `{{SURVEY_AT}}` for the rest of the conversation.
+`queried_at` is `{{SURVEY_AT}}` only when this is the first query of the conversation (see "Tokens").
 
 **Reveal:** One row per cloud: AWS, Azure and Google Cloud, each with its resource count and the number of distinct
 resource types. State all three. These are discovered through each provider's native integration and kept current in
@@ -341,7 +348,8 @@ agent. `change` is the platform's record of a spec change on `changed_workload`,
 problem started: state it as returned. Kubernetes tuning cuts both ways — too little CPU or memory and the application
 slows or fails — and that is what the change and the note show side by side. When the note gives a different time for the
 change than `change_at`, the event is the record. The fix the note proposes is the agent's recommendation for the owning
-team to review, not something applied. No `change` row: say the platform recorded no resource-limit change in the two
+team to review, not something applied — and that team is this problem's `owning_team` or nobody,
+never one carried over from beat 3. No `change` row: say the platform recorded no resource-limit change in the two
 hours before it, and give the agent's root cause alone.
 
 **Success signal:** User asks what the agent recommends, or what can act on its own.
@@ -356,7 +364,9 @@ hours before it, and give the agent's root cause alone.
    it — goes from alert to a named cause and a proposed fix without anyone assembling the evidence by hand. AI is only as
    good as the context it gets.
 4. The agent's root cause, quoted and attributed, then the agents table, one row per agent.
-5. The proposed fix in one line, as the agent's recommendation; the owning team decides.
+5. The proposed fix in one line, as the agent's recommendation. Name the team only from **this**
+   problem's `owning_team`; it is often null, and then it is "the owning team", never the team
+   beat 3 returned for a different problem.
 
 **Deep link** (label "Cloud SRE Agents"):
 
@@ -368,18 +378,18 @@ https://{{LINK_HOST}}/ui/apps/community.cloudsreagents/
 
 ## Beat 5 — The Bill and the Target
 
-**Objective:** User sees the real bill answer the CTO's question: what 10% is in dollars, where the money goes, and how
-much of it has no owner.
+**Objective:** User sees the real bill answer the question the SRE put: what a 10% working assumption is in dollars,
+where the money goes, and how much of it has no owner.
 
-Open with the ask in one line, as the user would put it to Dynatrace Assist: "The CTO wants 10% off the cloud bill.
-Where would it come from?" Then work through it in steps, the way an analyst would: the bill first (this beat), then
-utilization next to cost (beat 6). The bill and the monitoring data sit in the same place, which is what lets a cost be
+Open by putting the question yourself, in one line, with the assumption owned: "Half this bill has no owner, so my
+working assumption is there's at least 10% in here — about $[target_usd]. Let's find out where." Then work through it
+in steps, the way an analyst would: the bill first (this beat), then utilization next to cost (beat 6). The bill and the monitoring data sit in the same place, which is what lets a cost be
 matched to the resource behind it and to how busy that resource is.
 
 **Evidence DQL — the bill:**
 
 ```dql
-fetch bizevents, from: now()-75d
+fetch bizevents, from: now()-7d
 | filter event.type == "cost.real.spend"
 | filter toTimestamp(focus.ChargePeriodStart) >= now()-30d and toTimestamp(focus.ChargePeriodStart) < now()
 | parse focus.Tags, "JSON:tags"
@@ -398,7 +408,7 @@ fetch bizevents, from: now()-75d
 **Evidence DQL — the largest lines:**
 
 ```dql
-fetch bizevents, from: now()-75d
+fetch bizevents, from: now()-7d
 | filter event.type == "cost.real.spend"
 | filter toTimestamp(focus.ChargePeriodStart) >= now()-30d and toTimestamp(focus.ChargePeriodStart) < now()
 | parse focus.Tags, "JSON:tags"
@@ -409,10 +419,13 @@ fetch bizevents, from: now()-75d
 | limit 5
 ```
 
-The charge period, not the import `timestamp`, places a cost in the window: each billing period is imported in one go,
-so the fetch reaches back far enough to hold the last 30 days of charges.
+The charge period, not the import `timestamp`, places a cost in the window. The whole bill is re-imported daily in one
+go, so a 7-day fetch already holds every row of the last 30 days of charges and reads about a sixth of what a 75-day
+fetch does. If the import ever stops for more than a week the query returns nothing and the showcase reads as
+unavailable — check the import first when that happens, rather than widening the window.
 
-**Reveal:** `total_usd` over the last 30 days of charges and `target_usd`, the 10% to find. The `top_categories`, with
+**Reveal:** `total_usd` over the last 30 days of charges, and `target_usd` as the 10% you are assuming is in there —
+your assumption, not a target anyone set. The `top_categories`, with
 their dollars. `untagged_usd` and `untagged_pct`: that share of the bill carries no team tag, so nobody is asked to
 explain or reduce it. The largest single line is usually CloudWatch log ingestion (`PutLogEvents`, billed per byte); state
 whichever line is first, its dollars and its `teams`, and compare it with the target. What can be cut from it is a
@@ -438,7 +451,7 @@ matters, and a resource with no utilization data cannot be judged at all. Every 
 **Evidence DQL — databases: cost next to CPU and memory:**
 
 ```dql
-fetch bizevents, from: now()-75d
+fetch bizevents, from: now()-7d
 | filter event.type == "cost.real.spend"
 | filter toTimestamp(focus.ChargePeriodStart) >= now()-30d and toTimestamp(focus.ChargePeriodStart) < now()
 | filter focus.ServiceName == "Amazon Relational Database Service" and contains(focus.ResourceId, ":db:")
@@ -466,7 +479,7 @@ of each verdict by cost, not all of them; `dbs` is the full count.
 **Evidence DQL — who owns the bill:**
 
 ```dql
-fetch bizevents, from: now()-75d
+fetch bizevents, from: now()-7d
 | filter event.type == "cost.real.spend"
 | filter toTimestamp(focus.ChargePeriodStart) >= now()-30d and toTimestamp(focus.ChargePeriodStart) < now()
 | parse focus.Tags, "JSON:tags"
@@ -498,7 +511,7 @@ tag changed inside the window; list both, as returned.
 
    ```text
    Cloud cost action list — last 30 days of charges
-   Target:        10% of $[total_usd] = $[target_usd]
+   Working target: 10% of $[total_usd] = $[target_usd] (my assumption, not a figure anyone set)
    Largest line:  [service] [operation], $[usd], tagged [teams]
    Do not shrink: [db] ([cpu_avg_pct]% CPU, [free_mem_min_mb] MB free) — low CPU, no memory headroom
    Monitor first: [dbs] databases, $[usd_30d], no utilization data

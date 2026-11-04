@@ -127,7 +127,7 @@ Store the result in conversation context (never a file). This is the single sour
 | `tf_from_ms`, `tf_to_ms` | survey row | `{{TF_FROM_MS}}`, `{{TF_TO_MS}}` | Deep-link URLs only, epoch ms |
 | `tf_rel_h` | survey row | `{{TF_REL_H}}` | Error Inspector link: a relative window `now-<N>h`, whole hours since the problem started, plus one |
 | `tf_from_iso`, `tf_to_iso` | survey row | `{{TF_FROM_ISO}}`, `{{TF_TO_ISO}}` | Distributed Tracing link: the incident window as ISO timestamps with milliseconds |
-| `queried_at` | survey row | `{{SURVEY_AT}}` | Beat DQL `elapsed_min` only |
+| `queried_at` | the **first query of the conversation**, whatever it is | `{{SURVEY_AT}}` | Beat DQL `elapsed_min` only; set once and never re-anchored |
 | `elapsed_min` | every beat's first query | — | The close's elapsed time; never shown in a table |
 | runtime values (e.g. `trace_id`) | a prior query's first record | e.g. `{{TRACE_ID}}` | Chained beat DQL |
 | `problem_state` | derived | — | Tense and framing |
@@ -193,11 +193,13 @@ The survey query's rows are the findings. Then:
    Neither gets the survey's questions. Naming only an incident, a service or a scenario id is a pick, not
    an answer to the mode question: reply "[A] it is." and the mode question, and run no query.
 
-**Discovery hooks.** Fill the braces from the row. A scenario with no row has no hook.
+**Discovery hooks.** Fill the braces from the row. A scenario with no row has no hook. The hook supplies
+the facts and the framing, not the wording: `problem_state` sets the tense, and a `live_recent` row is
+rewritten into the past before it is said.
 
 | `scenario` | Hook | Notes |
 |---|---|---|
-| `payment-failure` | "The payment service is failing for {affected_users} users — it's been going on for {duration_min} minutes. That's roughly ${revenue_usd} in abandoned carts." | |
+| `payment-failure` | "The payment service is failing for {affected_users} users — it's been going on for {duration_min} minutes. That's roughly ${revenue_usd} in abandoned carts." | Closed (`live_recent`): "The payment service failed for {affected_users} users over {duration_min} minutes — roughly ${revenue_usd} in abandoned carts." |
 | `broken-images` | "The image service is degraded — product images are slow for {affected_users} users, and it's been going on for {duration_min} minutes." | A slowdown, not an outage: never "failing" or "erroring". No cost. State no response times: the survey has none. |
 | `disk-cpu-cascade` | "The frontend-high-cpu host has had a problem open for {duration_days} days and {duration_hours} hours: low available disk space on {root_cause}, with CPU saturation on the same host. It affects {affected_count} entities." | Entities, never users; no cost. For an active problem say it is still open. Never convert `duration_min` yourself. |
 
@@ -230,8 +232,9 @@ probe appended to the opening query.
 - **Never anywhere else.** The probe reads the whole billing window; on an environment with no bill that is a
   large read for a row that cannot exist. It never runs on a second turn, and never where the environment is
   known not to list the showcase.
-- **Reuse its result.** The probe is beat 5's own first query, so beat 5 does not run it again, and its
-  `queried_at` is `{{SURVEY_AT}}`.
+- **Reuse its result.** The probe is beat 5's own first query, so beat 5 does not run it again. Its
+  `queried_at` sets `{{SURVEY_AT}}` only if it was the conversation's first query — the survey usually
+  ran first, and then that one holds.
 - **Mode question,** exactly: "Do you want to explore it hands-on with me, one step at a time, or should I give you
   the whole tour first and the evidence after?" The answers read as in the survey's step 5: hands-on is `explore`,
   anything else that decides is `walk-through`, and an answer that decides neither gets "Hands-on, or the whole tour?"
@@ -290,8 +293,10 @@ Still open:     [what the data does not show]
 
 **When it is delivered.**
 
-- *Explore:* in the same response as the turn that completes the last beat (all of its beats completed,
-  folded-in beats included), after its deep link — not in a new turn, and not only when asked.
+- *Explore:* in the same response as the turn after which **every beat of the track being walked has
+  run**, in whatever order they ran, folded-in beats included — after that turn's deep link, not in a
+  new turn, and not only when asked. Check the set, not the number: a session that ran 5, 6, 1, 2, 3, 4
+  is complete at the end of 4, and the close belongs in that turn.
 - *Walk-through:* with the handoff block, in the same response as the last evidence turn.
 - *Either delivery, on request:* the handoff block, then the rest of the template below (without the timeline line, unless it is an explore session).
 

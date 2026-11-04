@@ -244,8 +244,12 @@ record**, substitute the token, then run the consumer. Never run the consumer fi
 - **Cloud cost** is `fetch bizevents`, `event.type == "cost.real.spend"`, FOCUS fields (`focus.EffectiveCost`,
   `focus.ServiceCategory`, `focus.ServiceName`, `focus.ResourceId`, `focus.SkuMeter`, `aws.x_Operation`).
   - `timestamp` is the **import** time: a whole billing period is imported in one go. Window on the charge instead:
-    `toTimestamp(focus.ChargePeriodStart) >= now()-30d and … < now()`, with a fetch window that reaches back
-    (`from: now()-75d`). Without `< now()`, period-level rows dated later in the month are counted.
+    `toTimestamp(focus.ChargePeriodStart) >= now()-30d and … < now()`. Without `< now()`, period-level rows dated
+    later in the month are counted.
+  - **Keep the fetch window small.** The bill is re-imported in full every day, so `from: now()-7d` holds every row
+    of the last 30 days of charges — measured on demo-live, identical `total_usd` and row count as `now()-75d` while
+    scanning 2.07 GB instead of 12.7 GB. The charge filter does the real work; the fetch window only has to outlive
+    a missed import.
   - `focus.Tags` is a JSON string: `parse focus.Tags, "JSON:tags"`, then `tags[dt_owner_team]`. A resource whose tag
     changed inside the window has rows under two teams; `collectDistinct` them per resource.
   - RDS utilization metrics are keyed by `DBInstanceIdentifier`, the part of the ARN after `:db:`.

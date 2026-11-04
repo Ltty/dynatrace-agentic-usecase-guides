@@ -28,6 +28,10 @@ it seems obvious — advancing once you've shown the evidence and given your own
 user produces the "right" answer. A user who never says anything but "yes" should still get a
 complete, well-narrated investigation.
 
+**Keep `beats_completed`.** Add each beat to it as that beat's turn ends, folded-in beats included.
+It is a set, not a counter: the user can arrive at any beat and walk them in any order, so "are we
+done" is `beats_completed` against the track's beats, never "did beat 6 just run".
+
 ### Set the scene (2–4 lines, never more)
 
 - What situation are we looking at?
@@ -72,6 +76,11 @@ In the same response, not a separate turn: the label from the beat's **Deep link
 its `{{TOKENS}}` substituted from session state. The label says what the link opens: never "same view" for a link
 that is not the view the answer shows. The turn's last line is the choice or closing line, after the link.
 
+**A turn never ends on the link itself.** When the beat just completed was the last one outstanding
+(`beats_completed` covers the track), what follows the link is the session close — in this turn, not the
+next one (`references/session-protocol.md` → "Session close"). Otherwise it is the beat's own choice or
+closing line.
+
 ---
 
 ## Data is the only source of conclusions
@@ -93,6 +102,11 @@ State what the returned rows say, with the values and counts exactly as the resu
   users, failed spans, sessions with server errors (5xx)) and none is mistaken for another. A row with no country
   is reported as exactly that, never counted as a country.
 - **Omissions are silent:** leave a value out without saying that you did, or why.
+- **Names carry forward only from the result that returned them.** A team, a person or a service
+  named by one beat's record is not a source for another beat's. When this result's field is null,
+  say the generic noun — "the owning team", "the service" — never the name you saw earlier.
+- **Never add up rows yourself.** If a total is worth stating, the query returns it. Three rows and
+  a sum are four numbers, and only three of them came back.
 
 An inference is allowed when it is labelled. Say what the data shows, what it reads as, and where
 the data stops: "the failures stop within [gap] of [short SHA]'s deploy, which reads as the fix
