@@ -8,6 +8,7 @@
       "*": "ask",
       "dtctl *": "allow",
       "python tools/preflight.py*": "allow",
+      "python tools/render_report.py*": "allow",
       "dtctl apply*": "deny",
       "dtctl create*": "deny",
       "dtctl edit*": "deny",

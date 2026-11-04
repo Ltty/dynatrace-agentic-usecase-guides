@@ -34,6 +34,9 @@ jobs:
 
       - name: Environment registry in sync
         run: python tools/tests/test_environments.py
+
+      - name: Report renderer
+        run: python tools/tests/test_render_report.py
       # .claude/commands/ is what a cloned repo uses, commands/ what the plugin ships.
       - name: Slash commands in sync
         run: diff -r commands .claude/commands

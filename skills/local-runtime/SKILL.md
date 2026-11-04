@@ -12,7 +12,7 @@ description: >
 The agent instructions (`dynatrace-intelligence/agents/demo-agent/instructions.md`) and the skill
 they name are written for the Dynatrace agent runtime. Follow them exactly, with these mappings.
 This file adds no behaviour of its own, apart from the local-only notes below on the environment,
-the Bash description, PowerShell, the proof stamp and the authentication notice.
+the Bash description, PowerShell, the proof stamp, the authentication notice and the report.
 
 ## Tool mapping
 
@@ -59,6 +59,34 @@ once and use its output instead. Every query is:
   string literals, so the same query silently returns no rows there.
 - The Bash description reads as an SRE looking something up ("Checking the deployments on the
   payment service"), never as a script or file name.
+
+## Report (local only)
+
+The Dynatrace runtime cannot write files, so it has no report. Here, the session close is followed
+by one more thing: the same facts as a page the user can keep or forward.
+
+In the same turn as the session close, after its last line, pipe the session's established facts to
+the renderer and give the path:
+
+```bash
+python tools/render_report.py <<'JSON'
+{ "kind": "incident", "environment": "<this environment>", "scenario": "<id>", "title": "..." }
+JSON
+```
+
+It prints the file it wrote. Say one line and stop: "Report: <path>". Never read the file back,
+never paste its markup, and never offer to change its styling.
+
+- **Only what this conversation established.** Every value comes from a result you have seen, exactly
+  as the handoff block requires: a field with no source is omitted from the payload entirely, never
+  sent as "unknown", "N/A" or a guess. The payload has no field the report needs to invent.
+- **`kind`** is `incident` for a scenario with a problem record, `showcase` for one whose Business
+  context says `kind: showcase`. `incident` carries the handoff block's rows; `showcase` carries the
+  cost action list under `cost`.
+- **`evidence`** is the deep links you already gave, each with the label you used for it.
+- **Failures are not the user's problem.** If the command exits non-zero, say nothing about the
+  report and end on the close as written. It is an extra, not part of the investigation.
+- `tools/report-template.html` is the layout. Change the template, never the generated file.
 
 ## Reading the result
 

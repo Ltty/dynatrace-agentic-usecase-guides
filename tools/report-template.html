@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{title}}</title>
+<style>
+  :root {
+    --ink: #11161c; --muted: #5b6673; --line: #e3e7ec; --bg: #f6f7f9;
+    --card: #ffffff; --accent: #0b5fff; --warm: #b4541a; --good: #1d7a4c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.55 ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 40px 24px 72px; }
+  header.top { border-bottom: 3px solid var(--ink); padding-bottom: 20px; margin-bottom: 28px; }
+  .eyebrow {
+    font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--muted); font-weight: 600; margin: 0 0 10px;
+  }
+  h1 { font-size: 30px; line-height: 1.2; margin: 0 0 12px; letter-spacing: -.01em; }
+  .meta { color: var(--muted); font-size: 14px; margin: 0; }
+  .meta span + span::before { content: "·"; margin: 0 8px; }
+  .lede { font-size: 19px; line-height: 1.5; margin: 0 0 30px; }
+  h2 {
+    font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted);
+    font-weight: 600; margin: 34px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--line);
+  }
+  .stats { display: flex; flex-wrap: wrap; gap: 12px; margin: 0 0 8px; padding: 0; list-style: none; }
+  .stats li {
+    flex: 1 1 150px; background: var(--card); border: 1px solid var(--line);
+    border-radius: 8px; padding: 14px 16px;
+  }
+  .stats .k { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  .stats .v { display: block; font-size: 22px; font-weight: 650; letter-spacing: -.01em; }
+  .stats .n { display: block; font-size: 12px; color: var(--muted); margin-top: 3px; }
+  dl.facts { margin: 0; }
+  dl.facts div { display: flex; gap: 16px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+  dl.facts div:last-child { border-bottom: 0; }
+  dl.facts dt { flex: 0 0 150px; color: var(--muted); font-size: 14px; margin: 0; }
+  dl.facts dd { margin: 0; flex: 1; }
+  ol.timeline { list-style: none; margin: 0; padding: 0; }
+  ol.timeline li { display: flex; gap: 16px; padding: 7px 0; }
+  ol.timeline .t {
+    flex: 0 0 92px; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 14px;
+  }
+  ul.actions { list-style: none; margin: 0; padding: 0; }
+  ul.actions li { padding: 11px 0; border-bottom: 1px solid var(--line); }
+  ul.actions li:last-child { border-bottom: 0; }
+  ul.actions .k { font-weight: 600; }
+  ul.links { list-style: none; margin: 0; padding: 0; }
+  ul.links li { padding: 7px 0; }
+  ul.links a { color: var(--accent); text-decoration: none; overflow-wrap: anywhere; }
+  ul.links a:hover { text-decoration: underline; }
+  .owner {
+    background: var(--card); border: 1px solid var(--line); border-left: 3px solid var(--warm);
+    border-radius: 6px; padding: 14px 16px; margin: 6px 0 0;
+  }
+  .owner .k { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--warm); font-weight: 600; }
+  .open { color: var(--muted); font-style: italic; }
+  footer.btm { margin-top: 44px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+  @media print {
+    body { background: #fff; }
+    .wrap { max-width: none; padding: 0; }
+    ul.links a { color: var(--ink); }
+    ul.links a::after { content: " (" attr(href) ")"; font-size: 11px; color: var(--muted); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <p class="eyebrow">{{#is_incident}}Incident report{{/is_incident}}{{#is_showcase}}Cloud cost summary{{/is_showcase}}</p>
+    <h1>{{title}}</h1>
+    <p class="meta">
+      {{#display_id}}<span>{{display_id}}</span>{{/display_id}}
+      {{#window.duration}}<span>{{window.duration}}</span>{{/window.duration}}
+      <span>{{generated_at}}</span>
+    </p>
+  </header>
+
+  {{#headline}}<p class="lede">{{headline}}</p>{{/headline}}
+
+  {{#has_stats}}
+  <h2>At a glance</h2>
+  <ul class="stats">
+    {{#stats}}<li><span class="k">{{label}}</span><span class="v">{{value}}</span>{{#note}}<span class="n">{{note}}</span>{{/note}}</li>{{/stats}}
+  </ul>
+  {{/has_stats}}
+
+  {{#has_timeline}}
+  <h2>Timeline</h2>
+  <ol class="timeline">
+    {{#timeline}}<li><span class="t">{{time}}</span><span>{{what}}</span></li>{{/timeline}}
+  </ol>
+  {{/has_timeline}}
+
+  {{#is_incident}}
+  {{#has_incident}}
+  <h2>What the evidence shows</h2>
+  <dl class="facts">
+    {{#incident.when}}<div><dt>When</dt><dd>{{incident.when}}</dd></div>{{/incident.when}}
+    {{#incident.detected}}<div><dt>Detected</dt><dd>{{incident.detected}}</dd></div>{{/incident.detected}}
+    {{#incident.impact}}<div><dt>Impact</dt><dd>{{incident.impact}}</dd></div>{{/incident.impact}}
+    {{#incident.rate}}<div><dt>Rate</dt><dd>{{incident.rate}}</dd></div>{{/incident.rate}}
+    {{#incident.cause}}<div><dt>Cause</dt><dd>{{incident.cause}}</dd></div>{{/incident.cause}}
+  </dl>
+  {{/has_incident}}
+  {{/is_incident}}
+
+  {{#is_showcase}}
+  {{#has_cost}}
+  <h2>The bill against the target</h2>
+  <dl class="facts">
+    {{#cost.total}}<div><dt>Last 30 days</dt><dd>{{cost.total}}</dd></div>{{/cost.total}}
+    {{#cost.target}}<div><dt>10% target</dt><dd>{{cost.target}}</dd></div>{{/cost.target}}
+  </dl>
+  {{/has_cost}}
+  {{#has_actions}}
+  <h2>Cost action list</h2>
+  <ul class="actions">
+    {{#cost.actions}}<li><span class="k">{{label}}</span> — {{detail}}</li>{{/cost.actions}}
+  </ul>
+  {{/has_actions}}
+  {{/is_showcase}}
+
+  {{#goes_to}}
+  <div class="owner"><span class="k">Goes to</span><br>{{goes_to}}</div>
+  {{/goes_to}}
+
+  {{#has_evidence}}
+  <h2>Evidence</h2>
+  <ul class="links">
+    {{#evidence}}<li><a href="{{url}}">{{label}}</a></li>{{/evidence}}
+  </ul>
+  {{/has_evidence}}
+
+  {{#still_open}}
+  <h2>Still open</h2>
+  <p class="open">{{still_open}}</p>
+  {{/still_open}}
+
+  <footer class="btm">
+    Every figure here came from a query run during this session on {{environment}}.
+    Nothing is estimated, and a field with no result behind it was left out.
+  </footer>
+
+</div>
+</body>
+</html>

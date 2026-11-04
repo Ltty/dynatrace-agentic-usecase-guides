@@ -31,3 +31,6 @@ Thumbs.db
 
 # demo-agent eval review sheets (transcripts)
 tests/evals/dt-agent/reports/
+
+# session reports rendered by tools/render_report.py
+reports/

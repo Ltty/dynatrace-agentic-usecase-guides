@@ -16,7 +16,8 @@
       "Bash(dtctl commands*)",
       "Bash(dtctl auth status*)",
       "Bash(dtctl auth whoami*)",
-      "Bash(python tools/preflight.py*)"
+      "Bash(python tools/preflight.py*)",
+      "Bash(python tools/render_report.py*)"
     ],
     "deny": [
       "Bash(dtctl apply*)",
