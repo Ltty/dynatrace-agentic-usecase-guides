@@ -311,6 +311,12 @@ nearly all have replay. State `total_sessions`, `countries` and
 `no_country` (a row with no country is reported as exactly that), the `top_rows`, and `worst_ms`. Don't add geography the rows don't contain. The point isn't the number — each one is a
 recording of a shopper whose image took seconds to load.
 
+**This is a different population from the rest of the scenario, and it has to be said.** These are
+real-user sessions in the window, not sessions that waited on *this* Lambda: nothing in the data ties
+a session to a backend service — `user.sessions` carries no service field and spans carry no session
+id. Say so once, and never present the count as the image slowdown's victims. The replay is what
+closes the gap.
+
 **Success signal:** User asks about the experience, what shoppers saw, or opens a replay.
 
 **Staging:** After the numbers, make replay concrete with one shopper: open one recording and watch which product images

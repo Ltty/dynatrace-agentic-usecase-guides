@@ -329,6 +329,14 @@ country), and the `top_rows`. Don't add geography the
 rows don't contain. The point isn't the number — each failure is a replayable
 recording of a real customer hitting a real error.
 
+**This is a different population from the rest of the scenario, and it has to be said.** These are
+sessions that hit a server error anywhere in the application during the window, not sessions that hit
+*this* service: nothing in the data ties a session to a backend service — `user.sessions` carries no
+service field and spans carry no session id, so the join does not exist. Say it plainly once — "these
+are sessions that hit a server error in the window; the data doesn't tell us which of them hit
+payment" — and never present the count as the payment failures' victims. The replay is what closes
+the gap: open one and you see what that customer actually hit.
+
 **Success signal:** User asks about affected users, customer experience, or replay.
 
 **Staging:** After the numbers, make replay concrete with one customer: open one recording and watch exactly what

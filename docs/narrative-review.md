@@ -57,12 +57,13 @@ which is why no file states a figure. That is deliberate and is not counted agai
 
 ## Open, and why they are not one-line fixes
 
-- **Beat 5 stands alone in both `payment-failure` and `broken-images`.** It is the only beat that
-  never connects to the one before it, in either file, and it cannot be fixed in prose: the query
-  filters sessions by `error.http_5xx_count > 0` across the whole application, not by the service the
-  rest of the scenario is about. The beat measures a different population than the story it ends.
-  Connecting it means changing the query, and that changes what the number means — worth doing
-  deliberately, not as part of a narrative pass.
+- **Beat 5 stands alone in both `payment-failure` and `broken-images` — and it has to.** Checked on
+  the Playground: `user.sessions` carries no service field (57 fields, the only entity is the RUM
+  application) and spans carry no session id (95 fields, none session-linking). There is no join, so
+  the beat cannot be scoped to the scenario's service by any query. **Resolved by saying so**: both
+  beats now state that these are sessions that hit an error in the window, that the data does not
+  attribute them to this service, and that the replay is what closes the gap. The disconnection was
+  always real; what was wrong was implying otherwise.
 - **`payment-failure` defines `avg_order_value_usd` and no beat ever uses it.** The figure does reach
   the user — the survey hook and the handoff block both carry `revenue_usd` — so it is not unused,
   but nothing between the opening and the handoff refers to the cost again. The Loss Aversion verdict
