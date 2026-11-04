@@ -1,0 +1,33 @@
+id: opening-cloud-teaser-demo-live
+tenant: demo-live
+runs: 3
+status: draft
+description: >-
+  DRAFT, unvalidated until the agent exists on guu84124. On demo-live the opening lists the live
+  incident as a bullet and then offers the cloud tour on its own line with the real bill and the
+  10% target, ending on one question that names every option in plain words. It must not list an
+  image incident (those services are the showcase's own) and must not name a scenario id.
+turns:
+- ask: Hi
+  expect:
+    first_read_contains: /SKILL.md
+    reads_include:
+    - session-protocol.md
+    requires_dql: true
+    reply_contains:
+    - $
+    - payment
+    reply_contains_any:
+    - 10%
+    - cloud bill
+    reply_excludes:
+    - payment-failure
+    - broken-images
+    - cloud-observability
+    - image-provider
+    - disk
+    - demo-live
+    - guu84124
+    - Environment looks clean
+    - davis
+    - copilot

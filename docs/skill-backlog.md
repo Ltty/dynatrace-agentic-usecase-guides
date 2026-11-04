@@ -159,16 +159,15 @@ Review against the skill-authoring best practices, then a pass to cut thinking t
 
 ## Open
 
-- **demo-live is unfinished.** No `demo-live` CLI context exists yet on the dev machine, so the
-  payment and image root-cause service ids on that tenant are unknown and the opening query's ladder
-  still has playground-only arms for them. Until that login happens, demo-live supports the showcase
-  only, and `SCENARIO_ENVIRONMENTS` lists the two Astroshop scenarios there on the user's word, not
-  on a verified query. Also unverified there: whether demo-live's image incident shares a root cause
-  with the showcase, which would double-count it in the opening.
-- **Tenant-scoped link parts.** Swapping `{{LINK_HOST}}` is not enough for every URL: the payment
-  problem link carries a playground segment id (`Apy24Rcu0cO`), and app ids and perspectives are
-  tenant-scoped too. Those still need a per-environment row in each scenario's Scope before that
-  scenario is run on a second tenant.
+- **Deep links on demo-live have not been opened in a browser.** `--links` resolves all of them for
+  `payment-failure` and `cloud-observability` there, and the one known tenant-scoped part (the
+  problem link's segment) is handled, but no human has judged a demo-live link against its label.
+  That is AUTHORING step 4 and it is still owed, for the showcase's seven links especially.
+- **App ids and perspectives are the remaining tenant-scoped link risk.** The segment is fixed via
+  `{{PROBLEM_SEGMENTS}}`; app ids and `perspective=` values in the other links are assumed
+  portable because the apps are the same, which has not been proved by opening them.
+- **`dev` is still `readwrite-all`**, so the local runtime refuses to run there and the `*-dev` eval
+  cases cannot run: `dtctl config set-context dev --safety-level readonly`.
 - **The `dev` context must be set `readonly` before any `*-dev` case can run.** Verified in an
   in-session eval: on a `readwrite-all` context the agent correctly refuses and prints
   `dtctl config set-context dev --safety-level readonly`. That is the gate working, but it blocks the
