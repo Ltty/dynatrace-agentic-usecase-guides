@@ -143,7 +143,9 @@ Local `/demo` includes the instructions, the adapter, `SKILL.md`, `session-proto
 
 Because the local runtime reads the repo files and the Dynatrace agent reads the uploaded documents, a skill change reaches `@demo-agent` only after `docs --apply`. Keep the two in step: upload after every merged skill change.
 
-The local runtime has two properties the Dynatrace one does not. `dtctl` returns an envelope whose `metadata` feeds the local-only proof stamp, and every query passes `--context playground`, so a maintainer's saved context cannot redirect the demo. It also means local `/demo` cannot reach `disk-cpu-cascade`, which lives on the dev tenant.
+The local runtime has three properties the Dynatrace one does not. `dtctl` returns an envelope whose `metadata` feeds the local-only proof stamp. It can resolve its environment before it queries, from `dtctl config get-contexts`, which is what lets it refuse a context that is not `readonly` and pick the right `{{LINK_HOST}}` — the Dynatrace runtime learns its environment only from the `env` the opening query's rows carry. And it can write files, so the session close also renders an HTML report (`skills/local-runtime/SKILL.md` → "Report"); the Dynatrace agent has `execute-dql` and nothing else, so it has none.
+
+Local `/demo` reaches whichever environment the current context names, `disk-cpu-cascade` on `dev` and the `cloud-observability` showcase on `demo-live` included.
 
 Verify an incident's shape on several days before writing its reveal. The Playground's incidents change: the image slowdown looked like a failing-span story on one day and a pure-latency story on another, because one sampled failed span exists only on some days. Anchor the beats on what repeats every cycle.
 

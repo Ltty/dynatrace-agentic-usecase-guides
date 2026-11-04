@@ -110,14 +110,19 @@ line the walk-through shows while it pulls the first query of every beat, naming
 
 1. Add the row to the Scenarios table in `SKILL.md` and the files to `SCENARIO_FILES` in
    `tools/validate_dt_skill.py` (the same dict feeds `run_dt_evals.py` and `preflight.py preflight`).
-   A scenario whose entities exist on another tenant (the `disk-cpu-cascade` one is dev-only) also goes in
-   `SCENARIO_CONTEXT` there: the validator then uses that dtctl context for it, and `preflight.py preflight`
-   skips it instead of reporting it empty. The local `/demo` is pinned to the Playground and cannot reach it. Its
-   branch in the survey query must also carry a predicate only that tenant's entities satisfy, or a Playground survey lists it
-   (testruns 12 and 13).
+   List the environments its data exists on in `SCENARIO_ENVIRONMENTS` in `tools/preflight.py`, and add
+   the same row to `session-protocol.md` -> "Environments" — `tools/tests/test_environments.py` fails if
+   the two disagree. The validator then uses that environment, `preflight.py preflight` skips the
+   scenario where it does not belong, and the opening never names it there.
+
+   Its branch in the opening query must carry a predicate only that tenant's entities satisfy, and must
+   stamp the environment into the `"env:scenario"` key. Match on entity id, never on entity name:
+   playground and demo-live both run Astroshop, and a name match is how `disk-cpu-cascade` leaked onto
+   the Playground in testruns 12 and 13. A scenario on more than one environment needs one Stable-IDs
+   row per environment, and `--environment` becomes required when validating it.
 2. `python tools/dt_agent.py check` — layout rules; `python tools/tests/test_deep_links.py` — every beat has a
    labelled deep link that uses only known tokens.
-3. `python tools/validate_dt_skill.py --scenario <id>` — runs the survey query (narrowed to the scenario) and **every** beat query live,
+3. `python tools/validate_dt_skill.py --scenario <id> [--environment <env>]` — runs the opening query (narrowed to the scenario) and **every** beat query live,
    including chained ones, and fails on a bad field name or `round()` call. Do not call a scenario done
    until it passes clean.
 4. `python tools/validate_dt_skill.py --scenario <id> --links` prints each beat's label and its URL with the live
