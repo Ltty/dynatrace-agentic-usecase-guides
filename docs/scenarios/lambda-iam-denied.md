@@ -44,7 +44,12 @@ Fires **daily at about 16:05 UTC**, closes about 16:43, 268–390 affected users
 Non-duplicate instances on 6 of the last 7 days, so the 48-hour survey window catches it reliably.
 
 A new Lambda version is deployed whose IAM inline policy for DynamoDB carries a trailing `/*` on the
-resource ARN. A resource ARN ending `/*` addresses what is *under* a table — its indexes — not the
+resource ARN. The deploy is visible: two `CUSTOM_DEPLOYMENT` events on `SERVICE-42411741F5F4AC50`
+from `Dynatrace/opentelemetry-demo-gitops`, one re-deployed several times from about a minute before
+the first denial, one about five minutes before the last. **This was missed in the first pass** — a
+search of `SDLC_EVENT` and `task.deployment.finished` found only ten-minute ArgoCD noise and the
+scenario shipped saying no deploy signal existed. `CUSTOM_DEPLOYMENT` is the event type
+`broken-images` already uses for exactly this; check it first next time. A resource ARN ending `/*` addresses what is *under* a table — its indexes — not the
 table, so `dynamodb:GetItem` on the table itself is allowed by nothing:
 
 ```text

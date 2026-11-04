@@ -12,7 +12,8 @@ Reveals describe the *shape* of a finding, never its values. Counts, failure rat
 - [Beat 2 — The Failing Window](#beat-2--the-failing-window)
 - [Beat 3 — What the Failures Say](#beat-3--what-the-failures-say) (peak)
 - [Beat 4 — The Permission](#beat-4--the-permission)
-- [Beat 5 — What the Agent Found](#beat-5--what-the-agent-found)
+- [Beat 5 — The Deploy](#beat-5--the-deploy)
+- [Beat 6 — What the Agent Found](#beat-6--what-the-agent-found)
 
 ---
 
@@ -56,7 +57,8 @@ Two populations coexist — always say which one a number counts.
 | Failed requests on the Lambda | Beat 2 — `failed`, against `requests` |
 | The exception, verbatim | Beat 3 — `exception_type` and `message` |
 | The role and the policy | Beat 4 — `role_arn`, `policy_name`, `document` |
-| What to change | Beat 5 — the agent's own recommendation, when the note carries one |
+| What changed it | Beat 5 — `commit`, `git_url` and the gap to the first denial |
+| What to change | Beat 6 — the agent's own recommendation, when the note carries one |
 
 ---
 
@@ -241,15 +243,15 @@ own resources. Then the DynamoDB one: read its `Action` and its `Resource` out o
   addresses the things *under* a table, not the table, so a grant written that way allows nothing on the
   table itself.
 - **They match** — say that as plainly: the grant is correct in the configuration we can read right now, so
-  it was not correct during the window, and it has since been changed back. When it changed, and by what, is
-  not in Dynatrace; beat 5 is where that comes from.
+  it was not correct during the window, and it has since been changed back. Smartscape holds no history of
+  the change, but the platform does hold what deployed over it, which is beat 5.
 
 Never describe a `/*`, or any other difference, that the returned `document` does not contain.
 
 `primary_tags` and `tags:aws` on the function carry owner tags of their own. When the user asks who owns it
 and those differ from beat 1's `owning_team`, state both as returned; which one is right is the owners' call.
 
-**Success signal:** User asks what changed the policy, or who changed it.
+**Success signal:** User asks what changed the policy, or when it changed.
 
 **Deep link** (label "The function in the Clouds app"):
 
@@ -259,9 +261,59 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.clouds/smartscape/functions?perspective=
 
 ---
 
-## Beat 5 — What the Agent Found
+## Beat 5 — The Deploy
 
-**Why this step:** Dynatrace can show the denial and the grant, but not the deploy that changed it — that history lives in the cloud account, which is where the AWS DevOps Agent was sent with this problem's context.
+**Why this step:** A permission does not change itself, and the platform records what deployed onto this function — so before we hand anything over we can name what landed, and when.
+
+**Objective:** User sees the change that did it: a commit deployed onto the function a minute or so before the
+first denial, and a second one deployed before the failures stop.
+
+**Evidence DQL:**
+
+```dql
+fetch events, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
+| filter event.type == "CUSTOM_DEPLOYMENT"
+| filter dt.entity.service == "SERVICE-42411741F5F4AC50"
+| parse event.description, "LD \"(\" LD:git_url \")\""
+| parse git_url, "LD \"/commit/\" ALNUM:commit"
+| summarize first_deploy = min(timestamp), last_deploy = max(timestamp), deploys = count(),
+    by: { commit, git_url, deployment = event.name }
+| sort first_deploy asc
+| fieldsAdd deploy_before_problem_min = round(toDouble(toTimestamp("{{STARTED}}") - first_deploy) / 60000000000, decimals: 1),
+    queried_at = now(), elapsed_min = round(toDouble(now() - toTimestamp("{{SURVEY_AT}}")) / 60000000000, decimals: 0)
+```
+
+These GitHub Actions events leave `commit` and `gitUrl` null; both are parsed out of the markdown link in
+`event.description`, and the summarize collapses one commit's repeated re-deploys into a row.
+
+**Reveal:** Lead with the gap, not the row count: `deploy_before_problem_min` between the first deploy and
+the problem start, held against beat 3's `first_seen`, which is the minute the denials actually began.
+Typically two rows. The first commit is re-deployed several times and is the lead suspect; the second lands
+before the failures stop and is not a second regression. Their descriptions read alike, so tell them apart by
+timing, never by text. State both SHAs and the `git_url` of the first.
+
+What the commit *contains* is not in the telemetry. The platform says a deploy landed on this function at
+that minute; the diff is in the repository, and so is the proof. Say that rather than describing a change no
+row returned.
+
+**Objection** — "a minute apart doesn't prove it": agree, a gap that short is suggestive, not proof. What
+makes it more than coincidence is beat 2's shape — the failure arrived as a switch, at that minute, and
+stopped around the second deploy — and beat 3's exception, which says the thing that changed was a
+permission. Three independent results pointing at one minute is the argument; none of them alone is.
+
+**Success signal:** User names the commit as the trigger, or asks what it changed.
+
+**Deep link** (label "The deploy on the problem record"):
+
+```text
+https://{{LINK_HOST}}/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TF_FROM_MS}}&to={{TF_TO_MS}}
+```
+
+---
+
+## Beat 6 — What the Agent Found
+
+**Why this step:** We can name the commit but not what is inside it, and nothing here says what to change — the AWS DevOps Agent was sent this problem's context and worked the account side, where the change history and the policy live together.
 
 **Objective:** User sees the hand-off close: Dynatrace correlated the incident, triggered the AWS DevOps
 Agent with it, and the agent's findings came back onto the same problem record rather than into a separate
@@ -303,13 +355,14 @@ a ticket or a coding agent with the evidence attached.
   repository or a time, those are the agent's findings from AWS, not Dynatrace's: attribute them that way.
 - **`has_summary` is false** — the notes are on the record but their summary is not readable from here; say
   exactly that, say how many there are and when, and point at the AWS DevOps Agent task as where the findings
-  are. Never infer what the note said from beats 3 and 4.
+  are. Never infer what the note said from beats 3, 4 and 5.
 - **No rows at all** — nothing has been written on this record yet. On a problem that is still open that is
   what it sounds like: the agent is triggered by the problem and takes minutes, so early in an incident there
-  is nothing to read. Say that, and say the beats before this one already name the root cause without it.
+  is nothing to read. Say that, and say the beats before this one already name the root cause and the
+  deploy without it.
 
 **Objection** — "so it fixed it?": no. The agent investigated and recommended; the role is still whatever
-beat 4 returned. Everything an agent does here is written down and attributed, with a human deciding whether
+beat 4 returned, and the commits in beat 5 are what the platform recorded, not anything the agent did. Everything an agent does here is written down and attributed, with a human deciding whether
 to apply it.
 
 **Success signal:** User asks what to do about it, or who to send it to.

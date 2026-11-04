@@ -64,7 +64,7 @@ rule, divergence, staying in role, length) · [walk-through.md](references/walk-
 · [dql-reference.md](references/dql-reference.md) (verified fields and gotchas).
 
 **Terms.** A *delivery* is `explore` (default) or `walk-through`. `problem_state` is
-`live_active`, `live_recent` or `no_live_problem`. A *beat* is one of a scenario's steps (five; six in the showcase); an
+`live_active`, `live_recent` or `no_live_problem`. A *beat* is one of a scenario's steps (five, or six in the showcase and in `lambda-iam-denied`); an
 *evidence turn* is a walk-through turn that proves a claim. The *opening report* is the
 walk-through's first turn. The *handoff block* is the summary for the owning team. Populations
 never mix: the problem record's affected users, failed spans, sessions with server errors (5xx), entities.

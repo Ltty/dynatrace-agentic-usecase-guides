@@ -26,7 +26,7 @@ which is why no file states a figure. That is deliberate and is not counted agai
 | Anchoring | pass | pass (fixed: beat 2 led on a row count) | pass, strongest | pass for beats 1–4; beat 5 leads on a note count, sanctioned below |
 | Goal Gradient | n/a — no target exists | partial: baseline named once, never carried forward | **was a miss — fixed** | n/a — no target exists |
 | Serial Position | pass for beats; `commit` mid-table | pass for beats; null-owner caveat buried in a cell | **Contents fixed**; peak deliberately not last | **was a miss — fixed**: beat 1 returned nine fields with the owner mid-row |
-| Storytelling | pass; **beat 5 stands alone** | pass; **beat 5 stands alone** | pass, strongest; beat 3 disconnected by instruction | pass, strongest here: every beat is named by the one before it |
+| Storytelling | pass; **beat 5 stands alone** | pass; **beat 5 stands alone** | pass, strongest; beat 3 disconnected by instruction | **was a gap — fixed**: the chain named no cause for the change it was built on |
 | Curiosity Gap | pass | pass, strongest | pass — gaps name limits, not next beats | pass — beats 2 and 3 both end on a gap the next beat opens |
 | Progressive Disclosure | pass | front-loads impact dimensions never reused | **was self-contradictory — fixed** | pass — five beats, one query each |
 | Loss Aversion | **miss — see below** | n/a, no figure | n/a, no figure; risk framing used at the peak | n/a, no figure by design |
@@ -101,12 +101,23 @@ which is why no file states a figure. That is deliberate and is not counted agai
   Reveal now names the three values that carry the beat, says not to put the whole row on screen, and
   moves the owner to last.
 
+- **The argument had no cause in it.** Beats 2 and 3 established that a permission changed at a
+  specific minute, and the scenario then went straight to the hand-off without naming what changed
+  it — because the first pass concluded no deploy signal existed in Dynatrace. It does: two
+  `CUSTOM_DEPLOYMENT` events, one landing about a minute before the first denial. Storytelling asks
+  that each reveal connect to the one before, and the one connection the whole scenario needed was
+  missing. Beat 5 now names the commit, and beat 4 no longer claims the platform holds no history of
+  the change. Found by an eval run, not by the review — the review read the file against itself and
+  the file was internally consistent and wrong.
+
 ### Deliberate deviations, recorded so they are not "fixed" later
 
-- **The peak is beat 3, not beat 4.** Beat 4 is the better payoff *when* the broken policy is visible,
+- **The peak is beat 3, not beat 4 or 5.** Beat 4 is the better payoff *when* the broken policy is visible,
   but Smartscape holds current state only, so outside the live window it returns the corrected policy.
   A peak that lands on some runs and not others is worse than one that always lands; beat 3's
-  exception names the root cause in full on every run.
+  exception names the root cause in full on every run. Beat 5's commit is the more dramatic reveal,
+  but a commit is a correlation the user is told to confirm in the repository; the exception is the
+  only beat that states the cause outright.
 - **Beat 5's first number is a count of notes, not an impact figure.** Anchoring says the first number
   in a turn is the impact. Beat 5's subject *is* the notes — the impact was established in beats 1 and
   2 and is not restated. Said at all, a second impact figure here would be the repetition testrun 18
