@@ -79,7 +79,8 @@ fetch dt.davis.problems, from: now()-48h, to: now()
 ```
 
 **Reveal:** Dynatrace Intelligence classifies it as a slowdown — `description` states the current response time
-against the auto-detected baseline for the image provider; quote both numbers. The frontend,
+against the baseline it learned from this service's own normal behaviour; quote both numbers, and say which is
+which, since the comparison is the finding. The frontend,
 the ingress, and a synthetic image-loading check are listed as affected; `impact_level`
 spans application, services, and synthetic. Name `owning_team` explicitly — it's the only
 owner on record, since the deploy events carry none.
@@ -119,7 +120,8 @@ fetch events, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 These GitHub Actions events leave `commit` and `gitUrl` null; the query parses both from the
 markdown link in `event.description` and collapses the repeated re-deploys of one commit.
 
-**Reveal:** Typically two rows. The first commit lands a few minutes before the problem
+**Reveal:** Lead with the gap between the deploy and the problem start — that is the finding; the row count is
+not. Typically two rows. The first commit lands a few minutes before the problem
 `started` (beat 1) and is re-deployed several times — that's the lead suspect. The second
 lands shortly before the problem ended and is not a second regression; whether the slowdown
 stops around it is for beat 3, and what it changed is in the diff, not the telemetry. Both

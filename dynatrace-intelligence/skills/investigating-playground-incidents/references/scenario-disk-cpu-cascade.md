@@ -11,7 +11,7 @@ Reveals describe the *shape* of a finding, never its values. Timestamps, percent
 - [Beat 1 — The Page](#beat-1--the-page)
 - [Beat 2 — The Disk](#beat-2--the-disk)
 - [Beat 3 — The CPU](#beat-3--the-cpu)
-- [Beat 4 — The Platform Victim](#beat-4--the-platform-victim)
+- [Beat 4 — The Platform Victim](#beat-4--the-platform-victim) (peak)
 - [Beat 5 — The Handoff](#beat-5--the-handoff)
 
 ---
@@ -59,7 +59,7 @@ No `avg_order_value_usd` is defined, and the problem record has no affected-user
 | `owning_team` | None: the problem record has no owner. Hand off by host (`frontend-high-cpu`) and host group; never name a team |
 | `Goes to` | The host `frontend-high-cpu` and its host group `cloud-alerts-demo`; never a team |
 | `root_cause` | Survey row (the problem's root-cause entity name) |
-| Disk and CPU thresholds | Beat 1 — the problem `description` ("lower than 3%", "above 95%") |
+| Disk and CPU thresholds | Beat 1 — quoted from the problem `description`; they are values, so read them live |
 | Blocked OneAgent version | Beat 4 — the newest update-failure event, not the problem description (see Beat 4) |
 | Entities in the problem | Survey row `affected_count` |
 | Disk free space | Beat 2 |
@@ -132,8 +132,9 @@ timeseries
 One row: the series is summarised in DQL (min and max across all buckets, and the bucket size in `interval`).
 
 **Reveal:** If `free_pct_min` and `free_pct_max` are equal or nearly so, the free space has not moved across the
-whole window: a floor, not a spike. State the percentage, the megabytes available, and how many buckets of what
-size that covers (the window is as long as the problem has been open). The disk was already at that level when
+whole window: a floor, not a spike. State the percentage against the threshold beat 1 quoted — that is what makes
+it a problem rather than a number — then the megabytes available, and how many buckets of what size that covers
+(the window is as long as the problem has been open). The disk was already at that level when
 the window opened, so the data shows that it stayed full, not how it filled. Say where the data stops: what wrote
 to the disk is not in these metrics.
 
@@ -173,7 +174,9 @@ timeseries
 One row, summarised in DQL. Both metrics are in percent.
 
 **Reveal:** Report what the two series show, from the row: CPU usage is saturated across the window (state the
-min, average and max), and I/O wait is close to zero (state its average and max). Read it as it is: the data
+min, average and max, against the threshold beat 1 quoted), and I/O wait — the share of time the processor spends
+waiting on storage, which is what a full disk would normally drive up — is close to zero (state its average and
+max). Say that gloss the first time the term appears; the whole beat turns on it. Read it as it is: the data
 does **not** show I/O wait as the way the full disk affects the CPU. What it shows is two conditions on the same
 host, which Dynatrace Intelligence grouped into one problem with the disk as root cause and the CPU as affected.
 Do not explain the CPU load by the disk, and do not offer a mechanism. What is using the CPU is not in these

@@ -313,7 +313,8 @@ distinct countries, `rows_returned` the rows before the top five. Never present 
 call it "affected users" (that's the problem record's count). `elapsed_min` is for the close, not for the table.
 
 **Reveal:** Sessions with 5xx errors span many countries, and nearly all have replay. State
-`total_sessions`, `countries` and `no_country` (a row with no country is reported as exactly that, never folded into a
+`total_sessions` (sessions that hit a server error, a 5xx — say it in those words, not as the code alone),
+`countries` and `no_country` (a row with no country is reported as exactly that, never folded into a
 country), and the `top_rows`. Don't add geography the
 rows don't contain. The point isn't the number — each failure is a replayable
 recording of a real customer hitting a real error.

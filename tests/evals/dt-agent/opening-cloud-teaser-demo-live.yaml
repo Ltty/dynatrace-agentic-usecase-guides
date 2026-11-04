@@ -3,35 +3,34 @@ tenant: demo-live
 runs: 3
 status: draft
 description: >-
-  DRAFT, unvalidated until the agent exists on guu84124. On demo-live the opening lists the live
-  incident as a bullet, offers the cloud tour with the real bill AND what the untagged share means,
-  proposes one of them, and ends on one question naming every option in plain words. It must not
-  list an image incident (those services are the showcase's own), must not name a scenario id, and
-  must not attribute the 10% to anyone.
+  DRAFT, unvalidated until the agent exists on guu84124. Two turns. The greeting names the cloud
+  direction without a single figure and runs no query; the bill's numbers arrive only once the user
+  asks for them, and the 10% is owned as an assumption rather than attributed to anyone.
 turns:
 - ask: Hi
   expect:
     first_read_contains: /SKILL.md
-    reads_include:
-    - session-protocol.md
+    no_dql: true
+    reply_contains_any:
+    - cloud bill
+    - cloud spend
+    reply_excludes:
+    - $
+    - demo-live
+    - guu84124
+    - CTO
+- ask: Let's look at the cloud bill.
+  expect:
     requires_dql: true
     reply_contains:
     - $
-    - payment
     reply_contains_any:
     - no team tag
     - no owner
     - nobody is accountable
     - unowned
     reply_excludes:
-    - payment-failure
-    - broken-images
-    - cloud-observability
-    - image-provider
-    - disk
-    - demo-live
-    - guu84124
     - CTO
-    - Environment looks clean
+    - cloud-observability
     - davis
     - copilot

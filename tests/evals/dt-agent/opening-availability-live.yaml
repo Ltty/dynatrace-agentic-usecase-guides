@@ -6,11 +6,12 @@ truth:
 - payment-failure
 - broken-images
 description: >-
-  DRAFT, unvalidated until the agent exists on the Playground. The opening lists only what this
-  environment holds: the two Astroshop incidents as bullets, with no disk scenario (dev only) and
-  no cloud-bill line (demo-live only), and it never says a scenario lives somewhere else.
+  DRAFT, unvalidated until the agent exists on the Playground. Asking what is wrong goes straight to
+  the survey and lists only what this environment holds: the two Astroshop incidents as bullets,
+  with no disk scenario (dev only) and no cloud-bill figures (demo-live only), and it never says a
+  scenario lives somewhere else or names a scenario id.
 turns:
-- ask: Hi
+- ask: What's wrong right now?
   expect:
     first_read_contains: /SKILL.md
     reads_include:
@@ -28,8 +29,6 @@ turns:
     - cloud-observability
     - disk
     - frontend-high-cpu
-    - cloud bill
-    - cloud tour
     - demo-live
     - another environment
     - not available here
