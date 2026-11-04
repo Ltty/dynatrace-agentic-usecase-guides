@@ -102,7 +102,7 @@ what the record shows, not why: how the three relate is for the next beats to te
 **Deep link** (label "Problem in Dynatrace"):
 
 ```text
-https://fxz0998d.dev.apps.dynatracelabs.com/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TF_FROM_MS}}&to={{TF_TO_MS}}
+https://{{LINK_HOST}}/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TF_FROM_MS}}&to={{TF_TO_MS}}
 ```
 
 ---
@@ -142,7 +142,7 @@ to the disk is not in these metrics.
 **Deep link** (label "Host view"):
 
 ```text
-https://fxz0998d.dev.apps.dynatracelabs.com/ui/apps/dynatrace.infraops/explorer?entityId=HOST-A2BABAD05D401471&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}
+https://{{LINK_HOST}}/ui/apps/dynatrace.infraops/explorer?entityId=HOST-A2BABAD05D401471&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}
 ```
 
 ---
@@ -189,7 +189,7 @@ failure.
 **Deep link** (label "Host view"):
 
 ```text
-https://fxz0998d.dev.apps.dynatracelabs.com/ui/apps/dynatrace.infraops/explorer?entityId=HOST-A2BABAD05D401471&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}
+https://{{LINK_HOST}}/ui/apps/dynatrace.infraops/explorer?entityId=HOST-A2BABAD05D401471&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}
 ```
 
 ---
@@ -253,7 +253,7 @@ fix it.
 **Deep link** (label "Host view"):
 
 ```text
-https://fxz0998d.dev.apps.dynatracelabs.com/ui/apps/dynatrace.infraops/explorer?entityId=HOST-A2BABAD05D401471&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}
+https://{{LINK_HOST}}/ui/apps/dynatrace.infraops/explorer?entityId=HOST-A2BABAD05D401471&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}
 ```
 
 ---
@@ -293,5 +293,5 @@ saturation. The record has no owner, so hand off by host name and host group; do
 **Deep link** (label "Problem in Dynatrace"):
 
 ```text
-https://fxz0998d.dev.apps.dynatracelabs.com/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TF_FROM_MS}}&to={{TF_TO_MS}}
+https://{{LINK_HOST}}/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TF_FROM_MS}}&to={{TF_TO_MS}}
 ```

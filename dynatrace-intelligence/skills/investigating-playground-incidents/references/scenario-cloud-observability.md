@@ -81,11 +81,11 @@ problems, Kubernetes spec changes), `dt.system.events` (workflow executions), `b
 
 | Ask | Label | URL |
 |---|---|---|
-| Kubernetes troubleshooting agent | "k8s troubleshooting workflow" | `https://guu84124.apps.dynatrace.com/ui/apps/dynatrace.automations/workflows/1e4e7449-b32a-32e3-8bb8-0e2319f23daf` |
-| What affected users saw (beat 3) | "Astroshop sessions, last 12 hours" | `https://guu84124.apps.dynatrace.com/ui/apps/dynatrace.users.sessions/sessions/finished-sessions?perspective=general&sort=start_time%3Adescending&tf=now-12h%3Bnow#filtering=Frontends+%3D+Astroshop` |
-| Asking Dynatrace Assist about cost | "Clouds services explorer" (open Dynatrace Assist from there) | `https://guu84124.apps.dynatrace.com/ui/apps/dynatrace.clouds/smartscape/services?perspective=health&sort=healthIndicators%3Aascending%3BcustomAlerts%3Aascending%3Bname%3Aascending` |
-| On-premise VMware estate | "VMware overview dashboard" | `https://guu84124.apps.dynatrace.com/ui/apps/dynatrace.dashboards/dashboard/com-dynatrace-vmware-integration-overview#from=now%28%29-30d&to=now%28%29` |
-| A VMware virtual machine in Infrastructure & Operations | "VMware virtual machines" | `https://guu84124.apps.dynatrace.com/ui/apps/dynatrace.infraops/smartscape/virtualization/com.dynatrace.vmware-integration/VMWARE_VIRTUALMACHINE-inventory?perspective=health&tf=now-30d%3Bnow&detailsId=VMWARE_VIRTUALMACHINE-182F4D63E3FCACFE#filtering=hypervisor.type+%3D+VMware` |
+| Kubernetes troubleshooting agent | "k8s troubleshooting workflow" | `https://{{LINK_HOST}}/ui/apps/dynatrace.automations/workflows/1e4e7449-b32a-32e3-8bb8-0e2319f23daf` |
+| What affected users saw (beat 3) | "Astroshop sessions, last 12 hours" | `https://{{LINK_HOST}}/ui/apps/dynatrace.users.sessions/sessions/finished-sessions?perspective=general&sort=start_time%3Adescending&tf=now-12h%3Bnow#filtering=Frontends+%3D+Astroshop` |
+| Asking Dynatrace Assist about cost | "Clouds services explorer" (open Dynatrace Assist from there) | `https://{{LINK_HOST}}/ui/apps/dynatrace.clouds/smartscape/services?perspective=health&sort=healthIndicators%3Aascending%3BcustomAlerts%3Aascending%3Bname%3Aascending` |
+| On-premise VMware estate | "VMware overview dashboard" | `https://{{LINK_HOST}}/ui/apps/dynatrace.dashboards/dashboard/com-dynatrace-vmware-integration-overview#from=now%28%29-30d&to=now%28%29` |
+| A VMware virtual machine in Infrastructure & Operations | "VMware virtual machines" | `https://{{LINK_HOST}}/ui/apps/dynatrace.infraops/smartscape/virtualization/com.dynatrace.vmware-integration/VMWARE_VIRTUALMACHINE-inventory?perspective=health&tf=now-30d%3Bnow&detailsId=VMWARE_VIRTUALMACHINE-182F4D63E3FCACFE#filtering=hypervisor.type+%3D+VMware` |
 
 ## Tokens
 
@@ -148,7 +148,7 @@ it does not rate them.
 **Deep link** (label "Clouds overview"):
 
 ```text
-https://guu84124.apps.dynatrace.com/ui/apps/dynatrace.clouds/home
+https://{{LINK_HOST}}/ui/apps/dynatrace.clouds/home
 ```
 
 ---
@@ -190,7 +190,7 @@ is not evidence of anything by itself.
 **Deep link** (label "image-provider-live in the Clouds app"):
 
 ```text
-https://guu84124.apps.dynatrace.com/ui/apps/dynatrace.clouds/smartscape/functions?perspective=health&detailsId=AWS_LAMBDA_FUNCTION-9365828D44E6A036&sidebarOpen=false&tf=now-24h%3Bnow
+https://{{LINK_HOST}}/ui/apps/dynatrace.clouds/smartscape/functions?perspective=health&detailsId=AWS_LAMBDA_FUNCTION-9365828D44E6A036&sidebarOpen=false&tf=now-24h%3Bnow
 ```
 
 ---
@@ -265,7 +265,7 @@ go on to beat 4.
 **Deep link** (label "Problem in Dynatrace"):
 
 ```text
-https://guu84124.apps.dynatrace.com/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TF_FROM_MS}}&to={{TF_TO_MS}}
+https://{{LINK_HOST}}/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TF_FROM_MS}}&to={{TF_TO_MS}}
 ```
 
 ---
@@ -361,7 +361,7 @@ hours before it, and give the agent's root cause alone.
 **Deep link** (label "Cloud SRE Agents"):
 
 ```text
-https://guu84124.apps.dynatrace.com/ui/apps/community.cloudsreagents/
+https://{{LINK_HOST}}/ui/apps/community.cloudsreagents/
 ```
 
 ---
@@ -423,7 +423,7 @@ retention and volume decision for its owners; the bill shows the size, not the w
 **Deep link** (label "Cost explorer by service category"):
 
 ```text
-https://guu84124.apps.dynatrace.com/ui/apps/dynatrace.biz.carbon/cost-explorer?from=now%28%29-30d&to=now%28%29&costType=focus.EffectiveCost&dimensions=field%3Afocus.ServiceCategory
+https://{{LINK_HOST}}/ui/apps/dynatrace.biz.carbon/cost-explorer?from=now%28%29-30d&to=now%28%29&costType=focus.EffectiveCost&dimensions=field%3Afocus.ServiceCategory
 ```
 
 ---
@@ -515,7 +515,7 @@ tag changed inside the window; list both, as returned.
 **Deep link** (label "Cost explorer"):
 
 ```text
-https://guu84124.apps.dynatrace.com/ui/apps/dynatrace.biz.carbon/cost-explorer
+https://{{LINK_HOST}}/ui/apps/dynatrace.biz.carbon/cost-explorer
 ```
 
 ---
@@ -558,5 +558,5 @@ closes the problem. Never tie a run to a problem from beat 3 or 4: the query doe
 **Deep link** (label "AWS Business Resilience launchpad"):
 
 ```text
-https://guu84124.apps.dynatrace.com/ui/apps/dynatrace.launcher/launchpad/b1f1c799-de60-456d-b62c-a1f13256077b
+https://{{LINK_HOST}}/ui/apps/dynatrace.launcher/launchpad/b1f1c799-de60-456d-b62c-a1f13256077b
 ```

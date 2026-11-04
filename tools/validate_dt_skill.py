@@ -371,7 +371,7 @@ def main(argv: list[str]) -> int:
                 harvest_showcase_state(pf, envelope, placeholders)
 
             # --- If this was the resolver, extract session state ---
-            elif is_resolver_block(raw_dql) and not placeholders:
+            elif is_resolver_block(raw_dql) and "PROBLEM_ID" not in placeholders:
                 state = extract_state_from_resolver(pf, envelope)
                 if state.get("PROBLEM_ID"):
                     placeholders.update(state)
@@ -398,7 +398,7 @@ def main(argv: list[str]) -> int:
 
     if showcase and "PROBLEM_ID" not in placeholders:
         print("WARN — no beat returned a problem_id; the problem deep link stays a template")
-    elif not showcase and not placeholders:
+    elif not showcase and "PROBLEM_ID" not in placeholders:
         print("WARN — no resolver block ran successfully; beat DQL results may not reflect "
               "real substitution")
 

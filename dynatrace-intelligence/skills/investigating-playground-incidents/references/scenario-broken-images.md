@@ -89,7 +89,7 @@ owner on record, since the deploy events carry none.
 **Deep link** (label "Problem in Dynatrace"):
 
 ```text
-https://playground.apps.dynatrace.com/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TF_FROM_MS}}&to={{TF_TO_MS}}
+https://{{LINK_HOST}}/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TF_FROM_MS}}&to={{TF_TO_MS}}
 ```
 
 ---
@@ -104,7 +104,7 @@ timeline.
 ```dql
 fetch events, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 | filter event.type == "CUSTOM_DEPLOYMENT"
-| filter dt.entity.service == "SERVICE-5A0CD2879D2F37BE"
+| filter dt.entity.service == "{{ROOT_CAUSE_ID}}"
 | parse event.description, "LD \"(\" LD:git_url \")\""
 | parse git_url, "LD \"/commit/\" ALNUM:commit"
 | summarize
@@ -137,7 +137,7 @@ there.
 **Deep link** (label "Problem in Dynatrace"):
 
 ```text
-https://playground.apps.dynatrace.com/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TF_FROM_MS}}&to={{TF_TO_MS}}
+https://{{LINK_HOST}}/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TF_FROM_MS}}&to={{TF_TO_MS}}
 ```
 
 ---
@@ -154,7 +154,7 @@ flip in one line. It is the evidence that ties the deploy to the slowdown.
 
 ```dql
 fetch spans, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
-| filter dt.entity.service == "SERVICE-5A0CD2879D2F37BE"
+| filter dt.entity.service == "{{ROOT_CAUSE_ID}}"
 | filter in(span.name, "Invoke lambda /images/presign.", "Resize original product image")
 | summarize
     requests = countIf(span.name == "Invoke lambda /images/presign."),
@@ -175,7 +175,7 @@ the buckets where it flips — that flip lines up with both commits.
 **Deep link** (label "Service view"):
 
 ```text
-https://playground.apps.dynatrace.com/ui/apps/dynatrace.services/explorer/services?detailsId=SERVICE-5A0CD2879D2F37BE&perspective=performance&problemId={{PROBLEM_ID}}&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}
+https://{{LINK_HOST}}/ui/apps/dynatrace.services/explorer/services?detailsId={{ROOT_CAUSE_ID}}&perspective=performance&problemId={{PROBLEM_ID}}&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}
 ```
 
 ---
@@ -191,7 +191,7 @@ is *not* slow.
 
 ```dql
 fetch spans, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
-| filter dt.entity.service == "SERVICE-5A0CD2879D2F37BE"
+| filter dt.entity.service == "{{ROOT_CAUSE_ID}}"
 | filter span.name == "Invoke lambda /images/presign."
 | fieldsAdd duration_ms = round(toDouble(duration) / 1000000, decimals: 0)
 | sort duration_ms desc
@@ -249,7 +249,7 @@ check doesn't skip it.
 **Deep link** (label "Slow requests"):
 
 ```text
-https://playground.apps.dynatrace.com/ui/apps/dynatrace.distributedtracing/explorer?filter=dt.smartscape.service+%3D+SERVICE-5A0CD2879D2F37BE+AND+endpoint.name+%3D+invoke&tf={{TF_FROM_ISO}}%3B{{TF_TO_ISO}}&v=requests
+https://{{LINK_HOST}}/ui/apps/dynatrace.distributedtracing/explorer?filter=dt.smartscape.service+%3D+{{ROOT_CAUSE_ID}}+AND+endpoint.name+%3D+invoke&tf={{TF_FROM_ISO}}%3B{{TF_TO_ISO}}&v=requests
 ```
 
 ---
@@ -307,5 +307,5 @@ appeared, which stayed blank, and whether the shopper waited, scrolled on, or le
 **Deep link** (label "Affected sessions"):
 
 ```text
-https://playground.apps.dynatrace.com/ui/apps/dynatrace.error.inspector/error-explorer?tf=now-{{TF_REL_H}}h%3Bnow&problemId={{PROBLEM_ID}}&perspective=impact&sort=affected_users%3Adescending
+https://{{LINK_HOST}}/ui/apps/dynatrace.error.inspector/error-explorer?tf=now-{{TF_REL_H}}h%3Bnow&problemId={{PROBLEM_ID}}&perspective=impact&sort=affected_users%3Adescending
 ```

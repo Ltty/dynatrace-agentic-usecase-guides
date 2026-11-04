@@ -5,6 +5,7 @@ How to start a session, resolve the live problem, survey, hand off, and close.
 ## Contents
 
 - [Greeting](#greeting)
+- [Environments](#environments)
 - [Session state](#session-state)
 - [Problem survey](#problem-survey)
 - [Showcase](#showcase)
@@ -26,6 +27,39 @@ Or tell me what you're looking for — the cloud tour included.
 ```
 
 One first move, not a menu.
+
+---
+
+## Environments
+
+The demo runs wherever this session is pointed. Never name an environment, a tenant or a context to
+the user, and never say that something lives somewhere else.
+
+| Environment | Link host |
+|---|---|
+| `playground` | `playground.apps.dynatrace.com` |
+| `dev` | `fxz0998d.dev.apps.dynatracelabs.com` |
+| `demo-live` | `guu84124.apps.dynatrace.com` |
+
+| Scenario | `playground` | `dev` | `demo-live` |
+|---|---|---|---|
+| `payment-failure` | yes | | yes |
+| `broken-images` | yes | | yes |
+| `disk-cpu-cascade` | | yes | |
+| `cloud-observability` | | | yes |
+
+**What is offered.** A scenario is offered only when it is listed for this environment **and** the
+opening query returned its row. A scenario listed only elsewhere does not exist for this
+conversation: never name it, not even to say it is somewhere else. A scenario listed here that
+returned no row has no live problem, which is silence, not an apology.
+
+**Which environment this is.** Every row the opening query returns carries its own `env`. That is the
+answer, and it comes from the data rather than from a guess. A runtime that knows it up front (the
+local adapter reads it from the CLI) has the same answer sooner.
+
+**No environment, no link.** When the environment is not resolved, give no deep link and never guess
+a host. A link into a tenant the user cannot open is worse than no link. `{{LINK_HOST}}` in a deep
+link is the row above for this conversation's environment.
 
 ---
 
@@ -61,7 +95,8 @@ fetch dt.davis.problems, from: now()-48h, to: now()
     tf_to_iso = concat(formatTimestamp(window_to, format: "yyyy-MM-dd"), "T", formatTimestamp(window_to, format: "HH:mm:ss.SSS"), "Z")
 | fields scenario, problem_id = event.id, display_id, status = event.status, started = event.start, ended = event.end,
     affected_users = dt.davis.affected_users_count, affected_count = arraySize(smartscape.affected_entities),
-    root_cause = coalesce(root_cause_entity_name, root_cause.smartscape_entity[name]), owning_team = team,
+    root_cause = coalesce(root_cause_entity_name, root_cause.smartscape_entity[name]),
+    root_cause_id = coalesce(root_cause_entity_id, rc), owning_team = team,
     duration_min, duration_days, duration_hours, ended_min_ago, revenue_usd, tf_rel_h, queried_at = now(),
     window_from, window_to, tf_from_ms, tf_to_ms, tf_from_iso, tf_to_iso
 ```

@@ -93,7 +93,7 @@ checkout calls payment until the trace in beat 4 shows it. State the actual numb
 **Deep link** (label "Problem in Dynatrace"):
 
 ```text
-https://playground.apps.dynatrace.com/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TF_FROM_MS}}&to={{TF_TO_MS}}&segments=%5B%7B%22id%22%3A%22Apy24Rcu0cO%22%7D%5D
+https://{{LINK_HOST}}/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TF_FROM_MS}}&to={{TF_TO_MS}}&segments=%5B%7B%22id%22%3A%22Apy24Rcu0cO%22%7D%5D
 ```
 
 ---
@@ -108,7 +108,7 @@ it, and a concise read of the timing naming the commit and who it goes to.
 ```dql
 fetch events, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 | filter event.type == "CUSTOM_DEPLOYMENT"
-| filter in(dt.entity.service, "SERVICE-531CE26849E95EC1", "SERVICE-5ACC60E0079F8E6D")
+| filter in(dt.entity.service, "{{ROOT_CAUSE_ID}}", "SERVICE-5ACC60E0079F8E6D")
 | summarize
     first_deploy = min(timestamp),
     deploys      = count(),
@@ -135,7 +135,7 @@ between `first_deploy` and the problem start (`deploy_before_problem_min`; negat
 **Deep link** (label "Explain with Dynatrace Intelligence"):
 
 ```text
-https://playground.apps.dynatrace.com/ui/intent/dynatrace.davis.copilot/ask-question#%7B%22prompt%22%3A%22Explain%20what%20happened%20in%20the%20problem%20with%20id%20{{PROBLEM_ID}}%2C%20why%20it%20happened%2C%20and%20actionable%20steps%20to%20remediate%20it.%22%2C%22execute%22%3Atrue%7D
+https://{{LINK_HOST}}/ui/intent/dynatrace.davis.copilot/ask-question#%7B%22prompt%22%3A%22Explain%20what%20happened%20in%20the%20problem%20with%20id%20{{PROBLEM_ID}}%2C%20why%20it%20happened%2C%20and%20actionable%20steps%20to%20remediate%20it.%22%2C%22execute%22%3Atrue%7D
 ```
 
 ---
@@ -153,7 +153,7 @@ failures.
 
 ```dql
 fetch spans, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
-| filter dt.entity.service == "SERVICE-531CE26849E95EC1"
+| filter dt.entity.service == "{{ROOT_CAUSE_ID}}"
 | filter endpoint.name == "Charge"
 | summarize
     total    = count(),
@@ -169,7 +169,7 @@ fetch spans, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 ```dql
 fetch events, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 | filter event.type == "CUSTOM_DEPLOYMENT"
-| filter dt.entity.service == "SERVICE-531CE26849E95EC1"
+| filter dt.entity.service == "{{ROOT_CAUSE_ID}}"
 | summarize timestamp = min(timestamp), by: { commit }
 | sort timestamp asc
 ```
@@ -190,7 +190,7 @@ changed is in the diff, not the telemetry.
 **Deep link** (label "Service view"):
 
 ```text
-https://playground.apps.dynatrace.com/ui/apps/dynatrace.services/explorer/services?detailsId=SERVICE-531CE26849E95EC1&perspective=performance&problemId={{PROBLEM_ID}}&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}
+https://{{LINK_HOST}}/ui/apps/dynatrace.services/explorer/services?detailsId={{ROOT_CAUSE_ID}}&perspective=performance&problemId={{PROBLEM_ID}}&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}
 ```
 
 ---
@@ -206,7 +206,7 @@ broke: where the failure originates, how it propagates upstream, and which calls
 
 ```dql
 fetch spans, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
-| filter dt.entity.service == "SERVICE-531CE26849E95EC1"
+| filter dt.entity.service == "{{ROOT_CAUSE_ID}}"
 | filter request.is_failed == true
 | expand span.events
 | fieldsAdd
@@ -281,7 +281,7 @@ appears, say so — that's a second finding; one first seen after the later depl
 **Deep link** (label "Failing requests"):
 
 ```text
-https://playground.apps.dynatrace.com/ui/apps/dynatrace.distributedtracing/explorer?filter=request.is_failed+%3D+Failure+AND+dt.smartscape.service+%3D+SERVICE-531CE26849E95EC1+AND+endpoint.name+%3D+Charge&tf={{TF_FROM_ISO}}%3B{{TF_TO_ISO}}&v=requests
+https://{{LINK_HOST}}/ui/apps/dynatrace.distributedtracing/explorer?filter=request.is_failed+%3D+Failure+AND+dt.smartscape.service+%3D+{{ROOT_CAUSE_ID}}+AND+endpoint.name+%3D+Charge&tf={{TF_FROM_ISO}}%3B{{TF_TO_ISO}}&v=requests
 ```
 
 ---
@@ -326,5 +326,5 @@ failed payment, any feedback or silence, is not in the DQL result; the replay sh
 **Deep link** (label "Affected sessions"):
 
 ```text
-https://playground.apps.dynatrace.com/ui/apps/dynatrace.error.inspector/error-explorer?tf=now-{{TF_REL_H}}h%3Bnow&problemId={{PROBLEM_ID}}&perspective=impact&sort=affected_users%3Adescending
+https://{{LINK_HOST}}/ui/apps/dynatrace.error.inspector/error-explorer?tf=now-{{TF_REL_H}}h%3Bnow&problemId={{PROBLEM_ID}}&perspective=impact&sort=affected_users%3Adescending
 ```

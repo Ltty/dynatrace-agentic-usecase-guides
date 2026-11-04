@@ -31,6 +31,9 @@ jobs:
         run: python tools/tests/test_score_transcript.py
       - name: Deep links
         run: python tools/tests/test_deep_links.py
+
+      - name: Environment registry in sync
+        run: python tools/tests/test_environments.py
       # .claude/commands/ is what a cloned repo uses, commands/ what the plugin ships.
       - name: Slash commands in sync
         run: diff -r commands .claude/commands
