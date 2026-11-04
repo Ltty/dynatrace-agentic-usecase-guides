@@ -130,7 +130,48 @@ Review against the skill-authoring best practices, then a pass to cut thinking t
   change behind an EasyTrade slowdown, peak); the workflows moved to an "Extra" offered after the close (prevent,
   remediate, optimize); the close names the guide's four challenges. 12 of 12 blocks pass live.
 
+## Done in the repo, 2026-11-04 (three environments, showcase opening, HTML report; not uploaded)
+
+- **The demo runs on the current CLI context**, not a pinned one. `tools/preflight.py` owns
+  `ENVIRONMENTS` and `SCENARIO_ENVIRONMENTS`; the validator, the eval runner and the local agent read
+  it rather than repeating it. The same table is stated for the agent in `session-protocol.md` ->
+  "Environments", and `tools/tests/test_environments.py` fails when the two drift.
+- **Dropping the pin made the readonly safety level load-bearing**, so it is now a gate:
+  `preflight.py check` fails on a non-readonly context and the local adapter refuses to start.
+  Verified against `dev`, which is `readwrite-all` on at least one machine.
+- **Availability is tag AND probe.** A scenario is offered only where it is listed for this
+  environment and its row came back. The opening never names a scenario that lives elsewhere.
+- **`{{LINK_HOST}}` and `{{ROOT_CAUSE_ID}}`** replace the per-tenant host and root-cause service id
+  in all four scenario files, so the same scenario can run on two tenants.
+- **The opening is one turn**: greeting and survey merged, bullets per incident, one question. The
+  showcase is offered in it, with the live bill and the 10% target from a probe appended to the
+  opening query (beat 5's own query, reused).
+- **The probe is gated on the environment.** Measured on playground: the opening scans 50 MB without
+  it and 3.77 GB with it, for a row that cannot exist there.
+- **Showcase register** in `conversation-craft.md`: present tense, a beat ending on the next step
+  plus one alternative rather than two open options, one line per beat tying it to its challenge.
+- **HTML report**, local runtime only: `tools/render_report.py` + `report-template.html` +
+  `report-schema.json`, payload on stdin, output git-ignored under `reports/`. Nothing under
+  `dynatrace-intelligence/` references it, so the uploaded skill is unaffected.
+- The guard's web-egress exception named the Playground only; web fetches are now blocked outright.
+- Fixed along the way: `survey-live.yaml` had two `reply_contains` keys, so its two ground-truth
+  assertions had never run.
+
 ## Open
+
+- **demo-live is unfinished.** No `demo-live` CLI context exists yet on the dev machine, so the
+  payment and image root-cause service ids on that tenant are unknown and the opening query's ladder
+  still has playground-only arms for them. Until that login happens, demo-live supports the showcase
+  only, and `SCENARIO_ENVIRONMENTS` lists the two Astroshop scenarios there on the user's word, not
+  on a verified query. Also unverified there: whether demo-live's image incident shares a root cause
+  with the showcase, which would double-count it in the opening.
+- **Tenant-scoped link parts.** Swapping `{{LINK_HOST}}` is not enough for every URL: the payment
+  problem link carries a playground segment id (`Apy24Rcu0cO`), and app ids and perspectives are
+  tenant-scoped too. Those still need a per-environment row in each scenario's Scope before that
+  scenario is run on a second tenant.
+- **Evals not run against the new behaviour.** No `ANTHROPIC_API_KEY` for `--local`, and the dev
+  agent still serves the previous upload. The new `opening-availability-live` and the rewritten
+  `greeting` are unvalidated.
 
 - **cloud-observability:** open the seven deep links in the browser (none opened yet; `--links` prints the Extra's as "Beat 7"); run the three
   `demo-live` eval cases (`--local --tenant demo-live --include-draft`) and add one for the "do not shrink" peak; decide whether the deployed

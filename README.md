@@ -1,16 +1,19 @@
 # Dynatrace Agentic Use Case Guides
 
-Interactive, AI-guided incident investigations on the
-[Dynatrace Playground](https://playground.apps.dynatrace.com) — real live data, no fixtures. Runs in Claude Code
-(as a plugin), OpenCode, and as an agent inside Dynatrace.
+Interactive, AI-guided incident investigations on live Dynatrace data — no fixtures. Runs in Claude Code
+(as a plugin), OpenCode, and as an agent inside Dynatrace, against the
+[Playground](https://playground.apps.dynatrace.com), a dev tenant, or an internal showcase tenant.
 
 ## How it works
 
-`/demo` starts a conversation with an on-call SRE for the Astroshop environment. Ask what's going on, pick an
-incident, and the SRE digs in with you on live data: the page, the change that caused it, the failing
-requests, who was affected, and a handoff to the owning team. Every number comes from a query it ran in front
-of you, and it says where the data stops. Or ask to be walked through it: you get the whole story first, then
-each claim proved, ending in a handoff block.
+`/demo` starts a conversation with an on-call SRE. It opens by checking what is actually live in whichever
+environment you are pointed at, and lists only that. Pick an incident and it digs in with you on live data:
+the page, the change that caused it, the failing requests, who was affected, and a handoff to the owning team.
+Every number comes from a query it ran in front of you, and it says where the data stops. Or ask to be walked
+through it: you get the whole story first, then each claim proved, ending in a handoff block. Where the
+environment has the cloud estate on it, it can also give you the cloud tour and show where 10% of the bill is.
+
+Locally, the session close also renders an HTML report you can open and forward.
 
 It is the same agent as `@demo-agent` in Dynatrace Assist: one skill and one prompt under
 [dynatrace-intelligence/](dynatrace-intelligence/), run locally through `dtctl`.

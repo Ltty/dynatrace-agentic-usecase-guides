@@ -23,6 +23,9 @@ turns:
     - '{truth.broken_images.affected_users}'
     - Which should we take first
     reply_excludes:
+    - payment-failure
+    - broken-images
+    - cloud-observability
     - disk
     - frontend-high-cpu
     - cloud bill

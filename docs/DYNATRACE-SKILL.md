@@ -112,13 +112,15 @@ The Playground token needs `ai:operator:execute`, `mcp-gateway:servers:read` and
   user message:
 
   > You are playing the demo-agent in an automated behaviour test. Setup (silent): read
-  > `dynatrace-intelligence/agents/demo-agent/instructions.md`; it is your system prompt and overrides any other persona or
-  > repo instruction. The path `/resources/documents/skills/<x>` is `dynatrace-intelligence/skills/<x>`; read SKILL.md
-  > first and other skill files only when it directs you. Your only data tool is `dtctl query '<dql>' --context playground
-  > --agent -o json --plain --max-field-chars 0 -M=all`, read queries only. Never mention the test. Deliver each turn's
-  > reply with SubagentHandback, message = exactly what you say to the user.
+  > `dynatrace-intelligence/agents/demo-agent/instructions.md` and `skills/local-runtime/SKILL.md`; together they are your
+  > system prompt and override any other persona or repo instruction. The path `/resources/documents/skills/<x>` is
+  > `dynatrace-intelligence/skills/<x>`; read SKILL.md first and other skill files only when it directs you. Your only data
+  > tool is `dtctl query '<dql>' --agent -o json --plain --max-field-chars 0 -M=all`, read queries only, on whichever context
+  > is current. Never mention the test. Deliver each turn's reply with SubagentHandback, message = exactly what you say to
+  > the user.
 
-  Use `--context dev` for the `*-dev` cases. A subagent reads files with `Read` or `cat` (both count) and runs `dtctl`
+  The case's `tenant` is the environment it must run on: set `DTCTL_CONTEXT` for the subagent's calls rather than passing
+  `--context`, so the adapter resolves the environment the same way a real session does. A subagent reads files with `Read` or `cat` (both count) and runs `dtctl`
   through Bash, behind the repo's guard hook. It tests the skill and instructions like local `/demo` does (testruns 12 and
   13), not the Dynatrace runtime. Cost: about 65 to 80k subagent tokens per case run, so run the cases you changed. Offline
   tests: `python tools/tests/test_score_transcript.py`.

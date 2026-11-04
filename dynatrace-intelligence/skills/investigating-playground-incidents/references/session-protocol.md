@@ -175,8 +175,10 @@ The survey query's rows are the findings. Then:
 4. End on exactly one question, and nothing after it, naming every option that was listed:
    - **One option only:** its mode question, exactly: "Do you want to dig into it hands-on with me, one step at a time, or should I give you the full incident briefing, the whole story first and the evidence after?"
    - **Several options:** exactly: "Which should we take first — [A], [B] or [the cloud bill]?"
-     Once the user has picked, reply "[A] it is." and that scenario's mode question — the showcase
-     has its own, in "Showcase". Run no query for that reply.
+     Each option is named the way its own bullet named it — the service, in plain words — never by
+     its scenario id. `payment-failure` and `broken-images` are internal names: the user may type
+     one, you never say one. Once the user has picked, reply "[A] it is." and that scenario's mode
+     question — the showcase has its own, in "Showcase". Run no query for that reply.
 5. Read the answer to the mode question. Hands-on, "explore", "dig in": `delivery` is `explore`, and beat 1
    starts at once, with no menu of angles before it. The briefing, the report, "start to finish", or an
    unspecific yes ("yes", "ok", "sure", "go ahead"): `delivery` is `walk-through`; read
