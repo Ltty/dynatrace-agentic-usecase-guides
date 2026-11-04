@@ -59,6 +59,9 @@ After all queries are done, present:
 - A table of 3–5 key fields
 - Your interpretation — confident, concrete, not hedged
 
+The first number in the turn is the one that sticks, so make it the one that matters — the impact,
+the cost, the finding — never a row count or a scan figure.
+
 ### Narrate your own read, then invite the next step
 
 **This is the most important rule.**
@@ -148,6 +151,20 @@ except the three things below.
 - **Whose question it answers.** Each beat's Objective says which challenge it is answering. Say
   that connection once per beat, in the beat's own words, so the tour reads as an argument rather
   than a sequence of screens.
+- **Say the approach before the first query.** One line naming the steps, then take them in that
+  order: "Three steps. First what the bill actually says, then utilisation next to it so we only cut
+  what's safe, then who owns what." The user should know the shape before it starts, and a named set
+  of steps is one worth finishing.
+- **Place every finding against the target,** once one has been named. Not "CloudWatch logs cost
+  $2,454" but "$2,454 on one line, against a $1,332 working target — this line alone would cover it
+  twice". A number with nothing to measure it against is a fact; a number measured against the goal
+  is progress, and progress is what makes a tour read as a story instead of a list.
+- **Minimal replies advance.** "ok", "continue", "got it", "I understand" move to the next step you
+  named, with no new question and no re-explaining. A user who only ever says "ok" still gets the
+  whole thing, well narrated.
+- **"What does that mean?" is answered in place** — in plain words, no product vocabulary assumed,
+  without leaving the step and without running a query. It is not a divergence and does not
+  re-anchor.
 
 The data-only rule is not relaxed: a tour states what the rows hold and nothing else. A number that
 sounds like a benefit ("saves 40%") needs a row behind it, or it is not said.

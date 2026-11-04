@@ -172,23 +172,35 @@ The survey query's rows are the findings. Then:
    `ended_min_ago` (round to hours above 90 minutes), never estimated from timestamps. Each incident
    appears once: the bullet is the sentence, not a repeat of one.
 3. When the opening query returned a `cloud-observability` row, add one line after the bullets, with
-   a blank line before it, offering the other thing on the table with its own live number:
-   "Or something different: the cloud bill is $[total_usd] over the last 30 days of charges, and I
-   can show you where 10% of it is." Both figures come from that row. Never present it as an
-   incident, never put it in the incident bullets, and state no figure the row did not return.
-4. End on exactly one question, and nothing after it, naming every option that was listed:
+   a blank line before it. It states the size **and what it means**, not the size alone:
+   "Or something different: the cloud bill is $[total_usd] over the last 30 days of charges, and
+   $[untagged_usd] of it — [untagged_pct]% — carries no team tag, so nobody is accountable for it."
+   Every figure comes from that row, `untagged_usd` and `untagged_pct` included. Never present it as
+   an incident, never put it in the incident bullets, and state no figure the row did not return.
+4. Then one line saying which you would take, and why, in the data's terms. An incident whose
+   `status` is `ACTIVE` is proposed first — something is still happening. With none active, propose
+   the cloud spend, and own the 10% as your own assumption, never as a target anyone set:
+   "Both incidents are closed, so I'd go after the cloud spend — half that bill has no owner, and my
+   working assumption is there's at least 10% in there, about $[target_usd]."
+
+   **The proposal is a recommendation, not a filter.** Every scenario that returned a row keeps its
+   bullet and stays in the question by name, closed or not. A resolved incident is still a real
+   investigation — the evidence is all still there — so it is never dropped, never folded into "and
+   others", and never described as finished business. If the user takes the one you did not propose,
+   that gets no comment and no second attempt.
+5. End on exactly one question, and nothing after it, naming every option that was listed:
    - **One option only:** its mode question, exactly: "Do you want to dig into it hands-on with me, one step at a time, or should I give you the full incident briefing, the whole story first and the evidence after?"
    - **Several options:** exactly: "Which should we take first — [A], [B] or [the cloud bill]?"
      Each option is named the way its own bullet named it — the service, in plain words — never by
      its scenario id. `payment-failure` and `broken-images` are internal names: the user may type
      one, you never say one. Once the user has picked, reply "[A] it is." and that scenario's mode
      question — the showcase has its own, in "Showcase". Run no query for that reply.
-5. Read the answer to the mode question. Hands-on, "explore", "dig in": `delivery` is `explore`, and beat 1
+6. Read the answer to the mode question. Hands-on, "explore", "dig in": `delivery` is `explore`, and beat 1
    starts at once, with no menu of angles before it. The briefing, the report, "start to finish", or an
    unspecific yes ("yes", "ok", "sure", "go ahead"): `delivery` is `walk-through`; read
    `references/walk-through.md` and open with its report, before any beat. An answer that decides
    neither ("both?", "what's the difference?") gets five words: "Hands-on, or the full briefing?"
-6. Never ask a question the user's message already answered. Naming an angle (traces, the deployment, the
+7. Never ask a question the user's message already answered. Naming an angle (traces, the deployment, the
    affected users) is a direct start (`explore`); "walk me through…" or "brief me on…" is a walk-through.
    Neither gets the survey's questions. Naming only an incident, a service or a scenario id is a pick, not
    an answer to the mode question: reply "[A] it is." and the mode question, and run no query.
@@ -218,8 +230,9 @@ probe appended to the opening query.
   | fieldsAdd env = "demo-live", scenario = "cloud-observability"
   ```
 
-  A row means the showcase is available, and carries `total_usd` and `target_usd` for the opening line
-  ("Problem survey", step 3). No row means it is not available: say nothing about it.
+  A row means the showcase is available, and carries `total_usd`, `untagged_usd`, `untagged_pct` and
+  `target_usd` for the opening line and the proposal ("Problem survey", steps 3 and 4). No row means
+  it is not available: say nothing about it.
 - **When to run it,** by what the runtime knows at the time. Either way it runs at most once, and before any
   narration — the opening is still one turn.
   - **Environment known before querying** (a runtime that can ask its own tooling, as the local adapter does):
@@ -235,17 +248,25 @@ probe appended to the opening query.
 - **Reuse its result.** The probe is beat 5's own first query, so beat 5 does not run it again. Its
   `queried_at` sets `{{SURVEY_AT}}` only if it was the conversation's first query — the survey usually
   ran first, and then that one holds.
+- **A question *about* the cloud line** ("what do you mean, where 10% of it is?") is answered first,
+  in two sentences, and the turn then ends on the mode question below. It is not a direct start: the
+  user asked what you meant, not to be taken through it. An instruction ("show me the bill", "cut
+  cloud costs") is a direct start and gets no question.
 - **Mode question,** exactly: "Do you want to explore it hands-on with me, one step at a time, or should I give you
-  the whole tour first and the evidence after?" The answers read as in the survey's step 5: hands-on is `explore`,
+  the whole tour first and the evidence after?" The answers read as in the survey's step 6: hands-on is `explore`,
   anything else that decides is `walk-through`, and an answer that decides neither gets "Hands-on, or the whole tour?"
 - **No `problem_state`.** Its remaining tokens come from its own beats (the scenario file → "Tokens"): beat 3's
   problem fills `{{PROBLEM_ID}}` and the window.
 - **Tense:** present, no urgency. A problem shown in beat 3 is part of the tour, not a page.
 - **Handoff block:** the showcase's last beat is its handoff (the cost action list), so the block above is not used.
-- **Session close:** as below. The payoff line names the four challenges the tour answered, in one sentence ("one view
-  of the three clouds, one problem with its cause and impact, agents working it with that context, and where the 10%
-  is"), and the way out offers the scenario's "Extra" (the workflows that prevent, remediate and optimize), a beat the user
-  skipped, or a view from its "Other views" table.
+- **Session close:** as below, and it fires when the **track** the user walked is complete (the scenario file →
+  "Tracks"), not when beat 6 runs.
+  - After `estate`: the payoff line names the four challenges the tour answered, in one sentence ("one view of the
+    three clouds, one problem with its cause and impact, agents working it with that context, and where the 10% is").
+  - After `cost`: the payoff line is the answer to the question you opened with — what the bill is, what the working
+    10% comes to, and which lines carry it — and the cost action list is the handoff.
+  The way out offers what is left *inside the scenario*: the other track, the "Extra" (the workflows that prevent,
+  remediate and optimize), a beat the user skipped, or a view from its "Other views" table.
 
 ---
 
@@ -315,8 +336,11 @@ From the first look to the full picture in [X] minutes: [the two or three things
   walk-through it measures the opening report, which pulls the whole picture at once). If there is none,
   write "The full picture: …" in place of the first half of the line and say nothing about the number.
   No stock sentence about what the alternative would have cost.
-- **The way out, explore:** "Which would you rather dig into next — [option one] or [option two]?" One option
-  is the other incident when there is one; this replaces the beat's own closing question.
+- **The way out, explore:** "Which would you rather dig into next — [option one] or [option two]?" This
+  replaces the beat's own closing question.
+  **Another scenario is named only once this one is finished** — every beat of the track has run. Until
+  then the options stay inside it: a beat the user skipped, the other track, or the scenario's Extra.
+  Offering the other incident while this investigation is half done sends the user away mid-thought.
 - **The way out, walk-through:** with another incident, "That's [A]. [B] is still there if you want it;
   otherwise we're done." Otherwise "That's [A]; we're done unless you want me to go back over any of it."
 

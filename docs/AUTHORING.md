@@ -135,6 +135,49 @@ line the walk-through shows while it pulls the first query of every beat, naming
 6. Upload and evaluate: `docs/DYNATRACE-SKILL.md`. Add an eval case under `tests/evals/dt-agent/` for any new
    behaviour. Run a full `/demo` session and write it up as a `docs/testrun-NN.md`.
 
+## The narrative standard
+
+`psychology-cheat-sheet.pdf` in this folder (growth.design, *Psychology of Design*, 106 principles) is
+the standard every scenario is written against. It is not applied wholesale, for two reasons.
+
+Read literally it contradicts itself — Hick's Law says cut the options, Group Attractiveness says
+present them together — so an author needs a short list with a rule attached, not a reading list.
+And several of its principles work by making a decision *less* rational. This demo is evidence-led;
+using those on someone watching it would cut against the rule everything else rests on, and once
+noticed would discredit every number said before. So they are excluded by name, not by omission.
+
+**Do not use:** Scarcity, Social Proof, Decoy Effect, Bandwagon, Sunk Cost, Variable Reward,
+Temptation Bundling, Hawthorne.
+
+**The selected set.** Most of these name something the skill already does; naming it is what makes it
+reviewable.
+
+| Principle | The rule it becomes |
+|---|---|
+| Feedforward | State the approach before the first query, so the user knows the shape before it starts |
+| Goal Gradient | Once a target is named, place every finding against it — "$2,454 against a $1,332 target" |
+| Storytelling Effect | A scenario has an order and an argument; each Reveal connects to the one before |
+| Chunking, Miller's Law | 3–5 fields per table, findings grouped |
+| Peak-End Rule | `peak_moment` staging and the close decide how the session is remembered |
+| Serial Position | In a list, what matters most goes first or last, never buried in the middle |
+| Curiosity Gap | The opening names a gap without closing it ("where 10% of it is") |
+| Anchoring | The first number in a turn is the impact figure, never a row count |
+| Loss Aversion | Unowned spend is exposure, not a missed gain — "$6,725 nobody is accountable for" |
+| Framing | Give the absolute and the share when the share carries the meaning |
+| Reactance | A proposal is offered once; the other choice gets no comment and no second attempt |
+| Progressive Disclosure | Beats exist so the estate is not dumped in turn one |
+| Curse of Knowledge | "What does that mean?" is answered in plain words, no product vocabulary assumed |
+| Labor Illusion | The proof stamp shows the work behind the answer |
+| Provide Exit Points | The close's way out is a real exit, not a hook to keep going |
+
+Five of these change what the agent *says* and are therefore also stated in
+`references/conversation-craft.md`: Feedforward, Goal Gradient, Anchoring, Reactance, Curse of
+Knowledge. The rest are authoring guidance and stay here, out of the runtime context.
+
+**Reviewing a scenario against it** means a written verdict, not a read-through: which principles it
+satisfies, which it does not, and the line that fails. `docs/narrative-review.md` holds the current
+verdicts.
+
 ## Showcase scenarios
 
 A showcase shows a capability instead of resolving an incident (`scenario-cloud-observability.md` is the example). It

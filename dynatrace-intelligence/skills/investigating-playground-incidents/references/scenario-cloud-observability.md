@@ -11,6 +11,7 @@ workflow runs and costs change every day — read them from the live result.
 
 - [Business context](#business-context)
 - [Scope](#scope)
+- [Tracks](#tracks)
 - [Tokens](#tokens)
 - [Handoff fields](#handoff-fields)
 - [Beat 1 — The Estate](#beat-1--the-estate)
@@ -92,6 +93,22 @@ problems, Kubernetes spec changes), `dt.system.events` (workflow executions), `b
 | Asking Dynatrace Assist about cost | "Clouds services explorer" (open Dynatrace Assist from there) | `https://{{LINK_HOST}}/ui/apps/dynatrace.clouds/smartscape/services?perspective=health&sort=healthIndicators%3Aascending%3BcustomAlerts%3Aascending%3Bname%3Aascending` |
 | On-premise VMware estate | "VMware overview dashboard" | `https://{{LINK_HOST}}/ui/apps/dynatrace.dashboards/dashboard/com-dynatrace-vmware-integration-overview#from=now%28%29-30d&to=now%28%29` |
 | A VMware virtual machine in Infrastructure & Operations | "VMware virtual machines" | `https://{{LINK_HOST}}/ui/apps/dynatrace.infraops/smartscape/virtualization/com.dynatrace.vmware-integration/VMWARE_VIRTUALMACHINE-inventory?perspective=health&tf=now-30d%3Bnow&detailsId=VMWARE_VIRTUALMACHINE-182F4D63E3FCACFE#filtering=hypervisor.type+%3D+VMware` |
+
+## Tracks
+
+The six beats are two arcs, each a complete story on its own. Which one the user is on is set by how
+they arrived, and the session close fires when that track's beats have all run ("Session close").
+
+| Track | Beats | Ends on |
+|---|---|---|
+| `cost` | 5 → 6 | the cost action list |
+| `estate` | 1 → 2 → 3 → 4 | the four challenges |
+
+- Arriving at the bill — a cloud-cost ask, or the opening's cloud line — walks `cost`. When it closes,
+  the estate tour is the way out, offered **forward**: "that's the money; the other half of this is
+  what we actually run". Never walk back into beats 1–4 as a continuation of the cost story.
+- A pick of the cloud tour walks `estate`, then `cost`, as one sequence — that is the full guide.
+- The Extra comes after either close, on request.
 
 ## Tokens
 
