@@ -209,6 +209,28 @@ Asked for after the close, via "what's the logical next step?" → "workflows".
 
 ---
 
+## What was done about each
+
+Fixed 2026-11-04, on `multi-environment-demo`. Issue numbers are the ones above.
+
+| # | Issue | Outcome |
+|---|---|---|
+| 1 | Opening probe expensive (12.7 GB), two calls | **Cost fixed, shape unchanged.** The bill is re-imported in full daily, so every cost query reads 7 days instead of 75 — identical `total_usd` and row count at one instant, 2.07 GB instead of 12.7 GB. The two-call form is still what the adapter describes; the user sees one turn either way, so it was left alone. |
+| 2 | A clarifying question skips the mode question | **Fixed.** session-protocol → "Showcase": a question *about* the cloud line is answered in two sentences and the turn ends on the mode question. An instruction still starts directly. |
+| 3 | `{{SURVEY_AT}}` moved mid-session | **Fixed.** It had three conflicting definitions; it is now the `queried_at` of the first query of the conversation, whatever that query is, fixed from then on. |
+| 4 | Beat 4 ended on a deep link; close a turn late | **Fixed.** The close fires when every beat of the track has run, in whatever order. `beats_completed` has a maintenance rule for the first time — it was declared once and read nowhere — and a turn never ends on a bare link. |
+| 5 | The fix was attributed to the wrong team | **Fixed, generally.** "A name carries forward only from the result that returned it" is now in the data-only rules; beat 4's staging and reveal name the team from *this* problem's `owning_team`, or say "the owning team". |
+| 6 | Payment hook present tense vs `live_recent` | **Fixed.** The hooks table says `problem_state` sets the tense, and the payment row carries its past-tense form. |
+| 7 | The Extra can never reach the report | **Fixed.** The adapter re-renders when the session continues past the close and gives the new path. |
+| 8 | Proof stamp can read `0 records scanned` | **Fixed.** The record count is dropped when it is 0; the queryId and duration stay. |
+
+Two findings not in the numbered list were also fixed: the report's hand-summed figures (3,187
+resources, 254 problems), now forbidden by "never add up rows yourself"; and the 10%, which was
+hardcoded in DQL and attributed to a CTO who does not exist in the session — it is now the SRE's own
+working assumption, motivated by the untagged share.
+
+---
+
 ## Issues to fix
 
 ### 1. The opening probe is two queries, and it is expensive
