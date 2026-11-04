@@ -4,7 +4,8 @@ runs: 3
 description: >-
   A greeting is the opening turn. It queries, introduces the role without naming the environment,
   and lists only what this environment holds: on dev that is the disk scenario and nothing else,
-  never a cloud or a payment line.
+  never a cloud or a payment line. Needs the `dev` context at `--safety-level readonly`: the local
+  runtime refuses to start on a readwrite context, so this case stops on that notice otherwise.
 turns:
 - ask: What can you do?
   expect:

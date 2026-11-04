@@ -169,6 +169,10 @@ Review against the skill-authoring best practices, then a pass to cut thinking t
   problem link carries a playground segment id (`Apy24Rcu0cO`), and app ids and perspectives are
   tenant-scoped too. Those still need a per-environment row in each scenario's Scope before that
   scenario is run on a second tenant.
+- **The `dev` context must be set `readonly` before any `*-dev` case can run.** Verified in an
+  in-session eval: on a `readwrite-all` context the agent correctly refuses and prints
+  `dtctl config set-context dev --safety-level readonly`. That is the gate working, but it blocks the
+  dev cases until someone runs it in a terminal.
 - **Evals not run against the new behaviour.** No `ANTHROPIC_API_KEY` for `--local`, and the dev
   agent still serves the previous upload. The new `opening-availability-live` and the rewritten
   `greeting` are unvalidated.
