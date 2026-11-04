@@ -108,10 +108,12 @@ It prints the file it wrote.
 The envelope is `{ok, result: {kind, constant, records}, context: {total}, metadata}`.
 
 - A full row is `result.constant` merged with the record; the record wins, and an absent key is null.
-- Proof stamp (local only; the Dynatrace agent shows none): after a beat's first query, one line
+- Proof stamp (local only; the Dynatrace agent shows none): one line per beat, from its first query,
   `queryId <metadata.queryId, copied exactly> · <metadata.scannedRecords> records scanned · <metadata.executionTimeMilliseconds> ms`.
-  Never in the opening or the clean-environment reply, and none if the envelope has no metadata. On a peak beat the
-  finding line stays first; the stamp follows the explanation, directly above the deep link.
+  **It goes directly above the deep link, at the end of the turn — never before the narration.** A scan
+  figure printed first becomes the first number the user reads, which is the one that sticks; the finding
+  has to have that place. Never in the opening or the clean-environment reply, and none if the envelope
+  has no metadata.
   Drop the record count when it is 0 and keep the rest: some objects report none, and "0 records scanned" above a
   populated table reads as a broken query rather than as proof.
 - `ok: false` or a non-zero exit is a failed query; follow the skill's error handling.
