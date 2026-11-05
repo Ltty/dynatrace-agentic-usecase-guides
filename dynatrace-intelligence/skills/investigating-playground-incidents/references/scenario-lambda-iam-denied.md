@@ -65,6 +65,8 @@ Two populations coexist — always say which one a number counts.
 
 ## Beat 1 — The Page
 
+**Requires:** none
+
 **Why this step:** Before we chase a cause we need the blast radius: what is failing, for how many, and whose service it is.
 
 **Objective:** User grasps the blast radius: a storefront-facing image call is failing outright, how
@@ -109,6 +111,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?fr
 
 ## Beat 2 — The Failing Window
 
+**Requires:** 1
+
 **Why this step:** A problem record says something broke; to know whether it drifted or switched we need the requests themselves, minute by minute.
 
 **Objective:** User sees the failure arrive and leave as a step rather than a slope, with the clean
@@ -152,6 +156,8 @@ All requests, not only the failing ones: the step is only visible with the clean
 ## Beat 3 — What the Failures Say
 
 **`peak_moment: true`**
+
+**Requires:** 2
 
 **Why this step:** A failure rate says how much broke, never why — for that we read what the failing requests themselves threw.
 
@@ -208,6 +214,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.distributedtracing/explorer?filter=dt.sm
 ---
 
 ## Beat 4 — The Permission
+
+**Requires:** 3
 
 **Why this step:** The exception named an identity, an action and a resource, and the policy that is supposed to join them is in Dynatrace with everything else about the function.
 
@@ -268,6 +276,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.clouds/smartscape/functions?perspective=
 
 ## Beat 5 — The Deploy
 
+**Requires:** 3
+
 **Why this step:** A permission does not change itself, and the platform records what deployed onto this function — so before we hand anything over we can name what landed, and when.
 
 **Objective:** User sees the change that did it: a commit deployed onto the function a minute or so before the
@@ -317,6 +327,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?fr
 ---
 
 ## Beat 6 — What the Agent Found
+
+**Requires:** 3
 
 **Why this step:** We can name the commit but not what is inside it, and nothing here says what to change — the AWS DevOps Agent was sent this problem's context and worked the account side, where the change history and the policy live together.
 

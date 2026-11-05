@@ -51,10 +51,21 @@ not use (`description` is read by beat 1). Date arithmetic and any cost figure b
 
 ### 3. Write the beats
 
-In `scenario-<id>.md`, one `## Beat N — Title` section each, with: **Why this step**, **Objective**,
-**Evidence DQL**, **Reveal**, **Success signal**, **Deep link**, and for a climax `**peak_moment: true**` plus
-**Staging**. Optional: an **Objection** paragraph (skeptic pushback and the answer, used only when the user
+In `scenario-<id>.md`, one `## Beat N — Title` section each, with: **Requires**, **Why this step**,
+**Objective**, **Evidence DQL**, **Reveal**, **Success signal**, **Deep link**, and for a climax
+`**peak_moment: true**` plus **Staging**. Optional: an **Objection** paragraph (skeptic pushback and the answer, used only when the user
 raises it) and a **Fold in on a jump** note when a beat's evidence is needed even if the user skips it.
+
+**Requires** is the beats whose *findings* this one builds on, or `none`. It is about the argument,
+never the query: most of these queries would run in any order, but a reveal that leans on an earlier
+finding is incoherent without it. The agent offers every beat whose Requires are complete, so this is
+what lets a user steer without the story coming apart — and what lets the agent say plainly when an
+order is forced. Beat 1 requires `none`; a beat may only require an earlier beat.
+`tools/tests/test_deep_links.py` checks the graph.
+
+**A linear scenario is a legitimate answer.** If every beat requires the one before it, the agent
+offers one step at a time and says why that is the only way forward. Do not loosen a real dependency
+to manufacture a choice: an option the evidence cannot serve is worse than no option.
 
 **Why this step** and **Objective** are not the same thing, and both are required.
 

@@ -61,6 +61,8 @@ which one a number counts.
 
 ## Beat 1 — The Page
 
+**Requires:** none
+
 **Why this step:** Before we chase a cause we need the blast radius: what is failing, for how many, and whose service it is.
 
 **Objective:** User grasps the blast radius: root-cause service, impacted users, onset, that
@@ -103,6 +105,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?fr
 ---
 
 ## Beat 2 — The Change
+
+**Requires:** 1
 
 **Why this step:** A failure that starts at a point in time usually starts with a change, so the next thing worth knowing is what shipped just before it.
 
@@ -147,6 +151,8 @@ https://{{LINK_HOST}}/ui/intent/dynatrace.davis.copilot/ask-question#%7B%22promp
 ---
 
 ## Beat 3 — Service Deep Dive
+
+**Requires:** 2
 
 **Why this step:** A deploy landing near the start is not yet a cause — to tie them together we need the failure rate either side of it.
 
@@ -206,6 +212,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.services/explorer/services?detailsId={{R
 ## Beat 4 — Failing Traces
 
 **`peak_moment: true`**
+
+**Requires:** 3
 
 **Why this step:** We know the rate moved with the deploy; to say what actually broke we need the exception itself and the request it happened in.
 
@@ -299,6 +307,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.distributedtracing/explorer?filter=reque
 ## Beat 5 — The Humans
 
 **`peak_moment: true`**
+
+**Requires:** 1
 
 **Why this step:** A root cause is only half the handoff — the owning team also needs to know who this reached and what they experienced.
 

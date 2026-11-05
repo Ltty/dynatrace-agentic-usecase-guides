@@ -74,6 +74,8 @@ Several populations coexist — always say which one a number counts.
 
 ## Beat 1 — The Page
 
+**Requires:** none
+
 **Why this step:** Before we tune anything we need what the user actually felt: what is slow, for how many, and how far it spread.
 
 **Objective:** User grasps the blast radius: a trading application is slow for real users, the problem names a
@@ -120,6 +122,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?fr
 
 ## Beat 2 — Where the Time Goes
 
+**Requires:** 1
+
 **Why this step:** The problem names a root cause but not a magnitude, so the next thing we need is which service in the namespace is actually holding the time, and by how much against its neighbours.
 
 **Objective:** User sees the slowdown concentrated in one or two services while the rest of the namespace is
@@ -163,6 +167,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.distributedtracing/explorer?filter=k8s.n
 ## Beat 3 — Throttled, Not Busy
 
 **`peak_moment: true`**
+
+**Requires:** 2
 
 **Why this step:** A service that is slow without an error is usually waiting on something, and for a container the thing it waits on is its own CPU allowance — so we put usage, limit and throttling on one timeline.
 
@@ -229,6 +235,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.infraops/explorer?entityId=K8S_DEPLOYMEN
 
 ## Beat 4 — The Change
 
+**Requires:** 3
+
 **Why this step:** A limit does not move on its own, and the platform records every change to a deployment spec — so we can name the edit, the container it hit and the minute it landed.
 
 **Objective:** User sees the exact field that changed, in the platform's own words, close enough to the
@@ -292,6 +300,8 @@ where the change and its effect sit together.
 ---
 
 ## Beat 5 — The Agent's Analysis
+
+**Requires:** 3
 
 **Why this step:** We have the mechanism and the edit; what we do not have is a number to put back — and the Kubernetes troubleshooting agent was handed this problem's context and wrote exactly that onto the record.
 

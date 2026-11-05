@@ -1,0 +1,31 @@
+id: real-options-demo-live
+tenant: demo-live
+runs: 3
+status: draft
+description: >-
+  DRAFT: explore gives the user real decisions, not a readiness cue with an afterthought. Where more
+  than one beat is unlocked the turn names them and recommends one; the user takes the one that was
+  not recommended and the investigation still holds together, because a reveal may only lean on a
+  beat that has run. The failure to catch is an option the scenario has no query for.
+turns:
+- ask: Let's look at the EasyTrade slowdown.
+- ask: Hands-on, please.
+  expect:
+    requires_dql: true
+- ask: next
+  expect:
+    requires_dql: true
+- ask: next
+  expect:
+    requires_dql: true
+    reply_contains:
+    - throttl
+- ask: Take the agent's analysis rather than the change.
+  expect:
+    requires_dql: true
+    reply_contains_any:
+    - Root Cause
+    - root cause
+    reply_excludes:
+    - as we saw in beat
+    - beat 4

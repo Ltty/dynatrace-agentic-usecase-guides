@@ -23,10 +23,14 @@ Each beat has: objective, evidence DQL, reveal, optionally an objection, success
 and optionally `peak_moment` + `staging`. An objection is the user's likely pushback, with the
 answer to give.
 
-**The scenario is a guided flow, not a quiz.** Work through beats in order — don't skip one because
-it seems obvious — advancing once you've shown the evidence and given your own read, not once the
-user produces the "right" answer. A user who never says anything but "yes" should still get a
-complete, well-narrated investigation.
+**The scenario is a guided flow, not a quiz.** Advance once you've shown the evidence and given your
+own read, not once the user produces the "right" answer. A user who never says anything but "yes"
+should still get a complete, well-narrated investigation, in the order the scenario recommends.
+
+**Each beat declares `Requires:`** — the beats whose *findings* it builds on, or `none`. It is about
+the argument, not the query: most queries would run in any order, but a reveal that leans on an
+earlier finding is incoherent without it. `Requires:` is what lets the user steer without the story
+coming apart, and what lets you say plainly when an order is forced ("How a turn ends").
 
 **Keep `beats_completed`.** Add each beat to it as that beat's turn ends, folded-in beats included.
 It is a set, not a counter: the user can arrive at any beat and walk them in any order, so "are we
@@ -83,22 +87,50 @@ steps are ordinary steps with ordinary endings; the finding lands when the last 
 
 ### How a turn ends
 
-**One rule, for every scenario and both peak and ordinary beats.** The turn ends on the next step, the
-reason it follows, and an invitation to continue — with one alternative named so the user knows they can
-steer, but never a choice they must make before they can go on.
+**The turn ends on what we could do next and why.** How many options there are is decided by the
+scenario, never by wanting to sound interactive: offer every beat whose `Requires:` are already in
+`beats_completed`, and nothing else.
 
-Right: "Next I'd put utilisation next to the bill, so we only cut what's safe to touch. Say when you're
-ready — or if you'd rather see who owns the spend first, we can start there."
+**Several beats unlocked** — name up to three, one short line each saying what that step would settle,
+then recommend one with the reason, then the cue:
 
+```text
+Two things are worth doing next, and they stand on their own:
+  a) the container's own CPU numbers — why it was slow, not just that it was
+  b) what changed on the workload just before
+I'd take (a): (b) only means something once we know what to look for.
+Which one — or say next and I'll take (a).
+```
+
+**One beat unlocked** — say what it is, why it follows, and **why it is the only way forward**: "the
+exception has to come before the permission, or the permission tells us nothing." Then the readiness
+cue. This is not a lesser ending. A forced order, explained, is worth more than a choice invented to
+seem interactive — and some scenarios are a single chain by their nature.
+
+Right: "Next I'd put utilisation next to the bill, so we only cut what's safe to touch. Say when
+you're ready."
 Wrong: "Want me to look at the traces?" — a yes/no with nothing behind it.
-Wrong: "The deploy, or the failing requests?" — a decision demanded before the user can simply continue.
+Wrong: offering a beat whose `Requires:` have not run, or inventing a step the scenario has no query
+for. **A choice that is not real is worse than no choice**; it is the one thing a viewer who notices
+cannot un-notice.
 
-**An alternative the user passed over is spent.** If they said "ok" or "ready" rather than taking it,
-offer something else next time, or nothing at all — "Say when you're ready" on its own is a complete
-ending. Re-offering the same side road every turn makes it sound like you would rather be on it, and
-it is the quickest way to make a guided track feel repetitive.
+**`next`, `ok`, `continue`, `go` and an unspecific yes always take the recommendation.** That is the
+guarantee the option list must never break: a user who says nothing else still gets a complete,
+well-narrated investigation in the scenario's own order.
 
-A walk-through turn ends on its closing line instead (`references/walk-through.md`).
+**An option not taken stays on the list** — it is a real remaining step, not a side road being pushed.
+Don't recommend the same one twice in a row after it was passed over; do keep offering it.
+
+**A beat the user names that is not unlocked** gets what it needs first, and the offer to take that
+instead: "that one leans on the exception — shall we read that and come straight back?"
+
+**A reveal may only lean on a beat that has run.** Where a reveal refers to an earlier finding, say it
+only if that beat is in `beats_completed`; otherwise give this beat's finding on its own and never
+refer to evidence the user has not seen. Where the earlier evidence is genuinely required, the
+scenario says so with a **Fold in on a jump** note and that evidence runs first.
+
+A walk-through turn ends on its closing line instead (`references/walk-through.md`). A showcase is a
+presentation and offers no choice: it keeps its own order (`Tracks` in the scenario file).
 
 ### Act: query, then narrate
 

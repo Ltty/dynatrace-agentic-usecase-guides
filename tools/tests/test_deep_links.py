@@ -46,6 +46,29 @@ def test_every_beat_says_why_it_exists():
             assert "**Why this step:**" in head, (
                 scenario, "a beat is missing its 'Why this step' line before the Objective")
 
+def test_every_beat_declares_what_it_requires():
+    """Real options need a real graph: a beat is offered once its Requires are complete.
+
+    Without this the agent either offers everything (a choice the argument cannot survive) or
+    nothing (the ok-only path the modes collapsed into). The showcase is exempt: it is a
+    presentation and orders itself with Tracks.
+    """
+    for scenario, path in v.SCENARIO_FILES.items():
+        if scenario in v.SHOWCASES:
+            continue
+        text = path.read_text(encoding="utf-8")
+        beats = re.findall(r"^## Beat (\d+) ", text, re.M)
+        declared = re.findall(r"^\*\*Requires:\*\* (.+)$", text, re.M)
+        assert len(declared) == len(beats), (scenario, len(beats), len(declared))
+        for n, req in zip(beats, declared):
+            if req.strip() == "none":
+                continue
+            for dep in re.findall(r"\d+", req):
+                assert int(dep) < int(n), (scenario, f"beat {n} requires {dep}: not an earlier beat")
+                assert dep in beats, (scenario, f"beat {n} requires {dep}: no such beat")
+        assert declared[0].strip() == "none", (scenario, "beat 1 must require nothing")
+
+
 def test_every_incident_proposes_an_approach():
     """Feedforward: the user should know the shape before the first query (conversation-craft).
 

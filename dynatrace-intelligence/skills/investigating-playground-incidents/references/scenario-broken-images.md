@@ -58,6 +58,8 @@ Three populations coexist — always say which one a number counts.
 
 ## Beat 1 — The Page
 
+**Requires:** none
+
 **Why this step:** Before we chase a cause we need the blast radius: what is degraded, for how many, and whose service it is.
 
 **Objective:** User grasps the blast radius: the image-provider Lambda is the root cause, it's a
@@ -99,6 +101,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?fr
 ---
 
 ## Beat 2 — The Deploy
+
+**Requires:** 1
 
 **Why this step:** Something made the Lambda slower at a point in time, so the next thing worth knowing is what shipped around it.
 
@@ -151,6 +155,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?fr
 
 ## Beat 3 — The Slowdown
 
+**Requires:** 2
+
 **Why this step:** A deploy near the slowdown is not yet a cause — to connect them we need what the Lambda's behaviour did at that moment.
 
 **Objective:** User sees what changed in the Lambda's behaviour at the deploy: it started
@@ -192,6 +198,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.services/explorer/services?detailsId={{R
 ## Beat 4 — The Slow Trace
 
 **`peak_moment: true`**
+
+**Requires:** 3
 
 **Why this step:** We know the behaviour changed; to say where the seconds actually go we need one slow request broken down end to end.
 
@@ -268,6 +276,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.distributedtracing/explorer?filter=dt.sm
 ## Beat 5 — The Humans
 
 **`peak_moment: true`**
+
+**Requires:** 1
 
 **Why this step:** Latency only matters as what someone waited through, so the last thing to establish is who felt it and what they saw.
 

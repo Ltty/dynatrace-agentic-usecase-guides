@@ -70,6 +70,8 @@ No `avg_order_value_usd` is defined, and the problem record has no affected-user
 
 ## Beat 1 — The Page
 
+**Requires:** none
+
 **Why this step:** Before anything else we need what the platform itself concluded: which entity is the root cause and what is only affected.
 
 **Objective:** User grasps the blast radius: the `/data` disk is the root cause Dynatrace Intelligence
@@ -111,6 +113,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?fr
 ---
 
 ## Beat 2 — The Disk
+
+**Requires:** 1
 
 **Why this step:** The root cause is a disk, so the first thing to establish is how little space there is and whether it is a spike or a standing condition.
 
@@ -154,6 +158,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.infraops/explorer?entityId=HOST-A2BABAD0
 ---
 
 ## Beat 3 — The CPU
+
+**Requires:** 2
 
 **Why this step:** The CPU is on the same host and in the same problem — to say whether the disk explains it we have to look at what the CPU data does and does not show.
 
@@ -207,6 +213,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.infraops/explorer?entityId=HOST-A2BABAD0
 ## Beat 4 — The Platform Victim
 
 **`peak_moment: true`**
+
+**Requires:** 2
 
 **Why this step:** One symptom the data does tie to the disk in so many words is the platform's own agent, which is worth seeing because it shows the blast radius reaching the monitoring itself.
 
@@ -271,6 +279,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.infraops/explorer?entityId=HOST-A2BABAD0
 ---
 
 ## Beat 5 — The Handoff
+
+**Requires:** 1
 
 **Why this step:** Everything we have now has to become something the owning host's team can act on, with the limits of the data stated.
 
