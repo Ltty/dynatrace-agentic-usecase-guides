@@ -198,6 +198,10 @@ The survey query's rows are the findings. Then:
    the user can choose between incidents on something other than a user count. The route names the
    subject, never a finding, a cause or a count: "whatever the AWS DevOps Agent made of it" stays true
    whatever that agent turns out to have written. Keep the whole bullet to a sentence and that clause.
+
+   **Join the route as a clause, and never open two of them the same way.** Three bullets that each
+   begin "We'd look at …" turn a differentiator back into a template — the thing the route exists to
+   fix. Attach it with a dash or a comma, or vary the lead where a sentence reads better.
 3. **The cloud direction is named here only if the greeting never ran** — when the user's first
    message was itself a survey trigger ("what's wrong?"), they have not been offered it yet, so add
    one line after the bullets, with a blank line before it: "Or something else: we could go after the
