@@ -593,10 +593,15 @@ tag changed inside the window; list both, as returned.
      Not to touch: [db] ([cpu_avg_pct]% CPU, [free_mem_min_mb] MB free) — low CPU, no memory headroom
 
    Goes to:       [the teams from the team split] — they act, we supply the evidence
-   Evidence:
-     Cost explorer:  [this beat's deep link]
+   Evidence:      [every labelled link given in this session, one per line, in the order they were given]
    Still open:    which lines close the gap to $[target_usd] is the owners' call
    ```
+
+**Evidence is every link, not the last one.** A tour that opened the Clouds overview, the function, its
+problem, the agents app and the cost explorer hands over all of them; a cost-track-only session hands
+over what that track gave. This block is also what the local report's `evidence` list is built from
+(`skills/local-runtime/SKILL.md` → "Report (local only)"), which is why a single-line Evidence section
+produced reports with one link where the incidents carried three to five.
 
    **These are findings, not a forecast.** The block says where the money is and where the evidence is
    thinnest — the best places to look first. It never says what any of them would save. Say that in the
