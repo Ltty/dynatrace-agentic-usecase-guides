@@ -1,0 +1,26 @@
+id: k8s-throttling-mechanism-demo-live
+tenant: demo-live
+runs: 3
+status: draft
+description: >-
+  DRAFT: the peak beat has to say that the container was throttled while using less than its own
+  ceiling, and say in plain words that this is being cut off rather than running out. The failure
+  mode to catch is the opposite read — "it needed more CPU" — which is what throttling alone sounds
+  like and what the staging exists to prevent.
+turns:
+- ask: Why is EasyTrade slow?
+  expect:
+    requires_dql: true
+- ask: What is that service actually waiting on?
+  expect:
+    requires_dql: true
+    reply_contains:
+    - throttl
+    reply_contains_any:
+    - limit
+    - ceiling
+    reply_excludes:
+    - ran out of CPU
+    - out of CPU
+    - needs more CPU
+    - the node was out

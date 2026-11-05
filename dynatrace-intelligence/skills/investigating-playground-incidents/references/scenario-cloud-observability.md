@@ -360,7 +360,9 @@ fetch dt.davis.problems, from: now()-7d, to: now()
           affected_users = dt.davis.affected_users_count, owning_team = team }
 | sort if(event.category == "SLOWDOWN", 0, else: 1) asc, if(isNotNull(change_at), 0, else: 1) asc, event.start desc
 | limit 1
-| fieldsAdd rc_at = indexOf(note, "Root Cause"), fix_at = indexOf(note, "Recommended Fix")
+| fieldsAdd rc_at = indexOf(note, "## Root Cause"), sol_at = indexOf(note, "## Solution"),
+    rf_at = indexOf(note, "Recommended Fix")
+| fieldsAdd fix_at = if(sol_at >= 0, sol_at + 12, else: rf_at)
 | fieldsAdd agent_root_cause = if(rc_at >= 0, substring(note, from: rc_at, to: rc_at + 500), else: substring(note, from: 0, to: 500))
 | fieldsAdd agent_fix = if(fix_at >= 0, substring(note, from: fix_at, to: fix_at + 300), else: "")
 | fields display_id, title = event.name, status = event.status, started = event.start, ended = event.end, affected_users,
@@ -370,7 +372,8 @@ fetch dt.davis.problems, from: now()-7d, to: now()
 
 A slowdown with a resource-limit change in the two hours before it comes first; without one, the newest annotated
 EasyTrade problem. `change` is the Kubernetes spec-change event's own text; `agent_fix` is the note's own
-"Recommended Fix" section, which is what staging step 5 quotes; `agent_root_cause` is the start of the
+"Solution" section, which is what staging step 5 quotes; its notes head that section `## Solution` and only
+rarely "Recommended Fix", so the query prefers the first and falls back to the second; `agent_root_cause` is the start of the
 agent's note at its root-cause heading.
 
 **Reveal:** First the agents: one row each, with the problems they wrote on in 7 days and their note types — the AWS
@@ -399,7 +402,7 @@ hours before it, and give the agent's root cause alone.
    it — goes from alert to a named cause and a proposed fix without anyone assembling the evidence by hand. AI is only as
    good as the context it gets.
 4. The agent's root cause, quoted and attributed, then the agents table, one row per agent.
-5. The proposed fix in one line, quoted from `agent_fix` — the note's own "Recommended Fix" — as the
+5. The proposed fix in one line, quoted from `agent_fix` — the note's own "Solution" section — as the
    agent's recommendation, not something applied. Empty `agent_fix` means the note carried no fix
    section: say that, and do not infer one from the root cause. Name the team only from **this**
    problem's `owning_team`; it is often null, and then it is "the owning team", never the team

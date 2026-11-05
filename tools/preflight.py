@@ -152,6 +152,7 @@ SCENARIO_ENVIRONMENTS = {
     "payment-failure": ("playground", "demo-live"),
     "broken-images": ("playground",),
     "lambda-iam-denied": ("demo-live",),
+    "k8s-cpu-throttling": ("demo-live",),
     "disk-cpu-cascade": ("dev",),
     "cloud-observability": ("demo-live",),
 }

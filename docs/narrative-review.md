@@ -21,16 +21,16 @@ which is why no file states a figure. That is deliberate and is not counted agai
 
 ## Summary
 
-| Principle | `payment-failure` | `broken-images` | `disk-cpu-cascade` | `lambda-iam-denied` |
-|---|---|---|---|---|
-| Anchoring | pass | pass (fixed: beat 2 led on a row count) | pass, strongest | pass for beats 1–4; beat 5 leads on a note count, sanctioned below |
-| Goal Gradient | n/a — no target exists | partial: baseline named once, never carried forward | **was a miss — fixed** | n/a — no target exists |
-| Serial Position | pass for beats; `commit` mid-table | pass for beats; null-owner caveat buried in a cell | **Contents fixed**; peak deliberately not last | **was a miss — fixed**: beat 1 returned nine fields with the owner mid-row |
-| Storytelling | pass; **beat 5 stands alone** | pass; **beat 5 stands alone** | pass, strongest; beat 3 disconnected by instruction | **was a gap — fixed**: the chain named no cause for the change it was built on |
-| Curiosity Gap | pass | pass, strongest | pass — gaps name limits, not next beats | pass — beats 2 and 3 both end on a gap the next beat opens |
-| Progressive Disclosure | pass | front-loads impact dimensions never reused | **was self-contradictory — fixed** | pass — five beats, one query each |
-| Loss Aversion | **miss — see below** | n/a, no figure | n/a, no figure; risk framing used at the peak | n/a, no figure by design |
-| Curse of Knowledge | fixed (5xx) | fixed (baseline) | fixed (I/O wait) | **was the worst miss — fixed** (role, ARN, inline policy, `/*`) |
+| Principle | `payment-failure` | `broken-images` | `disk-cpu-cascade` | `lambda-iam-denied` | `k8s-cpu-throttling` |
+|---|---|---|---|---|---|
+| Anchoring | pass | pass (fixed: beat 2 led on a row count) | pass, strongest | pass for beats 1–4; beat 5 leads on a note count, sanctioned below | pass — beat 3's staging leads on usage against the ceiling, not a series count |
+| Goal Gradient | n/a — no target exists | partial: baseline named once, never carried forward | **was a miss — fixed** | n/a — no target exists | n/a — no target; the limit is a threshold, and beat 3 places usage against it |
+| Serial Position | pass for beats; `commit` mid-table | pass for beats; null-owner caveat buried in a cell | **Contents fixed**; peak deliberately not last | **was a miss — fixed**: beat 1 returned nine fields with the owner mid-row | pass; beat 1's reveal names three values and leaves the row off screen |
+| Storytelling | pass; **beat 5 stands alone** | pass; **beat 5 stands alone** | pass, strongest; beat 3 disconnected by instruction | **was a gap — fixed**: the chain named no cause for the change it was built on | pass, strongest: page -> which service -> why -> what changed -> what to set |
+| Curiosity Gap | pass | pass, strongest | pass — gaps name limits, not next beats | pass — beats 2 and 3 both end on a gap the next beat opens | pass — beats 2 and 3 each end on the question the next answers |
+| Progressive Disclosure | pass | front-loads impact dimensions never reused | **was self-contradictory — fixed** | pass — five beats, one query each | pass — five beats, one query each |
+| Loss Aversion | **miss — see below** | n/a, no figure | n/a, no figure; risk framing used at the peak | n/a, no figure by design | n/a, no figure; the cost framing is the tuning that backfired |
+| Curse of Knowledge | fixed (5xx) | fixed (baseline) | fixed (I/O wait) | **was the worst miss — fixed** (role, ARN, inline policy, `/*`) | **the main risk — addressed**: throttling, limits vs requests, slices |
 
 ---
 
@@ -136,4 +136,49 @@ which is why no file states a figure. That is deliberate and is not counted agai
   Agent writes notes with no readable summary (since 2026-10-27, see
   `docs/scenarios/lambda-iam-denied.md`). The beat is honest about it rather than silent, but a
   reader meeting the scenario for the first time meets the degraded path.
+
+---
+
+## `k8s-cpu-throttling`, reviewed on arrival 2026-11-05
+
+The lesson from `lambda-iam-denied` was applied before writing rather than after: the review there
+found that the scenario assumed its own vocabulary, so this one was written with the glosses in place.
+
+### What the standard changed while writing
+
+- **Curse of Knowledge is the whole difficulty of this scenario.** Its argument cannot be followed
+  without knowing that a CPU *limit* is enforced in short slices, that throttling means being stopped
+  mid-work rather than being short of CPU, and that a *request* is a different field that fails a
+  different way. All three are glossed where they first appear, and beat 3's staging step 3 exists
+  only to say "not a shortage — being cut off" in plain words. The scenario would otherwise read as
+  three numbers with no meaning.
+- **Anchoring put the right number first.** Beat 3 returns four series, and the tempting opening is
+  how many or how high the throttling went. The staging leads instead with usage against the ceiling,
+  because that pair is the finding and throttling alone reads as "it needed more CPU", which is the
+  opposite of what happened.
+- **Framing, in its literal form.** The beat states the absolute (millicores used) and the share it
+  implies (well under the ceiling) because the share is what carries the meaning, and the absolute
+  alone invites the wrong fix.
+
+### Deliberate deviations, recorded so they are not "fixed" later
+
+- **Beat 2 deliberately proves a negative.** Its point is that the *other* services in the namespace
+  are normal, which is what rules out the node and the cluster. A reader skimming will see a table of
+  services and wonder why the slow one is not simply shown alone; the neighbours are the evidence.
+- **The peak is beat 3, not beat 4.** Naming the edited field is the more concrete reveal, but it only
+  means anything once the mechanism is established, and beat 4 degrades to nothing on an off-cycle
+  occurrence. The lesson from the sibling scenario is not to place the peak on a beat that sometimes
+  returns no rows.
+- **Beat 5 compares the agent's conclusion to ours rather than just quoting it.** That is not padding:
+  an agent that agrees with evidence the user has already seen is checkable, which is the only reason
+  to trust the part they cannot check.
+
+### Open
+
+- **The root cause entity rotates between three entities**, one of them an application. Beat 1 states
+  it as returned, so the scenario reads correctly either way, but the user sees a different root cause
+  named on different days and nothing explains why. Explaining it would mean telling them how Dynatrace
+  picks, which is not in any returned field.
+- **Off-cycle occurrences have no spec change**, so beat 4 can return nothing even though `pref` makes
+  the resolver avoid them. The beat says so honestly; the arc is weaker on those runs.
 
