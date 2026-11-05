@@ -23,6 +23,7 @@ Reveals describe the *shape* of a finding, never its values. Commit SHA, excepti
 | `service_name` | "payment service" |
 | `avg_order_value_usd` | 87 (also in the survey query's `revenue_usd`) |
 | `symptom` | "card payments failing at checkout" |
+| `approach` | "Here's how I'd work it: start with who it hit, then what changed on the service just before, then the failing requests themselves, and finish on what the shoppers saw." |
 | `pull_line` | "Pulling the deployments, the failure rate, the failing requests and the affected sessions together." |
 
 The failure rate comes from the service deep dive (beat 3), never from the problem record.

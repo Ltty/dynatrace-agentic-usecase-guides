@@ -1,0 +1,31 @@
+id: opening-experience-demo-live
+tenant: demo-live
+runs: 3
+status: draft
+description: >-
+  DRAFT: the opening is the one turn where the user has least footing, so each bullet leads on what a
+  person using the product met, then carries a route naming what the investigation is about. The
+  failure to catch is a bullet written from the component's side ("the image provider was erroring"),
+  which means nothing to a viewer who does not know the architecture.
+turns:
+- ask: What's wrong right now?
+  expect:
+    first_read_contains: /SKILL.md
+    reads_include:
+    - session-protocol.md
+    reads_exclude:
+    - scenario-
+    requires_dql: true
+    reply_contains:
+    - Which should we take first
+    reply_contains_any:
+    - AWS DevOps Agent
+    - resource limits
+    - shipped into
+    reply_excludes:
+    - lambda-iam-denied
+    - k8s-cpu-throttling
+    - payment-failure
+    - image provider was erroring
+    - failure rate
+    - error rate

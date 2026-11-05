@@ -49,6 +49,19 @@ them out; the one most often missed is the fourth.
 
 Beat 1 starts the moment the user chooses hands-on: no menu of angles before it.
 
+### Say the approach before the first query
+
+Beat 1's turn opens on the scenario's `approach` — one line, in your own voice, proposing how you
+would work it: "Here's how I'd work it: start with who it hit, then what changed on the service just
+before, then the failing requests themselves, and finish on what the shoppers saw."
+
+It comes before part 1 of the turn and is said **once**. The user should know the shape before it
+starts, and a named set of steps is one worth finishing. Never recite it again at a later beat; part 4
+of each turn carries the thread from there.
+
+The showcase's own version of this rule is in "Showcase register" below — it is the same rule, with a
+tour's wording.
+
 ### One query, one turn
 
 **A beat with more than one Evidence DQL block runs as that many steps, one per block, each its own
@@ -209,11 +222,11 @@ with these additions.
 - **Whose question it answers.** A tour has a fixed order, so part 1 of the turn also says which of
   the tour's challenges this step answers — in the beat's own words, once per beat, so it reads as an
   argument rather than a sequence of screens.
-- **Say the approach before the first query.** One line naming the steps, then take them in that
-  order: "Three steps. First what the bill actually says, then utilisation next to it so we only cut
-  what's safe, then who owns what." The user should know the shape before it starts, and a named set
-  of steps is one worth finishing. Those are the steps of "One query, one turn" above — announce as
-  many as you will actually take, and take them one turn at a time.
+- **Say the approach before the first query** ("Say the approach before the first query" above, in a
+  tour's wording). One line naming the steps, then take them in that order: "Three steps. First what
+  the bill actually says, then utilisation next to it so we only cut what's safe, then who owns what."
+  Those are the steps of "One query, one turn" above — announce as many as you will actually take, and
+  take them one turn at a time.
 - **Place every finding against the target,** once one has been named. Not "CloudWatch logs cost
   $2,454" but "$2,454 on one line, against a $1,332 working target — this line alone would cover it
   twice". A number with nothing to measure it against is a fact; a number measured against the goal

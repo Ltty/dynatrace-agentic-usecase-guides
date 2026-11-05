@@ -46,6 +46,36 @@ def test_every_beat_says_why_it_exists():
             assert "**Why this step:**" in head, (
                 scenario, "a beat is missing its 'Why this step' line before the Objective")
 
+def test_every_incident_proposes_an_approach():
+    """Feedforward: the user should know the shape before the first query (conversation-craft).
+
+    The showcase states its approach in its own register, so it is exempt; every incident
+    carries an `approach` row in Business context, said once at beat 1.
+    """
+    for scenario, path in v.SCENARIO_FILES.items():
+        if scenario in v.SHOWCASES:
+            continue
+        text = path.read_text(encoding="utf-8")
+        assert "| `approach` |" in text, (scenario, "no `approach` row in Business context")
+
+
+def test_every_discovery_hook_has_a_route():
+    """A bullet is the hook plus its route; without one the openings read interchangeably.
+
+    Parsed from the markdown table rather than a registry, because the survey may not open a
+    scenario file (tests/evals/dt-agent/survey-live.yaml -> reads_exclude) and so the route has
+    to live here.
+    """
+    text = v.SESSION_PROTOCOL.read_text(encoding="utf-8")
+    table = text.split("**Discovery hooks.**", 1)[1]
+    rows = [r for r in table.splitlines() if r.startswith("| `")]
+    assert len(rows) >= 5, rows
+    for row in rows:
+        cells = [c.strip() for c in row.strip().strip("|").split("|")]
+        assert len(cells) == 4, (cells[0], "expected scenario | hook | route | notes")
+        assert cells[2], (cells[0], "empty Route cell")
+
+
 def test_links_use_known_tokens_only():
     for scenario, path in v.SCENARIO_FILES.items():
         for label, url in v.deep_links(path):

@@ -125,6 +125,26 @@ discovery hook is a row in the "Discovery hooks" table in `session-protocol.md`,
 (`{affected_users}`, `{duration_min}`, `{revenue_usd}`). Only reference values the survey row supplies. If the problem record carries no clean rate, describe severity qualitatively and let a beat's query
 carry the exact number.
 
+**The hook opens on what a person using the product met, not on the component that broke.** "Shoppers
+couldn't pay — card payments failed at checkout" rather than "the payment service was failing": a viewer
+who does not know the architecture cannot size the second one. Keep it to scenario knowledge, never a
+measured claim the survey row does not carry.
+
+**Its `Route` cell** is a short closing clause naming what the investigation is *about* — "a cloud
+permission, and whatever the AWS DevOps Agent made of it" — so the user can choose between incidents on
+something other than a user count. It names the subject, never a finding, a cause or a count, and is
+phrased openly enough that a beat returning no rows does not contradict it. `test_deep_links.py` fails a
+hook row with an empty Route.
+
+Hook and route live in `session-protocol.md`, never in the scenario file: the survey answers without
+opening one (`tests/evals/dt-agent/survey-live.yaml` → `reads_exclude`).
+
+**`approach`** is a row in the scenario's own Business context: one line in the SRE's voice proposing how
+they would work it ("Here's how I'd work it: start with who it hit, then what changed on the service just
+before, …"), said once as beat 1 opens and never recited again. It is the Feedforward principle below, and
+`test_deep_links.py` fails an incident scenario without one. It is **not** `pull_line`, which is a status
+line shown while queries run.
+
 The **Handoff fields** table says which beat provides each value the agent needs to hand an incident to its
 owner (owning team, commit and link, populations, replay link). If the owning team and the deploy owner
 differ, say which is who. The row `Goes to` says who the handoff goes to: the team, or the host when there is no
@@ -184,7 +204,7 @@ reviewable.
 
 | Principle | The rule it becomes |
 |---|---|
-| Feedforward | State the approach before the first query, so the user knows the shape before it starts |
+| Feedforward | State the approach before the first query, so the user knows the shape before it starts — the scenario's `approach` row, said once at beat 1 |
 | Goal Gradient | Once a target is named, place every finding against it — "$2,454 against a $1,332 target" |
 | Storytelling Effect | A scenario has an order and an argument; each Reveal connects to the one before |
 | Chunking, Miller's Law | 3–5 fields per table, findings grouped |

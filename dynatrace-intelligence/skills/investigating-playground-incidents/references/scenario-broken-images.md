@@ -22,6 +22,7 @@ Reveals describe the *shape* of a finding, never its values. Commit SHAs, timest
 |---|---|
 | `service_name` | "image service" |
 | `symptom` | "product images loading slowly" |
+| `approach` | "Here's how I'd work it: who it hit first, then the deploys around it, then where the request time actually goes, and finish on the sessions that sat through it." |
 | `pull_line` | "Pulling the deploys, the response times, the slow requests and the affected sessions together." |
 
 This is a **slowdown, not an outage**: image requests still return 200, just seconds late. Never call it failing or erroring. No `avg_order_value_usd` is defined: no revenue figure.

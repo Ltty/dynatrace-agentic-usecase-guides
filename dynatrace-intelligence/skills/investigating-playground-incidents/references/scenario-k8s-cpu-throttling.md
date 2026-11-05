@@ -22,6 +22,7 @@ Reveals describe the *shape* of a finding, never its values. Response times, mil
 |---|---|
 | `service_name` | "EasyTrade" |
 | `symptom` | "the trading app responding slowly" |
+| `approach` | "Here's how I'd work it: who it hit, then which service is holding the time, then that container's own CPU numbers, then the change behind them, and what the troubleshooting agent wrote on the record." |
 | `pull_line` | "Pulling the problem, the slow services, the container's CPU against its limit, the spec change and the agent's analysis together." |
 
 This is a **slowdown, not an outage**: requests succeed, they take far longer than normal. Never call it failing or erroring. No `avg_order_value_usd` is defined: no revenue figure.

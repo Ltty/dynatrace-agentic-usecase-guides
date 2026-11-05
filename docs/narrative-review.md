@@ -4,6 +4,17 @@ Verdicts for each scenario against the selected set in `AUTHORING.md` → "The n
 A verdict is not a read-through: it names what the file satisfies, what it does not, and the line
 that fails.
 
+**Feedforward was the one selected principle no incident had ever satisfied.** It was written into
+`conversation-craft.md` inside the *Showcase register*, so only the cloud tour stated its approach before
+querying; every incident went straight into beat 1 with the user not knowing the shape. Fixed 2026-11-05
+for all five by promoting the rule to the general beat loop and giving each scenario an `approach` row.
+Recorded as one row rather than five sections because it was one omission.
+
+The openings had the matching problem and it is the same principle pair: they named the component that
+broke ("the image provider was erroring") rather than what a person met ("product images aren't loading
+in the shop"). That is Curse of Knowledge at the one turn where the user has least footing, and it is now
+the hooks' first clause.
+
 Reviewed 2026-11-04 against the fifteen selected principles. `lambda-iam-denied` was added later the
 same day and reviewed on arrival; its verdict is the last column and its own section below. Two of them are owned centrally and
 the scenarios inherit them rather than restating them:
@@ -23,6 +34,7 @@ which is why no file states a figure. That is deliberate and is not counted agai
 
 | Principle | `payment-failure` | `broken-images` | `disk-cpu-cascade` | `lambda-iam-denied` | `k8s-cpu-throttling` |
 |---|---|---|---|---|---|
+| Feedforward | **was a miss — fixed** | **was a miss — fixed** | **was a miss — fixed** | **was a miss — fixed** | **was a miss — fixed** |
 | Anchoring | pass | pass (fixed: beat 2 led on a row count) | pass, strongest | pass for beats 1–4; beat 5 leads on a note count, sanctioned below | pass — beat 3's staging leads on usage against the ceiling, not a series count |
 | Goal Gradient | n/a — no target exists | partial: baseline named once, never carried forward | **was a miss — fixed** | n/a — no target exists | n/a — no target; the limit is a threshold, and beat 3 places usage against it |
 | Serial Position | pass for beats; `commit` mid-table | pass for beats; null-owner caveat buried in a cell | **Contents fixed**; peak deliberately not last | **was a miss — fixed**: beat 1 returned nine fields with the owner mid-row | pass; beat 1's reveal names three values and leaves the row off screen |

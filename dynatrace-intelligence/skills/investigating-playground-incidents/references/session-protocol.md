@@ -187,10 +187,17 @@ The survey query's rows are the findings. Then:
    ("Nothing is open", "No open issues"): the user asked what is happening, and the answer is the
    incidents.
 
-   Then one bullet per incident, from its discovery hook (below), trimmed to a single line, in the
-   right tense, with its duration, status and cost. For a closed problem "how long ago" comes from
-   `ended_min_ago` (round to hours above 90 minutes), never estimated from timestamps. Each incident
-   appears once: the bullet is the sentence, not a repeat of one.
+   Then one bullet per incident, from its discovery hook (below), in the right tense, with its
+   duration, status and cost. For a closed problem "how long ago" comes from `ended_min_ago` (round to
+   hours above 90 minutes), never estimated from timestamps. Each incident appears once: the bullet is
+   the sentence, not a repeat of one.
+
+   **A bullet is the hook, then its `Route`.** The hook opens on what a person using the product met —
+   not on the component that broke, which means nothing to someone who does not know the
+   architecture — and the route is a short closing clause naming what the investigation is *about*, so
+   the user can choose between incidents on something other than a user count. The route names the
+   subject, never a finding, a cause or a count: "whatever the AWS DevOps Agent made of it" stays true
+   whatever that agent turns out to have written. Keep the whole bullet to a sentence and that clause.
 3. **The cloud direction is named here only if the greeting never ran** — when the user's first
    message was itself a survey trigger ("what's wrong?"), they have not been offered it yet, so add
    one line after the bullets, with a blank line before it: "Or something else: we could go after the
@@ -227,13 +234,13 @@ The survey query's rows are the findings. Then:
 the facts and the framing, not the wording: `problem_state` sets the tense, and a `live_recent` row is
 rewritten into the past before it is said.
 
-| `scenario` | Hook | Notes |
-|---|---|---|
-| `payment-failure` | "The payment service is failing for {affected_users} users — it's been going on for {duration_min} minutes. That's roughly ${revenue_usd} in abandoned carts." | Closed (`live_recent`): "The payment service failed for {affected_users} users over {duration_min} minutes — roughly ${revenue_usd} in abandoned carts." |
-| `broken-images` | "The image service is degraded — product images are slow for {affected_users} users, and it's been going on for {duration_min} minutes." | A slowdown, not an outage: never "failing" or "erroring". No cost. State no response times: the survey has none. |
-| `lambda-iam-denied` | "Product images are failing on the storefront — the image provider has been erroring for {affected_users} users over {duration_min} minutes." | An outage, not a slowdown: the requests error, they are not slow. No cost. State no failure rate here: the survey has none. |
-| `k8s-cpu-throttling` | "EasyTrade is responding slowly — the trading app has been degraded for {affected_users} users over {duration_min} minutes." | A slowdown, not an outage: never "failing" or "erroring". No cost. State no response times: the survey has none. The record usually carries no owning team. |
-| `disk-cpu-cascade` | "The frontend-high-cpu host has had a problem open for {duration_days} days and {duration_hours} hours: low available disk space on {root_cause}, with CPU saturation on the same host. It affects {affected_count} entities." | Entities, never users; no cost. For an active problem say it is still open. Never convert `duration_min` yourself. |
+| `scenario` | Hook | Route | Notes |
+|---|---|---|---|
+| `payment-failure` | "Shoppers can't pay — card payments are failing at checkout for {affected_users} people, and it's been going on for {duration_min} minutes. That's roughly ${revenue_usd} in abandoned carts." | the failing requests, and what shipped into the service just before | Closed (`live_recent`): "Shoppers couldn't pay — card payments failed at checkout for {affected_users} people over {duration_min} minutes, roughly ${revenue_usd} in abandoned carts." |
+| `broken-images` | "Product images are crawling in the shop — they load eventually, but slowly, for {affected_users} people, and it's been going on for {duration_min} minutes." | where the request time actually goes, and the deploys around it | A slowdown, not an outage: never "failing" or "erroring", and never "not loading". No cost. State no response times: the survey has none. |
+| `lambda-iam-denied` | "Product images aren't loading in the shop — {affected_users} people hit product pages with the images missing over {duration_min} minutes." | a cloud permission, and whatever the AWS DevOps Agent made of it | An outage, not a slowdown: the requests error, they are not slow. No cost. State no failure rate here: the survey has none. |
+| `k8s-cpu-throttling` | "The trading app got slow enough for people to feel it — EasyTrade was degraded for {affected_users} people over {duration_min} minutes." | Kubernetes resource limits, and what the troubleshooting agent made of them | A slowdown, not an outage: never "failing" or "erroring". No cost. State no response times: the survey has none. The record usually carries no owning team. |
+| `disk-cpu-cascade` | "A host is running out of room — {root_cause} is low on disk, with CPU saturation on the same box, open for {duration_days} days and {duration_hours} hours. Nothing user-facing is on the record; it affects {affected_count} entities." | disk and CPU on one host, and what the disk has blocked | Entities, never users; no cost. For an active problem say it is still open. Never convert `duration_min` yourself. |
 
 ---
 

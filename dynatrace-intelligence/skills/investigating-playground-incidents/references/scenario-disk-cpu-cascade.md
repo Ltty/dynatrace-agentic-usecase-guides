@@ -22,6 +22,7 @@ Reveals describe the *shape* of a finding, never its values. Timestamps, percent
 |---|---|
 | `service_name` | "frontend-high-cpu host" |
 | `symptom` | "low disk space on /data, with CPU saturation on the same host" |
+| `approach` | "Here's how I'd work it: what the record says, then the disk, then the CPU on the same host, then what the disk has actually blocked, and a handoff for whoever owns the box." |
 | `pull_line` | "Pulling the disk, the CPU, the blocked update and the problem record together." |
 
 No `avg_order_value_usd` is defined, and the problem record has no affected-user count: report `affected_count` (entities), never users. Its impact level is Infrastructure; nothing here says whether any user was affected, so claim neither.

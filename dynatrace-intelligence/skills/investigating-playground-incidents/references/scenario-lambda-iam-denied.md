@@ -23,6 +23,7 @@ Reveals describe the *shape* of a finding, never its values. Counts, failure rat
 |---|---|
 | `service_name` | "image provider" |
 | `symptom` | "product images failing on the storefront" |
+| `approach` | "Here's how I'd work it: who it hit, then the shape of the failures, then what they actually throw, then the permission behind that, what changed it, and what the agent found on the AWS side." |
 | `pull_line` | "Pulling the problem, the failing requests, the exception behind them, the function's permissions and the agent's notes together." |
 
 This is an **outage, not a slowdown**: the requests return an error, they are not merely late. No `avg_order_value_usd` is defined: no revenue figure, and none is to be estimated from the affected users.
