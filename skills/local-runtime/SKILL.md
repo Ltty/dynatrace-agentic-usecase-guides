@@ -107,7 +107,26 @@ It prints the file it wrote.
   omitted when the spend has none). An action with no `why` is a line item, not a recommendation.
   **Never a saving.** No result holds what an action would save, so no `why` claims one; the report
   says in its own words that these are places to look, not a forecast.
-- **`evidence`** is the deep links you already gave, each with the label you used for it.
+- **`evidence`** is **every** deep link you gave in the session, each with the label you used for it —
+  not just the last one. A five-beat investigation hands over five links; one is a report nobody can
+  check. This is the field most often sent short.
+
+A fully-populated incident payload, so the shape is not inferred from the minimal one above. Omit any
+key the session has no source for; send no key you would have to invent:
+
+```json
+{ "kind": "incident", "environment": "<env>", "scenario": "<id>",
+  "title": "<what broke, in plain words>", "display_id": "P-…",
+  "headline": "<the handoff's What happened>",
+  "window": { "start": "<UTC>", "end": "<UTC>", "duration": "<the close's elapsed figure>" },
+  "stats": [ { "label": "Affected users (problem record)", "value": "…" },
+             { "label": "Failure rate at peak", "value": "…" } ],
+  "incident": { "when": "…", "detected": "…", "impact": "…", "rate": "…", "cause": "…" },
+  "timeline": [ { "time": "<UTC>", "what": "<one beat's finding>" } ],
+  "evidence": [ { "label": "<the label you used>", "url": "<the link you gave>" } ],
+  "goes_to": "<owning team, or the workload when there is none>",
+  "still_open": "<what the data does not settle>" }
+```
 - **If the session continues past the close** — the Extra, or a beat the user went back for — render
   again at the end of that turn and give the new path. A report that silently omits what came after
   it is worse than no report.
