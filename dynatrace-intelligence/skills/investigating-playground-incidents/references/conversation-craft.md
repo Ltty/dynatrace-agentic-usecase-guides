@@ -43,7 +43,9 @@ them out; the one most often missed is the fourth.
 
 1. **Why this step** — the beat's `Why this step` line, said before the query, in terms of what we are
    trying to settle. "To know whether the deploy caused this, we need the failure rate either side of it."
-2. **The evidence** — all queries first, then a table of 3–5 fields (below).
+2. **The evidence** — all queries first, then a table of 3–5 fields (below). Every table has a header
+   row naming its columns, and a column name says what the number is and its unit: "95th percentile
+   (ms)", not "p95". A table whose header is blank makes the reader guess.
 3. **What it means** — your read, and what it changes about the question we are answering. Not just
    "the rate jumped to 61%" but what that settles and what it leaves open.
 4. **What that makes next** — the next step *and why it follows from what we just saw*. "The rate moves
