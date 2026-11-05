@@ -142,11 +142,16 @@ between `first_deploy` and the problem start (`deploy_before_problem_min`; negat
 
 **Success signal:** User asks which commit to revert, who owns it, or for deployment details.
 
-**Deep link** (label "Explain with Dynatrace Intelligence"):
+**Deep link** (label "The deploys on the problem record"):
 
 ```text
-https://{{LINK_HOST}}/ui/intent/dynatrace.davis.copilot/ask-question#%7B%22prompt%22%3A%22Explain%20what%20happened%20in%20the%20problem%20with%20id%20{{PROBLEM_ID}}%2C%20why%20it%20happened%2C%20and%20actionable%20steps%20to%20remediate%20it.%22%2C%22execute%22%3Atrue%7D
+https://{{LINK_HOST}}/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TF_FROM_MS}}&to={{TF_TO_MS}}{{PROBLEM_SEGMENTS}}
 ```
+
+The deploy events are correlated onto the problem record, which is the view that shows what this beat
+found. An Assist prompt is **not** a deep link: `docs/AUTHORING.md` step 5 fails a link that opens a
+chat, and testrun 14 caught this one doing exactly that. The prompt is kept in
+`docs/scenarios/payment-failure.md` for anyone who wants it by hand.
 
 ---
 

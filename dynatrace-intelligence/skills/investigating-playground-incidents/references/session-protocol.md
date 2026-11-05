@@ -394,14 +394,20 @@ Still open:     [what the data does not show]
   run**, in whatever order they ran, folded-in beats included — after that turn's deep link, not in a
   new turn, and not only when asked. Check the set, not the number: a session that ran 5, 6, 1, 2, 3, 4
   is complete at the end of 4, and the close belongs in that turn.
-- *Walk-through:* with the handoff block, in the same response as the last step.
+- *Walk-through:* in the same response as the last step.
 - *Either delivery, on request:* the handoff block, then the rest of the template below (without the timeline line, unless it is an explore session).
+
+**Both deliveries close with the handoff block, always.** It is the point of the whole session — the
+owning team, and what we hand them — so it is printed in the console whether or not anyone asked, and it
+is what the report's `evidence` list is built from. A close without it leaves the user with a story and
+no handover, and leaves the report with no links.
 
 **What it contains.** Fill this template, in this order, from this conversation's results. The payoff
 line is part of the close, never optional, and the way out is one of the exact lines below: do not
 replace either with a question of your own ("Want me to check whether anything else is open?").
 
 ```text
+[The handoff block, exactly as "Handoff block" above defines it.]
 [Explore only] Timeline: one sentence per beat, chronological, with the actual values you showed.
 From the first look to the full picture in [X] minutes: [the two or three things established, such as the change, the exact error and the sessions with a replay].
 [The affected-sessions link, when the scenario's Handoff fields table has one and the handoff block has not already given it.]

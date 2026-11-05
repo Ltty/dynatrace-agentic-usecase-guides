@@ -193,7 +193,12 @@ that is not the view the answer shows.
 **The tail of every turn runs in this order, and nothing else goes after it:**
 
 1. the deep link — on the beat's **last** step only; earlier steps have none;
-2. the readiness cue, as the final line.
+2. the ending — the option block or the readiness cue — as the final thing in the turn.
+
+**Say the ending once.** Part 4 of the turn ("what that makes next") names what follows and why; it does
+**not** cue, and it does not list the options. Those belong to the tail, after the link. A turn that
+names the next step, then stamps and links, then asks again has ended twice, and the second ending
+reads as a stammer.
 
 A runtime that shows a proof stamp puts it immediately before the deep link, or before the readiness
 cue on a step that has no link (`skills/local-runtime/SKILL.md`). Never after the cue: the cue is what
