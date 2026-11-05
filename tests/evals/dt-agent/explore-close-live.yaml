@@ -14,8 +14,8 @@ turns:
   expect:
     no_dql: true
     reply_contains:
-    - hands-on with me
-    - full incident briefing
+    - pick what we look at
+    - walk you through it step by step
 - ask: Hands-on, please.
   expect:
     requires_dql: true

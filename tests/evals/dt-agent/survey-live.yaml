@@ -23,11 +23,12 @@ turns:
     - error rate
     - queryId
     - take you through
-    - hands-on
     - Nothing is open
     - 'davis '
     - davis'
     - 'copilot '
+    reply_excludes_quoted:
+    - walk you through it step by step
     reply_contains:
     - '{truth.payment_failure.affected_users}'
     - '{truth.broken_images.affected_users}'

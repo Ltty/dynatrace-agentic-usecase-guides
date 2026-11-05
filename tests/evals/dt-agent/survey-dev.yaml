@@ -17,8 +17,8 @@ turns:
     - frontend-high-cpu
     - /data
     reply_contains:
-    - hands-on with me
-    - full incident briefing
+    - pick what we look at
+    - walk you through it step by step
     reply_excludes:
     - Environment looks clean
     - Nothing is open

@@ -8,7 +8,7 @@ turns:
 - ask: Are there any open issues right now?
   expect:
     requires_dql: true
-- ask: The full briefing.
+- ask: Walk me through it.
   expect:
     requires_dql: true
 - ask: Wrap it up for me.

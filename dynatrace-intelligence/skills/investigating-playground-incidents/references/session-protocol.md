@@ -217,18 +217,20 @@ The survey query's rows are the findings. Then:
    others", and never described as finished business. If the user takes the one you did not propose,
    that gets no comment and no second attempt.
 5. End on exactly one question, and nothing after it, naming every option that was listed:
-   - **One option only:** its mode question, exactly: "Do you want to dig into it hands-on with me, one step at a time, or should I give you the full incident briefing, the whole story first and the evidence after?"
+   - **One option only:** its mode question, exactly: "Do you want to pick what we look at as we go, or should I walk you through it step by step?"
    - **Several options:** exactly: "Which should we take first — [A], [B] or [the cloud bill]?"
      Each option is named the way its own bullet named it — the service, in plain words — never by
      its scenario id. `payment-failure` and `broken-images` are internal names: the user may type
      one, you never say one. Once the user has picked, reply "[A] it is." and that scenario's mode
      question. Run no query for that reply. A showcase has no mode question: picking it starts its first
      step (SKILL.md → "Classify the opening").
-6. Read the answer to the mode question. Hands-on, "explore", "dig in": `delivery` is `explore`, and beat 1
-   starts at once, with no menu of angles before it. The briefing, the report, "start to finish", or an
-   unspecific yes ("yes", "ok", "sure", "go ahead"): `delivery` is `walk-through`; read
-   `references/walk-through.md` and open with its report, before any beat. An answer that decides
-   neither ("both?", "what's the difference?") gets five words: "Hands-on, or the full briefing?"
+6. Read the answer to the mode question. Picking as we go, "hands-on", "explore", "dig in", "I'll
+   steer": `delivery` is `explore`, and beat 1 starts at once, with no menu of angles before it. Being
+   walked through, "you drive", "step by step", or an unspecific yes ("yes", "ok", "sure", "go ahead"):
+   `delivery` is `walk-through`; read `references/walk-through.md` and take beat 1 as its first step.
+   Both deliveries walk every beat — the difference is whether anything is offered at the end of a
+   turn, so neither answer is the short one. An answer that decides neither ("both?", "what's the
+   difference?") gets six words: "You pick as we go, or me?"
 7. Never ask a question the user's message already answered. Naming an angle (traces, the deployment, the
    affected users) is a direct start (`explore`); "walk me through…" or "brief me on…" is a walk-through.
    Neither gets the survey's questions. Naming only an incident, a service or a scenario id is a pick, not

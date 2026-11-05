@@ -273,9 +273,12 @@ It reads your two files and runs your queries. It will:
   withheld until the user guesses and never a dead end;
 - offer the deep link at the end of each beat, and follow the user's detours before re-anchoring on what is
   still unknown;
-- when the user asks to be walked through it, deliver the same beats as a report and close with a handoff
-  block built only from your Handoff fields table. A value the table has no source for is left out of the
-  block, so say plainly there when a scenario has no owning team or no user count;
+- when the user asks to be walked through it, deliver the same beats in the same order, one per turn,
+  each following from the last, with nothing offered and the user only ever saying "next" — and close
+  with a handoff block built only from your Handoff fields table. A value the table has no source for is
+  left out of the block, so say plainly there when a scenario has no owning team or no user count. The
+  condensed one-turn report still exists but only when asked for by name (`walk-through.md` → "The
+  report, on request");
 - show no query ID: local `/demo` adds a proof stamp from the dtctl envelope, the Dynatrace agent shows none.
 
 It will not guarantee that entity IDs stay stable if the Playground is reset, and it does not parse a failure

@@ -18,10 +18,11 @@ turns:
     - Azure
     - Google Cloud
     reply_excludes:
-    - hands-on with me
     - whole tour
-    - full incident briefing
     - Which should we take first
     - account team
     - davis
     - copilot
+    reply_excludes_quoted:
+    - pick what we look at
+    - walk you through it step by step

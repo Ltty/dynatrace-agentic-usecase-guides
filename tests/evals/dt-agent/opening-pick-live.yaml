@@ -13,14 +13,15 @@ turns:
     reply_contains:
     - Which should we take first
     reply_excludes:
-    - hands-on
     - take you through
+    reply_excludes_quoted:
+    - walk you through it step by step
 - ask: payment
   expect:
     no_dql: true
     reply_contains:
-    - hands-on with me
-    - full incident briefing
+    - pick what we look at
+    - walk you through it step by step
     reply_excludes:
     - Which should we take first
 - ask: yes
@@ -29,5 +30,6 @@ turns:
     reply_contains_any:
     - '{truth.payment_failure.commit7s}'
     reply_excludes:
-    - hands-on with me
     - Which one
+    reply_excludes_quoted:
+    - pick what we look at

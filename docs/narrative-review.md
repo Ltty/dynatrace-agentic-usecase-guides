@@ -46,6 +46,25 @@ which is why no file states a figure. That is deliberate and is not counted agai
 
 ---
 
+## The deliveries, reviewed 2026-11-05
+
+Two selected principles were decided by the *delivery* rather than by any scenario, so they are
+recorded once here instead of five times above.
+
+- **Peak-End, in the walk.** Being walked through used to open with the whole story and then prove it,
+  so the peak beat arrived as a restatement of something the user had already been told, and the
+  recency slot went to evidence for a conclusion rather than to the conclusion. Stepped narration puts
+  the peak where the scenario put it and lets the end be the handoff. The showcase was fixed this way
+  in testrun 17; incidents only now.
+- **Serial Position, in the opening.** The survey's bullets had impact in the first slot and nothing
+  in the last. The route now closes each bullet, so both ends carry something a viewer chooses on.
+- **Provide Exit Points** is unchanged and still satisfied: "give me the report" and "wrap it up" leave
+  at any point, and after this change they are the only things that produce the condensed artefact.
+
+Open: the walk has **no runnable coverage**. Its four non-draft eval cases are on `dev`, whose context
+is `readwrite-all`, and every other walk case is `status: draft`. Two demo-live cases were added with
+this change and share that status until the agent exists there.
+
 ## Fixed in this pass
 
 - **`disk-cpu-cascade`: "I/O wait" was never glossed**, and the beat's whole argument depends on the

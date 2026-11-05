@@ -148,9 +148,10 @@ def check_turn(summary: dict, expect: dict, truth: dict, forbid: bool = True) ->
     any_of = values("reply_contains_any")
     if any_of and not any(n.lower() in low for n in any_of):
         fails.append(f"reply contains none of {any_of}")
-    for needle in values("reply_excludes"):
-        if needle.lower() in low:
-            fails.append(f"reply contains forbidden {needle!r}")
+    for key in ("reply_excludes", "reply_excludes_quoted"):
+        for needle in values(key):
+            if needle.lower() in low:
+                fails.append(f"reply contains forbidden {needle!r}")
     progress = summary.get("progress", [])
     if "max_progress_lines" in expect and len(progress) > expect["max_progress_lines"]:
         fails.append(f"{len(progress)} progress lines before the answer, allowed {expect['max_progress_lines']}: {progress[:3]}")

@@ -129,6 +129,13 @@ The Playground token needs `ai:operator:execute`, `mcp-gateway:servers:read` and
   uses. Three cases have now failed this way on their first run ("overloaded" and "out of CPU", both
   from reveals that say "nothing is broken, overloaded or unreachable" and "not out of CPU"). Forbid
   only phrasings the scenario never negates, and assert the behaviour you want positively instead.
+- **A forbidden string that quotes the skill goes on `reply_excludes_quoted`.** `reply_excludes` is
+  mostly intent — "global outage", "davis", "I can't" — phrases the skill must never produce, so they
+  correctly never appear in it. The other kind is a phrase copied *from* the skill and forbidden where
+  it does not belong, such as a showcase asking the incident mode question. Reword the skill and that
+  assertion keeps passing while testing nothing: rewriting the mode question silently emptied six
+  cases at once. Entries on `reply_excludes_quoted` are asserted identically at runtime, and
+  `test_run_dt_evals.py` additionally fails when one no longer appears in any skill document.
 - **`requires_dql` on a first turn that names a service will flake.** Naming a service is a pick, and a
   pick is answered with the mode question and no query (SKILL.md → "Classify the opening") — but some
   runs resolve the live problem first so they can describe it. Put the assertions on the turn that
