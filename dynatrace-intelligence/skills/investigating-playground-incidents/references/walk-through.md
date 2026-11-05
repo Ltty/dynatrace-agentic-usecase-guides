@@ -2,13 +2,18 @@
 
 How to run a scenario as a guided walk: you are the SRE taking someone through an incident while they
 watch. **Incidents only** — a showcase is always a presentation and never reaches this file
-(session-protocol → "Showcase"). They are not technical and are not making decisions here; they want
-to be shown how it was worked out, in the order it was worked out, each step following from the last.
+(session-protocol → "Showcase"). They are not making decisions here; they want the answer, and then to be
+shown how it was reached. The audience and the register are the same as in explore
+(conversation-craft → "Who you are explaining to").
 
-**You walk the same beats as explore, in the same order, and the user only ever has to say "next".**
-What differs is that nothing is offered: no options, no readiness question, one path. The condensed
-report still exists — "The report, on request" below — but it is no longer what the first turn does.
-A story told forwards is the point of this mode; a conclusion followed by proof is not.
+**It opens on the executive summary, then offers the walk, then walks the same beats as explore in the
+same order with the user only ever saying "next".** What differs from explore is that nothing is
+offered at the end of a turn: no options, no readiness question, one path.
+
+The summary is the answer up front — what happened, what it cost, who it goes to — for someone whose
+next meeting is in ten minutes. The walk is then the working, told forwards, each step following from
+the last. What this mode must never do is state a finding inside a *step* before the step that
+establishes it: the summary says the conclusion once, and the steps earn it in order.
 
 The scenario files, queries and data-only rule are the same as in explore. This file
 lists what is different, and it is complete: where it is silent, the rule in
@@ -17,8 +22,8 @@ lists what is different, and it is complete: where it is silent, the rule in
 ## Contents
 
 - [When it applies](#when-it-applies)
+- [The executive summary, and the report on request](#the-executive-summary-and-the-report-on-request)
 - [The steps](#the-steps)
-- [The report, on request](#the-report-on-request)
 - [Closing lines](#closing-lines)
 - [What differs from explore](#what-differs-from-explore)
 - [What the user says, what you do](#what-the-user-says-what-you-do)
@@ -40,52 +45,24 @@ guided walk: answer with "The report, on request" below, or the handoff block wh
 summary, and do not start stepping.
 
 If no survey has run in this conversation, resolve the scenario first, as the survey does. Read the
-scenario file and `references/conversation-craft.md` before the opening report, if they are not
-already read.
+scenario file and `references/conversation-craft.md` before the summary, if they are not already read.
 
 Never name the two ways of working to the user: no "walk-through", "briefing", "explore", "mode" or
 "presentation". They only see what happens next.
 
-## The steps
+## The executive summary, and the report on request
 
-**Every beat runs, in the scenario's own order, one per turn** — beat 1 included. There is no turn that
-stands in for a beat and no turn that summarises ahead. The user says "next" and gets the next step.
+**The same block, reached two ways.** It is the walk's first turn, before any step. It is also what
+someone gets who asks for the artefact without wanting the walk — "give me the incident report", "just
+give me the report", "brief me" — at any point in the session. "Give me the summary" and "wrap it up"
+ask for the handoff block instead (session-protocol → "Handoff block").
 
-The first turn opens on the scenario's `approach` (conversation-craft → "Say the approach before the
-first query"), so they know the shape, then takes beat 1.
+**As the walk's opening it ends on the offer** (part 5 below), and the user's yes starts the steps at
+beat 1. Asked for on its own it ends there, with no offer and no stepping.
 
-A turn has five parts, in this order:
-
-1. **The link back** — one clause tying this step to the last finding, so the walk reads as one
-   argument rather than a sequence of screens: "The median held while the tail ran away, so the
-   question is what that container was waiting on." On the first turn this is the approach line
-   instead.
-2. **The evidence** — the beat's table. A time series is condensed to before, peak and after, plus the
-   onset row when it differs from "before", with the span said in words; the full series is one deep
-   link away.
-3. **What it means** — the beat's Reveal, and where the data stops.
-4. **The deep link.**
-5. **The closing line** (below).
-
-**Never state a finding before the step that establishes it.** The temptation in this mode is to say
-where it ends up and then show the working; that is the shape this delivery used to have and it is
-what makes a walk feel like a recital. Each step knows only what the steps before it found.
-
-A peak moment keeps its Staging: the finding alone on its own line first, then the pause, then the
-explanation, then parts 2 to 5. A peak turn may run past 12 lines. A question or invitation at the end
-of the Staging is replaced by the closing line.
-
-Sessions with no country recorded are part of the count: "[T] sessions, [M] of them with no country
-recorded and the rest across [N] countries", never "plus [M]".
-
-Budget: 8–12 lines per turn, the deep link included.
-
-## The report, on request
-
-Not a turn in the walk. This is the artefact someone asks for when they do not want the walk — "give me
-the incident report", "just give me the report", "brief me" — and it can be asked for at any point,
-including instead of the first step. "Give me the summary" and "wrap it up" ask for the handoff block
-instead (session-protocol → "Handoff block").
+**It is said once.** The session close at the end produces the handoff block and the report path and
+does not re-narrate the story (session-protocol → "Session close"). Two tellings of the same summary in
+one session is the repetition this mode is most prone to.
 
 **Queries.** Run the first Evidence DQL block of every beat not already run, in one turn, with no text
 between the calls. Skip any block that needs a value from another block (`{{TRACE_ID}}`). Do not run the
@@ -116,8 +93,43 @@ at the peak"): "about" is only for rounding a value you read, never for one you 
 5. **The offer, exactly:** "I can show you how we know each of these, starting with [the first beat's
    subject, in plain words]."
 
-If they take the offer, the walk starts at beat 1 and every beat still runs: the report proved nothing,
-it only said it.
+Taking the offer starts the walk at beat 1, and every beat still runs: the summary proved nothing, it
+only said it. Declining it ends the session at the close.
+
+## The steps
+
+**Every beat runs, in the scenario's own order, one per turn** — beat 1 included. The summary before them
+stands in for no beat: it says the conclusion, and the steps are where it is established. The user says
+"next" and gets the next step.
+
+The first step opens on the scenario's `approach` (conversation-craft → "Say the approach before the
+first query"), so they know the shape, then takes beat 1.
+
+A turn has five parts, in this order:
+
+1. **The link back** — one clause tying this step to the last finding, so the walk reads as one
+   argument rather than a sequence of screens: "The median held while the tail ran away, so the
+   question is what that container was waiting on." On the first turn this is the approach line
+   instead.
+2. **The evidence** — the beat's table. A time series is condensed to before, peak and after, plus the
+   onset row when it differs from "before", with the span said in words; the full series is one deep
+   link away.
+3. **What it means** — the beat's Reveal, and where the data stops.
+4. **The deep link.**
+5. **The closing line** (below).
+
+**Never state a finding before the step that establishes it.** The temptation in this mode is to say
+where it ends up and then show the working; that is the shape this delivery used to have and it is
+what makes a walk feel like a recital. Each step knows only what the steps before it found.
+
+A peak moment keeps its Staging: the finding alone on its own line first, then the pause, then the
+explanation, then parts 2 to 5. A peak turn may run past 12 lines. A question or invitation at the end
+of the Staging is replaced by the closing line.
+
+Sessions with no country recorded are part of the count: "[T] sessions, [M] of them with no country
+recorded and the rest across [N] countries", never "plus [M]".
+
+Budget: 8–12 lines per turn, the deep link included.
 
 ## Closing lines
 
@@ -170,16 +182,15 @@ If the user asks to be walked through it again after steering, set `delivery` ba
 
 ## What does that mean
 
-The one intent that invites inference the telemetry does not contain. The answer is the same result
-in different words:
+The general rule is conversation-craft → "Who you are explaining to": answered in place, in plain words,
+no query. Two additions for this mode, where the user is further from the data:
 
-1. Name the field and its value again, in plain language.
-2. Add the one consequence that field itself establishes.
-3. If the consequence is not in a result, say the data stops there and name what would show it.
+1. Name the field and its value again, in plain language, then the one consequence that field itself
+   establishes.
+2. If the consequence is not in a result, say the data stops there and name what would show it.
 
-An inference is allowed when it is labelled, as the data-only rule in conversation-craft says.
-Add no revenue figure other than the cost in the lead, and no churn, SLA, reputation, geography or
-customer feeling.
+An inference is allowed when it is labelled, as the data-only rule says. Add no revenue figure other
+than the cost in the summary, and no churn, SLA, reputation, geography or customer feeling.
 
 ## When the manager uses stronger words than the data
 

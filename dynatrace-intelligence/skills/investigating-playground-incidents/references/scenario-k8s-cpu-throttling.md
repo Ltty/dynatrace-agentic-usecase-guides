@@ -360,7 +360,7 @@ that, and never fill it from the beats. No rows at all means nothing has been wr
 on a problem that is still open that is what it sounds like, since the agent is triggered by the problem and
 takes minutes.
 
-**Objection** — "so it fixed it?": no. The agent investigated and recommended; what beat 4 shows was changed
+**Objection** — "so it fixed it?": no. The agent investigated and recommended; the restored ceiling, where that step has run, is what was changed
 back is the platform's record of a deployment, not the agent acting. Every step it took is written down and
 attributed, with a human deciding whether to apply it.
 

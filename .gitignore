@@ -34,3 +34,6 @@ tests/evals/dt-agent/reports/
 
 # session reports rendered by tools/render_report.py
 reports/
+
+# Local build artefacts (zipped skill/agent bundles)
+*.zip

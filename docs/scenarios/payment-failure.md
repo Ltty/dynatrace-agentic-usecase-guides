@@ -4,10 +4,11 @@
 
 | Name | Entity ID | Type |
 |------|-----------|------|
-| astroshop-payment | SERVICE-531CE26849E95EC1 | Service (root cause) |
+| astroshop-payment (playground) | SERVICE-531CE26849E95EC1 | Service (root cause) |
+| astroshop-payment (demo-live) | SERVICE-E9CB57C5D00C3626 | Service (root cause) — this scenario runs on both tenants |
 | astroshop-checkout | SERVICE-5ACC60E0079F8E6D | Service (downstream) |
 | Charge endpoint | (filter `endpoint.name == "Charge"`) | The failing endpoint |
-| segment | Apy24Rcu0cO | Filter segment used in deep links |
+| segment | Apy24Rcu0cO | Filter segment used in deep links — **playground only**; demo-live has none, so `{{PROBLEM_SEGMENTS}}` is empty there |
 
 ## What rotates every problem cycle (never hardcode)
 

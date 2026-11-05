@@ -249,9 +249,11 @@ uses the same file layout, beats, reveals, deep links and data-only rule, with t
 - **Tracks, when a showcase has more than one story in it.** A `## Tracks` section maps each arc to its beats
   and what it closes on, so entering in the middle walks one arc forward rather than backwards through another.
   The session close fires when the track's beats have all run, in whatever order they ran.
-- **One delivery.** A showcase is a presentation: no `mode_question`, no `pull_line`, and
-  `references/walk-through.md` does not apply to it. It is always guided step by step, with a call to action after
-  every step.
+- **One delivery, and no `Requires:`.** A showcase is a presentation: no `mode_question`, no `pull_line`,
+  and `references/walk-through.md` does not apply to it — no executive summary, no on-request report. It is
+  always guided step by step, with a call to action after every step. Because nothing is ever offered, its
+  beats declare no `Requires:`; `## Tracks` carries the ordering instead, and
+  `tools/tests/test_deep_links.py` exempts showcases from the beat-graph check.
 - **Its own tokens.** A "Tokens" section says which beat result fills each token: beat 1's `queried_at` is
   `{{SURVEY_AT}}`, and a beat that returns `problem_id`, `tf_from_ms` and `tf_to_ms` fills the problem link. Windows
   are relative (`now()-24h`, `now()-7d`), since there is no incident window.
@@ -260,7 +262,7 @@ uses the same file layout, beats, reveals, deep links and data-only rule, with t
 - **Register it** in `SHOWCASES` in `tools/validate_dt_skill.py` as well as `SCENARIO_FILES`; the validator then skips
   the survey and harvests the tokens from the beat results, for both the live run and `--links`.
 - **Extras** (optional): a `## Extra — <title>` section after the last beat, for a guide part that is offered after the
-  close and is not in the walk-through report. It has its own evidence DQL, reveal and labelled deep link; the validator
+  close and is not part of the tour itself. It has its own evidence DQL, reveal and labelled deep link; the validator
   runs its query and `test_deep_links.py` counts its link.
 
 ## What the agent guarantees

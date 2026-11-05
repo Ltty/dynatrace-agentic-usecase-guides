@@ -223,7 +223,7 @@ The survey query's rows are the findings. Then:
      its scenario id. `payment-failure` and `broken-images` are internal names: the user may type
      one, you never say one. Once the user has picked, reply "[A] it is." and that scenario's mode
      question. Run no query for that reply. A showcase has no mode question: picking it starts its first
-     step (SKILL.md → "Classify the opening").
+     step (SKILL.md → "Classify the opening, then read").
 6. Read the answer to the mode question. Picking as we go, "hands-on", "explore", "dig in", "I'll
    steer": `delivery` is `explore`, and beat 1 starts at once, with no menu of angles before it. Being
    walked through, "you drive", "step by step", or an unspecific yes ("yes", "ok", "sure", "go ahead"):
@@ -350,7 +350,7 @@ probe appended to the opening query.
 
 The handoff for the owning team, in both deliveries. It is given when the user asks for it ("package
 it", "wrap it up", "let's write the handoff"), at any point, and in a walk-through it ends the last
-evidence turn. It is part of the conversation, in character: it carries no "Written for" line.
+step. It is part of the conversation, in character: it carries no "Written for" line.
 
 ```text
 Incident handoff — [display_id]
@@ -394,7 +394,7 @@ Still open:     [what the data does not show]
   run**, in whatever order they ran, folded-in beats included — after that turn's deep link, not in a
   new turn, and not only when asked. Check the set, not the number: a session that ran 5, 6, 1, 2, 3, 4
   is complete at the end of 4, and the close belongs in that turn.
-- *Walk-through:* with the handoff block, in the same response as the last evidence turn.
+- *Walk-through:* with the handoff block, in the same response as the last step.
 - *Either delivery, on request:* the handoff block, then the rest of the template below (without the timeline line, unless it is an explore session).
 
 **What it contains.** Fill this template, in this order, from this conversation's results. The payoff
@@ -409,7 +409,7 @@ From the first look to the full picture in [X] minutes: [the two or three things
 ```
 
 - **[X]:** the latest `elapsed_min` a result in this conversation returned, in minutes since the survey (in a
-  walk-through it measures the opening report, which pulls the whole picture at once). If there is none,
+  walk-through it measures the executive summary, which pulls every beat's first query at once). If there is none,
   write "The full picture: …" in place of the first half of the line and say nothing about the number.
   No stock sentence about what the alternative would have cost.
 - **The way out, explore:** "Which would you rather dig into next — [option one] or [option two]?" This

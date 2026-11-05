@@ -377,7 +377,7 @@ rarely "Recommended Fix", so the query prefers the first and falls back to the s
 agent's note at its root-cause heading.
 
 **Reveal:** First the agents: one row each, with the problems they wrote on in 7 days and their note types — the AWS
-DevOps Agent (investigation and mitigation, met in beat 3), the SRE Agent from Cloud SRE Agents (investigation, then a root
+DevOps Agent (investigation and mitigation, the one annotating the problem earlier in the tour if that step has run), the SRE Agent from Cloud SRE Agents (investigation, then a root
 cause with a verdict) and the Kubernetes troubleshooting agent ("Dynatrace AI Analysis"). They are triggered from the
 problems and post back onto them, so the on-call engineer reads every investigation in one place. Then one of them at
 work: an EasyTrade problem (`title`, `display_id`, its window as UTC times) where the Kubernetes troubleshooting agent

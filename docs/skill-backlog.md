@@ -159,7 +159,7 @@ Review against the skill-authoring best practices, then a pass to cut thinking t
 
 ### Validated in-session, 2026-11-04
 
-Run with the in-session subagent path (`docs/DYNATRACE-SKILL.md` -> "In-session evals") and scored
+Run with the in-session subagent path (`docs/DYNATRACE-SKILL.md` -> "Test" (the in-session evals bullet)) and scored
 with `score_transcript.py`. `status: draft` stays on all of them: that flag is about the *deployed*
 agent existing on the tenant, which these runs do not prove.
 

@@ -1,5 +1,9 @@
 # Phase 0 Connectivity Spike Notes
 
+**Archival.** The one-off record of the first connectivity spike, kept for how the `dtctl` wiring was
+established. Nothing references it and nothing should: the current state of that wiring is
+`tools/preflight.py` and `docs/DYNATRACE-SKILL.md`.
+
 **Date:** 2026-09-25  
 **dtctl version:** 0.40.0 (commit: efd558d)  
 **Context:** playground → https://playground.apps.dynatrace.com  

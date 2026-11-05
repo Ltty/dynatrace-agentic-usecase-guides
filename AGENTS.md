@@ -14,7 +14,7 @@ The demo is one skill and one agent prompt, run in two places:
 Both read `dynatrace-intelligence/skills/investigating-playground-incidents/` (the skill, with its
 `references/`) and `dynatrace-intelligence/agents/demo-agent/instructions.md` (the agent prompt).
 `skills/local-runtime/SKILL.md` is the only local-only piece: it maps `read_file` to a local Read and
-`execute-dql` to `dtctl query --context playground`, and holds no behaviour rules. A rule change goes
+`execute-dql` to `dtctl query` on whichever context is current, and holds no behaviour rules. A rule change goes
 in the skill once and both runtimes get it.
 
 `/demo` loads these with `@`-includes. `CLAUDE.md` and `opencode.json` load only this file, so ordinary

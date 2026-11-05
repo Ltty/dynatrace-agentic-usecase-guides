@@ -379,7 +379,7 @@ a ticket or a coding agent with the evidence attached.
   deploy without it.
 
 **Objection** — "so it fixed it?": no. The agent investigated and recommended; the role is still whatever
-beat 4 returned, and the commits in beat 5 are what the platform recorded, not anything the agent did. Everything an agent does here is written down and attributed, with a human deciding whether
+the grant reads as now, and the commits the platform recorded, are not anything the agent did — name either only where that step has run. Everything an agent does here is written down and attributed, with a human deciding whether
 to apply it.
 
 **Success signal:** User asks what to do about it, or who to send it to.

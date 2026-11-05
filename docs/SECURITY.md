@@ -70,7 +70,7 @@ wrappers such as `bash -c`, `env` and `Start-Process`; and DQL piped in or read 
 Layer 1 protects only the context a call uses. The demo no longer pins one: it runs on whichever
 context is current, so that a session can reach any of the three environments. That makes the safety
 level a gate rather than a note — `preflight.py check` fails, and the local runtime refuses to start
-(`skills/local-runtime/SKILL.md` → "Which environment this is"), when the current context is not
+(`skills/local-runtime/SKILL.md` → "Which environment this is (local only)"), when the current context is not
 `readonly`. The `dev` context ships as `readwrite-all` on some machines and is exactly the case this
 catches. The validator and the eval ground truth select a context themselves and run only
 `dtctl query`, with the guard hook rejecting anything else.

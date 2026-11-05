@@ -29,11 +29,14 @@ dynatrace-intelligence/
         └── references/                       — flat: no subfolders, unique names, linked as references/<name>.md
             ├── session-protocol.md           — greeting, the survey query + session state, survey, handoff block, close
             ├── conversation-craft.md         — beat loop, data-only rule, divergence, staying in role, pacing rules
-            ├── walk-through.md               — the report delivery: opening report, evidence turns, a manager's words
+            ├── walk-through.md               — the guided walk: executive summary, then the steps
             ├── dql-reference.md              — verified field names, gotchas, chained queries
             ├── scenario-payment-failure.md   — business context, scope, handoff fields, the 5 beats with DQL, reveals, staging, deep links
             ├── scenario-broken-images.md     — same shape, for the image-provider slowdown
-            └── scenario-disk-cpu-cascade.md  — same shape, for the dev-tenant disk and CPU problem
+            ├── scenario-lambda-iam-denied.md  — same shape, for the Lambda refused its DynamoDB permission
+            ├── scenario-k8s-cpu-throttling.md — same shape, for the workload tuned below its own demand
+            ├── scenario-disk-cpu-cascade.md  — same shape, for the dev-tenant disk and CPU problem
+            └── scenario-cloud-observability.md — the showcase: the cloud estate and the bill, presentation only
 ```
 
 Every scenario runs in two deliveries: the user explores with the SRE as a peer (default), or the SRE
@@ -57,7 +60,7 @@ from a live query, and there is no fixture fallback.
 | Surface | Works? | Why |
 |---|---|---|
 | Dynatrace agent runtime (Assist, `@demo-agent`) | Yes — the target | DQL through the MCP gateway tool `execute-dql` |
-| Claude Code, OpenCode (`/demo`) | Yes | `skills/local-runtime` maps `execute-dql` to `dtctl query` on the read-only `playground` context |
+| Claude Code, OpenCode (`/demo`) | Yes | `skills/local-runtime` maps `execute-dql` to `dtctl query` on the current read-only context, whichever environment that is |
 | Claude API (Skills upload) | No | Skill containers have no network access |
 | claude.ai | Only with network access and a DQL tool | Network access varies by user/admin settings |
 
@@ -81,9 +84,12 @@ The strong practice in this repo is *no query ships unexecuted*. Before loading 
 
 ```bash
 # Runs the survey query for the scenario, then all beat DQLs, including the chained trace summary.
-python tools/validate_dt_skill.py --scenario payment-failure
-python tools/validate_dt_skill.py --scenario broken-images
-python tools/validate_dt_skill.py --scenario disk-cpu-cascade   # runs on the dev context
+python tools/validate_dt_skill.py --scenario payment-failure --environment demo-live
+python tools/validate_dt_skill.py --scenario broken-images --environment playground
+python tools/validate_dt_skill.py --scenario lambda-iam-denied --environment demo-live
+python tools/validate_dt_skill.py --scenario k8s-cpu-throttling --environment demo-live
+python tools/validate_dt_skill.py --scenario cloud-observability --environment demo-live
+python tools/validate_dt_skill.py --scenario disk-cpu-cascade --environment dev
 ```
 
 Also open one deep link with substituted values and confirm the Dynatrace app loads the right view.
@@ -99,8 +105,14 @@ Also open one deep link with substituted values and confirm the Dynatrace app lo
   it.
 - **disk-cpu-cascade scenario:** complete — a long-running host problem on the dev tenant, rebuilt against live data.
   It reports entities, not users, and has no owning team, commit or replay.
-- **Walk-through delivery:** complete locally (testruns 12 and 13) — an opening report with the whole story, then
-  evidence turns and a handoff block. Not yet uploaded or evaluated on `@demo-agent`.
+- **lambda-iam-denied scenario:** complete — a daily outage on demo-live where a deploy leaves the image
+  function's role unable to read its DynamoDB table. The AWS DevOps Agent's notes are the last beat.
+- **k8s-cpu-throttling scenario:** complete — a daily slowdown on demo-live where the broker service's CPU
+  ceiling is halved and throttling follows it; the Kubernetes troubleshooting agent's analysis is last.
+- **cloud-observability showcase:** complete — three clouds down to one function, the agents that work its
+  problems, and the bill. Presentation only: no mode question, no walk-through.
+- **Walk-through delivery:** complete locally — the executive summary, then the offer, then every beat as a step,
+  then the handoff block. Not yet uploaded or evaluated on `@demo-agent`.
 
 ## Survey query notes (maintainers only)
 
@@ -127,7 +139,7 @@ Kept out of the skill on purpose: the agent reads the scenario files and would r
 - Source guides: payment-failure `96474054-260e-4b94-805e-d10fcbfb8e7a`, broken-images "DEM Act 3", disk-cpu-cascade
   "cloud-alerts-demo".
 - The walk-through exists because testrun 12 found five correct findings and no story: the answer arrived in turn 5.
-  The opening report fixes that by running every beat's first query up front. The risk it carries is five turns of
+  The executive summary answers that up front by running every beat's first query. The risk it carries is turns of
   one template, which `walk-through.md` counters with closing lines that give a reason.
 - `queried_at` comes back from every beat's first query so the close can use the latest one. Before that, only beat 5
   returned it, which made the elapsed time wrong or missing in both deliveries (testrun 13).

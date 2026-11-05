@@ -8,10 +8,10 @@ This file is procedure.
 
 | Piece | Where | What it is |
 |---|---|---|
-| The skill | `dynatrace-intelligence/skills/investigating-playground-incidents/` | `SKILL.md` plus a flat `references/` folder. Three scenarios (payment failure, the image-service slowdown, and the dev-tenant disk and CPU problem), each run as an exploration or a walk-through. Source of truth. |
+| The skill | `dynatrace-intelligence/skills/investigating-playground-incidents/` | `SKILL.md` plus a flat `references/` folder. Six scenarios (payment failure, two image-service incidents, a Kubernetes slowdown, the dev-tenant disk and CPU problem, and the cloud showcase); incidents run as an exploration or a guided walk, the showcase as a presentation. Source of truth. |
 | The agent | `dynatrace-intelligence/agents/demo-agent/` | A `deep-agent` template (`template.json`, `instructions.md`) that mounts the skill and may only call `execute-dql`. |
 | The helper | `tools/dt_agent.py` | `check`, `pack`, `docs`, `status`, `render`, `template`, `invoke`. Every write is a dry run unless you pass `--apply`. |
-| The validator | `tools/validate_dt_skill.py` | Runs every DQL block of a scenario live, on that scenario's tenant (the Playground, or dev for `disk-cpu-cascade`). |
+| The validator | `tools/validate_dt_skill.py` | Runs every DQL block of a scenario live, on that scenario's tenant, named by `--environment`. |
 
 ## Skill layout rules
 
@@ -32,13 +32,13 @@ These are the app format's rules. `python tools/dt_agent.py check` enforces them
 - **Working tenant:** `https://fxz0998d.dev.apps.dynatracelabs.com`. The AI API base path is `/platform-reserved/ai/v0.1` (no `/platform` prefix). The Swagger UI rejects tokens, so it only opens in a browser session.
 - **Token:** a personal platform token in the `DT_DEV_AGENT_TOKEN` environment variable, set at user level (restart VS Code afterwards). The helper never prints or stores it. Give it a short expiry and delete it when you are done. Never put it in a repo file; `.claude/settings.local.json` is not git-ignored here.
 - **Scopes:** `ai:operator:execute`, `mcp-gateway:servers:read`, `mcp-gateway:servers:invoke`, `document:documents:read`, and the `storage:*:read` scopes the DQL needs (`events`, `spans`, `user.sessions`, `user.events`, `buckets`, and `metrics` for the disk scenario's `timeseries` beats). `document:documents:write` is only for uploading skill documents on dev. The storage scopes are inferred, not documented; a missing one shows up as a named DQL permission error.
-- **`dtctl` is separate.** It only reads (ground-truth DQL and validation) and cannot deploy. Keep its `playground` context read-only. `validate_dt_skill.py` pins each scenario's context (`playground`, or `dev` for `disk-cpu-cascade`), but other `dtctl` calls use whatever the current context is, so check `dtctl config current-context` first.
+- **`dtctl` is separate.** It only reads (ground-truth DQL and validation) and cannot deploy. Keep its `playground` context read-only. `validate_dt_skill.py` pins each scenario's context from `--environment`, but other `dtctl` calls use whatever the current context is, so check `dtctl config current-context` first.
 
 ## Change the skill
 
 1. Edit files under `dynatrace-intelligence/skills/investigating-playground-incidents/`.
 2. `python tools/dt_agent.py check`
-3. `python tools/validate_dt_skill.py --scenario payment-failure`, `--scenario broken-images` and `--scenario disk-cpu-cascade` (live, each on its own tenant).
+3. `python tools/validate_dt_skill.py --scenario <id> --environment <env>` for all six (live, each on its own tenant; `--environment` is required where a scenario exists on more than one).
 4. `python tools/dt_agent.py --tenant <dev-url> docs` shows `+` create, `~` update, `=` unchanged, and `?` documents only on the tenant (never deleted).
 5. After approval, `docs --apply`. The agent saw updated content within minutes in our tests.
 6. Run the evals (below), each case at least three times.
@@ -137,7 +137,7 @@ The Playground token needs `ai:operator:execute`, `mcp-gateway:servers:read` and
   cases at once. Entries on `reply_excludes_quoted` are asserted identically at runtime, and
   `test_run_dt_evals.py` additionally fails when one no longer appears in any skill document.
 - **`requires_dql` on a first turn that names a service will flake.** Naming a service is a pick, and a
-  pick is answered with the mode question and no query (SKILL.md → "Classify the opening") — but some
+  pick is answered with the mode question and no query (SKILL.md → "Classify the opening, then read") — but some
   runs resolve the live problem first so they can describe it. Put the assertions on the turn that
   carries the beat, not on the opening.
 - **Review sheet:** every run writes `tests/evals/dt-agent/reports/<timestamp>-<tenant>.md` (git-ignored) with the transcripts, for tone and persona, which a script cannot judge.
@@ -161,7 +161,7 @@ Local `/demo` includes the instructions, the adapter, `SKILL.md`, `session-proto
 
 Because the local runtime reads the repo files and the Dynatrace agent reads the uploaded documents, a skill change reaches `@demo-agent` only after `docs --apply`. Keep the two in step: upload after every merged skill change.
 
-The local runtime has three properties the Dynatrace one does not. `dtctl` returns an envelope whose `metadata` feeds the local-only proof stamp. It can resolve its environment before it queries, from `dtctl config get-contexts`, which is what lets it refuse a context that is not `readonly` and pick the right `{{LINK_HOST}}` — the Dynatrace runtime learns its environment only from the `env` the opening query's rows carry. And it can write files, so the session close also renders an HTML report (`skills/local-runtime/SKILL.md` → "Report"); the Dynatrace agent has `execute-dql` and nothing else, so it has none.
+The local runtime has three properties the Dynatrace one does not. `dtctl` returns an envelope whose `metadata` feeds the local-only proof stamp. It can resolve its environment before it queries, from `dtctl config get-contexts`, which is what lets it refuse a context that is not `readonly` and pick the right `{{LINK_HOST}}` — the Dynatrace runtime learns its environment only from the `env` the opening query's rows carry. And it can write files, so the session close also renders an HTML report (`skills/local-runtime/SKILL.md` → "Report (local only)"); the Dynatrace agent has `execute-dql` and nothing else, so it has none.
 
 Local `/demo` reaches whichever environment the current context names, `disk-cpu-cascade` on `dev` and the `cloud-observability` showcase on `demo-live` included.
 

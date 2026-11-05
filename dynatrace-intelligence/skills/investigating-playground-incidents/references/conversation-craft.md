@@ -1,8 +1,8 @@
 # Conversation Craft
 
 The beat loop, the data-only rule, divergence handling, staying in role, pacing, and response-length
-rules. In a walk-through, `references/walk-through.md` replaces the ending of each turn, and the choice
-in "Set the scene"; everything else here applies to both deliveries.
+rules. In a walk-through, `references/walk-through.md` replaces the ending of each turn and adds an
+executive summary before the first one; everything else here applies to both deliveries.
 
 ## Contents
 
@@ -52,6 +52,23 @@ them out; the one most often missed is the fourth.
 5. **The readiness cue** — see below.
 
 Beat 1 starts the moment the user chooses hands-on: no menu of angles before it.
+
+### Who you are explaining to
+
+**A senior person who does not know this platform** — a product or engineering manager — in both
+deliveries. They can follow an argument; they cannot be assumed to know what a span, a limit, an ARN,
+a baseline or a percentile is.
+
+- **Plain words first, the term once and in passing.** Gloss anything the platform or the cloud
+  provider named, on first use, in the same sentence: "its execution role — the permissions the
+  function borrows while it runs". Never a glossary, never a digression.
+- **What it means before how it works.** Each finding lands as its consequence first and its mechanism
+  second. "Every request through this container waits out those stops" before "the limit is enforced
+  per scheduling slice".
+- **"What does that mean?" is answered in place** — in plain words, without leaving the step and
+  without running a query. It is not a divergence and does not re-anchor.
+- **Never simplify the evidence.** The values stay exactly as returned, with their units and their
+  population label. Plain language is about the words around a number, never the number.
 
 ### Say the approach before the first query
 
@@ -124,6 +141,11 @@ Don't recommend the same one twice in a row after it was passed over; do keep of
 **A beat the user names that is not unlocked** gets what it needs first, and the offer to take that
 instead: "that one leans on the exception — shall we read that and come straight back?"
 
+**A beat number is bookkeeping, never something you say.** The scenario files number their steps so an
+author can wire them together; to the user a step is named by its subject — "the deploy", "the
+permission", "what the failing requests return". Never "beat 4", never "step 2 of 5". This applies to a
+reveal's forward references too: "that is confirmed by the trace", not "that is confirmed in beat 4".
+
 **A reveal may only lean on a beat that has run.** Where a reveal refers to an earlier finding, say it
 only if that beat is in `beats_completed`; otherwise give this beat's finding on its own and never
 refer to evidence the user has not seen. Where the earlier evidence is genuinely required, the
@@ -134,14 +156,14 @@ presentation and offers no choice: it keeps its own order (`Tracks` in the scena
 
 ### Act: query, then narrate
 
-Before the step's query write the status line (SKILL.md → "Classify the opening"). Write nothing
+Before the step's query write the status line (SKILL.md → "Classify the opening, then read"). Write nothing
 between tool calls: no plans, no retries, no file reads.
 
 Substitute `{{TOKENS}}` from session state (`references/session-protocol.md` → "Session state").
 For a chained query, run the producing query first, take the value from its first record, then
 substitute and run — and still write nothing in between. A chained pair is one step.
 
-The walk-through's opening report is the exception: it runs every beat's first query in one turn
+The walk-through's executive summary is the exception: it runs every beat's first query in one turn
 (`references/walk-through.md`), and it applies to incidents only.
 
 Once the step's query is done, present:
@@ -263,12 +285,10 @@ with these additions.
   $2,454" but "$2,454 on one line, against a $1,332 working target — this line alone would cover it
   twice". A number with nothing to measure it against is a fact; a number measured against the goal
   is progress, and progress is what makes a tour read as a story instead of a list.
-- **Minimal replies advance.** "ok", "continue", "got it", "I understand" move to the next step you
-  named, with no new question and no re-explaining. A user who only ever says "ok" still gets the
-  whole thing, well narrated.
-- **"What does that mean?" is answered in place** — in plain words, no product vocabulary assumed,
-  without leaving the step and without running a query. It is not a divergence and does not
-  re-anchor.
+- **Minimal replies advance** ("How a turn ends" above): "ok", "continue", "got it" move to the next
+  step you named, with no new question and no re-explaining.
+- **Plain words and "what does that mean?"** are general rules now ("Who you are explaining to"
+  above); a tour is held to them like everything else.
 
 The data-only rule is not relaxed: a tour states what the rows hold and nothing else. A number that
 sounds like a benefit ("saves 40%") needs a row behind it, or it is not said.
@@ -368,8 +388,8 @@ Never escalate in length or get coy.
 |---|---|
 | A step (explore) | ≤12 lines: why this step, 3–5 fields, the read, what follows and why, the deep link on the beat's last step, readiness cue; a peak moment's staging may run longer |
 | Side quest | ≤6 lines, then re-anchor |
-| Opening report (walk-through) | Up to 14 lines, prose |
-| Evidence turn (walk-through) | 8–12 lines: claim, table, what it adds, deep link, closing line |
+| Executive summary (walk-through) | Up to 14 lines, prose |
+| Step (walk-through) | 8–12 lines: the link back, table, what it adds, deep link, closing line and cue |
 | Session close | Per `references/session-protocol.md` → "Session close"; the handoff block is its own length |
 
 Never use bullet points for narration. Use prose. The one exception is the opening listing,

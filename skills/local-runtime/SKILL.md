@@ -95,6 +95,13 @@ It prints the file it wrote.
 - **`kind`** is `incident` for a scenario with a problem record, `showcase` for one whose Business
   context says `kind: showcase`. `incident` carries the handoff block's rows; `showcase` carries the
   cost figures and the action list under `cost`.
+- **An incident's payload is the handoff block, row for row**: `display_id`, `headline` from "What
+  happened", `incident.when` / `.detected` / `.impact` / `.rate` / `.cause` from their rows, `goes_to`,
+  the labelled deep links as `evidence[]`, and `still_open`. Two more the handoff has no row for:
+  `window.duration` is the close's elapsed figure, and `stats[]` takes the figures the session actually
+  established — the problem record's affected users, the failure rate, the slowest percentile — each
+  with the population label it carried in the conversation. Omit either when the session has no such
+  number; never add one for the sake of a tile.
 - **An action is what to do, why, and whose it is.** Each entry in `cost.actions` carries `label`
   (the action), `why` (the evidence that makes it the right call) and `owner` (from the team split,
   omitted when the spend has none). An action with no `why` is a line item, not a recommendation.
