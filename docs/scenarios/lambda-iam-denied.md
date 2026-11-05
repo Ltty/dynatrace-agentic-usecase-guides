@@ -97,11 +97,17 @@ it is recorded here so a maintainer knows what the beat looks like when the inte
 
 Worth chasing on the AWS side. Until it is fixed, beat 5 is thinner than the golden demo's version.
 
-### 2. The broken policy is only visible while the problem is open
+### 2. The broken policy is never visible in Smartscape — settled 2026-11-04
 
-`smartscapeNodes` holds current state. Given yesterday's incident window as `from:`/`to:` it still
-returned the **corrected** policy, so the trailing `/*` cannot be read back after the fact. Outside the
-window beat 4 returns:
+`smartscapeNodes` holds current state; passing a historical `from:`/`to:` changes nothing. The open
+question was whether the trailing `/*` could at least be read **while the problem was open**. It
+cannot. The IAM role was polled once a minute for 70 minutes across the 2026-11-04 window (problem
+P-26111500, 16:04–16:43 UTC, 362 affected users): 70 polls, one policy variant, the correct one.
+
+Smartscape is a configuration snapshot, not a series, and a grant that is wrong for 39 minutes and
+then restored falls between snapshots. Beat 4 is written around the match being the normal case, and
+treats it as evidence — the configuration running now is not the one that was running then — rather
+than as a miss. Beat 4 returns:
 
 ```json
 {"Action":["dynamodb:GetItem"],"Effect":"Allow","Resource":"arn:aws:dynamodb:us-east-1:246186168471:table/image-provider-live-products"}

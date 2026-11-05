@@ -229,24 +229,28 @@ smartscapeNodes "AWS_IAM_ROLE"
 | sort is_dynamodb desc, policy_name asc
 ```
 
-Smartscape holds the role as it is **now**. There is no history here: during an open problem this is the
-configuration that is failing, and after it closes this is whatever replaced it.
+Smartscape holds the role as it is **now**, and only as it is now. It is a configuration snapshot, not a
+series: a grant that is wrong for half an hour and then put back is not captured, so expect the grant here to
+read correct even while the problem is open. Polled every minute through a full incident window on
+2026-11-04, it never read otherwise.
 
 **Reveal:** The role in the result is the one the exception named — say so by matching `role_arn` to the
 identity in beat 3's message. List the policy names so the shape is visible: an inline policy is a grant
 attached to this role and nothing else, and there is one per thing the function touches, each scoped to its
-own resources. Then the DynamoDB one: read its `Action` and its `Resource` out of
-`document`, and hold the `Resource` next to the ARN the exception quoted.
+own resources. Then the DynamoDB one: read its `Action` and its `Resource` out of `document`, and hold the
+`Resource` next to the ARN the exception quoted.
 
-- **They differ** — the grant is written against something other than the table the function asks for; state
-  both strings exactly as returned and let the difference be the finding. A resource ARN that ends `/*`
-  addresses the things *under* a table, not the table, so a grant written that way allows nothing on the
-  table itself.
-- **They match** — say that as plainly: the grant is correct in the configuration we can read right now, so
-  it was not correct during the window, and it has since been changed back. Smartscape holds no history of
-  the change, but the platform does hold what deployed over it, which is beat 5.
+Normally **they match**, and that is the finding rather than a disappointment. The grant allows exactly the
+action on exactly the table the exception says was refused — so the configuration that is running now is not
+the configuration that was running then. Taken with beat 3 that settles something a single query could not:
+the permission was changed and changed back, which is why the failures start and stop instead of persisting.
+It also says where the rest of the answer is not — not in the current configuration — which is what beats 5
+and 6 go after.
 
-Never describe a `/*`, or any other difference, that the returned `document` does not contain.
+If `Resource` and the exception's ARN ever **do** differ, state both strings exactly as returned and let the
+difference be the finding; an ARN ending `/*` addresses the things *under* a table rather than the table, so
+a grant written that way allows nothing on the table itself. Do not expect this, and never describe a `/*`,
+or any other difference, that the returned `document` does not contain.
 
 `primary_tags` and `tags:aws` on the function carry owner tags of their own. When the user asks who owns it
 and those differ from beat 1's `owning_team`, state both as returned; which one is right is the owners' call.

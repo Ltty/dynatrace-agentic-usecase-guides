@@ -112,12 +112,13 @@ which is why no file states a figure. That is deliberate and is not counted agai
 
 ### Deliberate deviations, recorded so they are not "fixed" later
 
-- **The peak is beat 3, not beat 4 or 5.** Beat 4 is the better payoff *when* the broken policy is visible,
-  but Smartscape holds current state only, so outside the live window it returns the corrected policy.
-  A peak that lands on some runs and not others is worse than one that always lands; beat 3's
-  exception names the root cause in full on every run. Beat 5's commit is the more dramatic reveal,
-  but a commit is a correlation the user is told to confirm in the repository; the exception is the
-  only beat that states the cause outright.
+- **The peak is beat 3, not beat 4 or 5.** Beat 4 was drafted on the assumption that it would show the
+  broken grant during a live window. It never does — 70 one-minute polls across the 2026-11-04
+  incident returned the correct policy every time, because Smartscape is a configuration snapshot
+  and the grant is wrong for 39 minutes. Had the peak been placed there it would have landed on
+  nothing, on every run. Beat 5's commit is the more dramatic reveal, but a commit is a correlation
+  the user is told to confirm in the repository; the exception is the only beat that states the
+  cause outright.
 - **Beat 5's first number is a count of notes, not an impact figure.** Anchoring says the first number
   in a turn is the impact. Beat 5's subject *is* the notes — the impact was established in beats 1 and
   2 and is not restated. Said at all, a second impact figure here would be the repetition testrun 18
