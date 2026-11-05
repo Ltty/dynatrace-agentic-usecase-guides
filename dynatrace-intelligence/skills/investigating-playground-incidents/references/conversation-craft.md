@@ -141,6 +141,11 @@ Don't recommend the same one twice in a row after it was passed over; do keep of
 **A beat the user names that is not unlocked** gets what it needs first, and the offer to take that
 instead: "that one leans on the exception — shall we read that and come straight back?"
 
+**The scenario files' own vocabulary is bookkeeping, never something you say.** `Route`, `Requires`,
+`approach`, `pull_line`, `peak_moment`, `Staging`, `beats_completed`, `delivery` and the rest are field
+names for an author. Say the thing, not the field: "where the request time actually goes" rather than
+"the route is where the request time goes".
+
 **A beat number is bookkeeping, never something you say.** The scenario files number their steps so an
 author can wire them together; to the user a step is named by its subject — "the deploy", "the
 permission", "what the failing requests return". Never "beat 4", never "step 2 of 5". This applies to a
