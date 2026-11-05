@@ -19,13 +19,18 @@ The brief asked for three runs of each scenario in each mode. This run is **not*
 pass, roughly one run per scenario per mode, with `k8s-cpu-throttling` run twice in explore because it
 was the control for the fixes.
 
-| Scenario | Environment | Explore | Presentation |
-|---|---|---|---|
-| `k8s-cpu-throttling` | demo-live | 2 (one pre-fix, one post-fix) | 1 |
-| `lambda-iam-denied` | demo-live | 1 | — |
-| `payment-failure` | demo-live | — | 1 |
-| `broken-images` | playground | 1 | — |
-| `cloud-observability` | demo-live | n/a — presentation only by design | 1 |
+| Scenario | Environment | Explore | Presentation | Closed run? |
+|---|---|---|---|---|
+| `k8s-cpu-throttling` | demo-live | 2 (one pre-fix, one post-fix) | 1 | yes, both |
+| `lambda-iam-denied` | demo-live | 1 | 1 | yes |
+| `payment-failure` | demo-live | 1 | 1 | yes |
+| `broken-images` | playground | 1 | — | yes |
+| `cloud-observability` | demo-live | n/a — presentation only by design | 1 | yes |
+
+**Every scenario now has at least one run driven all the way to its close**, on both tenants, with the
+handoff block in the console and an HTML report rendered. Evidence links per render, after the
+fixes: payment-failure 4, lambda-iam-denied 5, cloud-observability 6, broken-images 4,
+k8s-cpu-throttling 3.
 
 The remaining runs are owed. What this pass bought was seven findings, five of them fixed the same day,
 and one retraction.
@@ -116,6 +121,21 @@ Reached a complete close on the other tenant, with a four-link handoff block, an
 Four stat tiles, each carrying its population label, and the two populations kept apart in the prose:
 "This is a different population from the 363 affected users on the problem record… nothing in the data
 ties a session to this function, so they aren't a count of the slowdown's victims."
+
+## Findings 8 to 10, from the second pass
+
+| # | Finding | Outcome |
+|---|---|---|
+| 8 | **The showcase handed over one link out of seven, by specification.** Its handoff block spelled Evidence as a single hardcoded line, `Cost explorer: [this beat's deep link]`. Since that block is what the report's `evidence` list is built from, every showcase render carried 0–2 links where incidents carried 3–5. The asymmetry sat in the renders for two days and read as a report problem; it was a scenario problem | **Fixed and verified.** Evidence is now every labelled link the session gave. The render went from **2 links to 6** (`20261104T132205Z` vs `20261105T162112Z`) |
+| 9 | **The turn ending was described twice, in two positions.** Part 5 of the beat turn was "the readiness cue", inside the narration sequence, while the tail rule placed it after the deep link. One run cued-stamped-linked-cued; another put its options before the stamp and ended on the link, which the same file forbids. Opposite faults from identical rules | **Fixed.** Four narration parts that explicitly stop, and the tail owns stamp, link and ending. `SKILL.md`'s checklist brought in line |
+| 10 | **The heaviest query in the framework.** The showcase's service step scanned 6.83 GB over 24 hours — more than the entire cost track, which had been tuned down to 2.07 GB to avoid exactly this | **Fixed.** 6 hours scans 1.67 GB for the same reading; at ~48,000 requests an hour it is never empty. Adding a service-id filter alongside the ARN measured 6.84 GB — marginally *worse*, no pruning. The ARN filter stays: that join is the step's point |
+
+## Beat 4 of `lambda-iam-denied`, verified on live data
+
+The beat rebuilt after the 70-poll watcher proved the broken grant is never readable now reads as
+specified: *"This view is a snapshot of the role as it is now, so a grant that was wrong for half an
+hour and then restored would not appear here"*, with the match framed as evidence — *"The configuration
+that is running now is not the one that was running at 16:02"* — and the inference labelled.
 
 ## Still owed
 
