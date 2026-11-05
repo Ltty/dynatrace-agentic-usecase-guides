@@ -104,6 +104,8 @@ behaviour; quote both and say which is which, because the comparison is the find
 returned, and say it is a service inside `namespace` on `cluster` rather than a machine. `also_affected` is the
 spread: read it as a chain from the root cause out to the application the user opens. `owning_team` is usually
 null here — say there is no team on the record rather than leaving a gap, and the handoff goes to the workload.
+The description also carries an `Info: EasyTrade version change` line; note it in passing as something a
+deploy landed, and leave what it changed to beat 4 rather than guessing here.
 
 **Success signal:** User asks which service is slow, or why it got slow.
 
@@ -259,6 +261,10 @@ flat. Those two are routinely confused and they fail in different ways: a reserv
 where a pod is scheduled and who it competes with, while a ceiling that is too low throttles the container no
 matter how idle the node is. This incident is the second kind.
 
+Beat 1's `description` carries an `Info: EasyTrade version change` line with a version number. Say the two
+together as returned — a new application version went out, and the spec change rode along with it — without
+claiming the version itself did anything: the field that changed is the one in this result.
+
 What the change was *for* is not in the result — whether it was a cost exercise, a copy-paste or a bad default
 is the owning team's to say. The restore is also not a conclusion: it stops the symptom, it does not establish
 the right number.
@@ -273,11 +279,14 @@ ceiling moved.
 
 **Success signal:** User names the limit reduction as the trigger, or asks who changed it.
 
-**Deep link** (label "The workload's events"):
+**Deep link** (label "The broker service workload"):
 
 ```text
-https://{{LINK_HOST}}/ui/apps/dynatrace.infraops/explorer?entityId=K8S_DEPLOYMENT-98DBB38AEB111C5B&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}&detailsTab=events
+https://{{LINK_HOST}}/ui/apps/dynatrace.infraops/explorer?entityId=K8S_DEPLOYMENT-98DBB38AEB111C5B&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}
 ```
+
+The spec change is **not** on the problem record, so this beat does not link there: the workload is
+where the change and its effect sit together.
 
 ---
 

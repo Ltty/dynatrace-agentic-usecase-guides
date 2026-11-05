@@ -124,6 +124,15 @@ The Playground token needs `ai:operator:execute`, `mcp-gateway:servers:read` and
   through Bash, behind the repo's guard hook. It tests the skill and instructions like local `/demo` does (testruns 12 and
   13), not the Dynatrace runtime. Cost: about 65 to 80k subagent tokens per case run, so run the cases you changed. Offline
   tests: `python tools/tests/test_score_transcript.py`.
+- **Writing assertions: a forbidden word is not a forbidden claim.** `reply_excludes` is a substring
+  check, so it fires on the word wherever it appears — including inside the negation a *correct* reply
+  uses. Three cases have now failed this way on their first run ("overloaded" and "out of CPU", both
+  from reveals that say "nothing is broken, overloaded or unreachable" and "not out of CPU"). Forbid
+  only phrasings the scenario never negates, and assert the behaviour you want positively instead.
+- **`requires_dql` on a first turn that names a service will flake.** Naming a service is a pick, and a
+  pick is answered with the mode question and no query (SKILL.md → "Classify the opening") — but some
+  runs resolve the live problem first so they can describe it. Put the assertions on the turn that
+  carries the beat, not on the opening.
 - **Review sheet:** every run writes `tests/evals/dt-agent/reports/<timestamp>-<tenant>.md` (git-ignored) with the transcripts, for tone and persona, which a script cannot judge.
 - **Ground truth (Playground):** a case can list `truth: [payment-failure, ...]`. The runner runs the survey query (narrowed to the scenario) and the deployment DQL itself, pinned to the read-only `playground` `dtctl` context (`python tools/run_dt_evals.py --truth payment-failure` prints it), and `{truth.<scenario>.<field>}` placeholders in a case are replaced with the live values. An empty truth fails the check instead of skipping it.
 - **Tenants:** `--tenant dev` uses `DT_DEV_AGENT_TOKEN`; `--tenant playground` uses `DT_PLAYGROUND_AGENT_TOKEN`; `--tenant demo-live` (`guu84124`, the `cloud-observability` showcase) uses `DT_DEMO_LIVE_AGENT_TOKEN`, and with `--local` the `demo-live` dtctl context. If the tenant has no `demo-agent` template, the runner skips with a message. Cases marked `status: draft` (the Playground ones) need `--include-draft` and their expectations are unvalidated until the agent exists there.

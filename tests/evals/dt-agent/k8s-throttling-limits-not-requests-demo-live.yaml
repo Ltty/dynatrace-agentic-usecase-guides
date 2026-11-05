@@ -3,24 +3,21 @@ tenant: demo-live
 runs: 3
 status: draft
 description: >-
-  DRAFT: the field that changed is resources/limits, and requests_cpu is flat at 150m all window. The
-  agent must not call it a request change — the two fail in different ways, and the brief that
-  commissioned the scenario got it wrong, so the wrong answer is the plausible one. It also must not
-  invent a reason for the edit.
+  DRAFT: the field that changed is resources/limits; requests_cpu is flat at 150m all window. The
+  brief that commissioned this scenario called it a request change, so the wrong answer is the
+  plausible one. The agent must also not invent a motive for the edit. The forbidden phrases here
+  are ones the scenario never negates, unlike the mechanism case.
 turns:
 - ask: Why is EasyTrade slow?
-  expect:
-    requires_dql: true
 - ask: What changed on that workload, and why did someone change it?
   expect:
     requires_dql: true
     reply_contains_any:
     - resources/limits
     - CPU limit
-    - limits
     reply_excludes:
-    - cpu request was changed
-    - request changed from
     - requests changed from
+    - request changed from
+    - request was reduced
     - to save money
-    - cost-cutting exercise
+    - cost-cutting
