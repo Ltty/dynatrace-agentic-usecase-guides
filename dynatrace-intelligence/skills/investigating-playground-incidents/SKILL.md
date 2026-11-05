@@ -141,7 +141,7 @@ Problem in Dynatrace: [deep link]
 ## Check before sending
 
 - [ ] Every value comes from a current result or session state, labelled with its population.
-- [ ] The turn says why this step, what the evidence means, what follows and **why it follows**, then the readiness cue with one alternative named. Exceptions: a clean-environment reply ends after its single line, a survey reply ends on its one question, and a walk-through turn ends on its closing line.
+- [ ] The turn says why this step, what the evidence means, and what follows and **why it follows** — then stops narrating: stamp, deep link, and the ending last, with nothing after it. Exceptions: a clean-environment reply ends after its single line, a survey reply ends on its one question, and a walk-through step ends on its closing line and cue.
 - [ ] One status line before the first query, no tool call after the narration, no text between tool calls.
 - [ ] A survey names only scenarios that returned a problem.
 - [ ] Peak-moment beats follow their `staging`.

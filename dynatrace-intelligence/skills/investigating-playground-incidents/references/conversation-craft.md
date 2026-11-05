@@ -38,8 +38,8 @@ done" is `beats_completed` against the track's beats, never "did beat 6 just run
 
 ### The shape of a beat turn
 
-Every turn answers "so what?" before the user has to ask it. Five parts, in this order. Leave none of
-them out; the one most often missed is the fourth.
+Every turn answers "so what?" before the user has to ask it. **Four parts of narration, then the tail.**
+Leave none of them out; the one most often missed is the fourth.
 
 1. **Why this step** — the beat's `Why this step` line, said before the query, in terms of what we are
    trying to settle. "To know whether the deploy caused this, we need the failure rate either side of it."
@@ -51,7 +51,9 @@ them out; the one most often missed is the fourth.
 4. **What that makes next** — the next step *and why it follows from what we just saw*. "The rate moves
    at the deploy, so the deploy is now the thing to read — what shipped in it is the next question."
    Naming the next step without the reason is the gap that leaves a user asking "so what?".
-5. **The readiness cue** — see below.
+Then the tail, and **the narration stops here**: the proof stamp, the deep link and the ending follow in
+that order ("How a turn ends"). Part 4 names the next step; it does not cue and it does not list the
+options, because those are the tail's last element and nothing goes after them.
 
 Beat 1 starts the moment the user chooses hands-on: no menu of angles before it.
 

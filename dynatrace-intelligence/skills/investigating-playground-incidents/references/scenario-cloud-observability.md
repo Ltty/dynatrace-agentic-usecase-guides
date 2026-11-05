@@ -238,10 +238,10 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.clouds/smartscape/functions?perspective=
 **Objective:** User connects the infrastructure to the application: the service running on the function, how it
 behaves, and the latest problem on it, with the business context and the AWS DevOps Agent's notes on the same record.
 
-**Evidence DQL — the service on the function (last 24 hours):**
+**Evidence DQL — the service on the function (last 6 hours):**
 
 ```dql
-fetch spans, from: now()-24h
+fetch spans, from: now()-6h
 | filter cloud.resource_id == "arn:aws:lambda:us-east-1:246186168471:function:image-provider-live"
 | filter request.is_root_span == true
 | summarize requests = count(), failed = countIf(request.is_failed == true),
@@ -255,7 +255,13 @@ fetch spans, from: now()-24h
     queried_at = now(), elapsed_min = round(toDouble(now() - toTimestamp("{{SURVEY_AT}}")) / 60000000000, decimals: 0)
 ```
 
-The spans name the function by its ARN; the service is joined to the Clouds-app resource through it.
+The spans name the function by its ARN; the service is joined to the Clouds-app resource through it —
+that join is the point of the step, so the ARN filter stays even though it is the expensive one.
+
+**Six hours, not twenty-four.** The same shape over 24h scans 6.83 GB against 1.67 GB for 6h, which made
+this the heaviest query in the framework — heavier than the whole cost track. The function takes roughly
+48,000 requests an hour, so 6 hours is never empty and the behaviour reads the same. Adding a service-id
+filter alongside the ARN does not prune anything: measured at 6.84 GB, marginally worse.
 
 **Evidence DQL — its latest problem, with the AWS DevOps Agent's notes:**
 
@@ -281,8 +287,8 @@ fetch dt.davis.problems, from: now()-48h, to: now()
 The problem the AWS DevOps Agent annotated comes first; without one, the newest. `problem_id`, `tf_from_ms` and
 `tf_to_ms` fill the deep link.
 
-**Reveal:** The service's requests, failure rate and p50/p95 over 24 hours come straight from its traces — label them
-"requests in the last 24 hours". Every signal is correlated into one problem, not a pile of alerts: the problem card
+**Reveal:** The service's requests, failure rate and p50/p95 over 6 hours come straight from its traces — label them
+"requests in the last 6 hours". A window that holds no failures is a clean window, said as that, not as an absence of data: the incident has its own step. Every signal is correlated into one problem, not a pile of alerts: the problem card
 gives the business impact first — `affected_users` as the problem record's affected users, and an `affected` list that
 runs from the services to the Astroshop frontend, the ingress, the application and a synthetic image check (that list is
 the business context, what depends on the function) — then the root cause, and `owning_team`. The dependency picture
