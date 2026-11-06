@@ -153,6 +153,34 @@ a watched run did not, because the agent can see its own whole transcript at onc
 Both runs also hit a schema rejection from the payload example I had corrected minutes earlier — they
 had read the stale version. No action: the example and the schema now agree.
 
+## Third pass: findings from the user's own live runs
+
+| # | Finding | Outcome |
+|---|---|---|
+| 15 | **The survey recommended which incident to take**, and `payment-failure` won every time — because it is the only scenario defining `avg_order_value_usd`, so the only one with a dollar figure to rank by. An authoring accident deciding the demo | **Fixed.** The survey recommends nothing and ranks nothing. Whether anything is open is still said, as a fact about the environment |
+| 16 | **The mode question described mechanics, not roles** — "pick what we look at as we go" against "step by step" made both options sound like one thing at two speeds | **Fixed.** "Do you want to investigate this hands-on — you decide what we look at and I pull it — or should I walk you through it?" Verified live, verbatim |
+| 17 | **The route clause grew an identical stem on every bullet.** Told never to open two the same way, it opened all three "This one is about …", having previously opened all three "We'd look at …" | **Fixed at the root.** It is a clause on the bullet's own sentence now, attached with a dash. A clause has no stem to repeat. Second time a first fix treated the output rather than its cause |
+| 18 | **`Detected` was a dead row.** `session-protocol.md` defines it and says it comes from the beats; no scenario, in any of the five, named a source. One run derived it from the template's wording, another left it out, both following identical files | **Fixed.** Sourced where a precise first-failure timestamp exists (lambda beat 3, payment beat 4) and deliberately left out where the earliest signal is a five-minute bucket |
+| 19 | **The commit sat on the `Cause` row**, while `Still open` said what it changed was unknown. A reader takes a commit on that row as the cause | **Fixed.** `Changed:` is its own row; `Cause` carries only what the evidence shows |
+| 20 | **The agent's notes were unreadable, and my account of why was wrong twice** | **Investigated properly.** See below |
+
+## The agent notes, corrected
+
+Two earlier notes in this repo said readable AWS DevOps Agent summaries stopped on 2026-10-26. They do
+not stop — they alternate in runs of days. Over 40 days, every such note belongs to this scenario's
+problem and they split **76 readable to 30 unavailable**: readable to 10-26, unavailable for the nine
+days 10-27 to 11-04, readable again 11-05 at 09:03. The run that prompted the question used a problem
+from 11-04, the last day of the bad streak.
+
+Not a query gap and not a version change: `aws_devopsagent.version` is `3` throughout, and the event
+declares the fault in `aws_devopsagent.response_type`
+(`investigation_summary_unavailable` / `mitigation_summary_unavailable`) with a placeholder description
+and `description.truncated` false. No field holds the text. The task is still named on the event, so
+beat 6 now detects the state from `response_type` and surfaces `task_id` and the agent space — an
+identifier the viewer can paste, where before it could only say "open the task in the agent space".
+
+Why retrieval fails for consecutive days is upstream, on the AWS DevOps Agent integration.
+
 ## Still owed
 
 - The rest of the matrix: two more runs of each scenario in each mode.
