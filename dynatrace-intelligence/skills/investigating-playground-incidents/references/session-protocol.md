@@ -365,7 +365,7 @@ step. It is part of the conversation, in character: it carries no "Written for" 
 Incident handoff — [display_id]
 What happened:  [one plain sentence]
 When:           [started] to [ended, or "still open"], [duration] (UTC)
-Detected:       problem opened [N] minutes after the first failed request
+Detected:       problem opened [N] minutes after the first failed request [or, where the gap is negative: problem opened [N] minutes before the first one that carried an exception]
 Impact:         [count] [the population's own label], [cost]
 Rate:           [the beat 3 metric: failure rate, p50 latency], [before] to [peak], back to [after]
 Cause:          [what the evidence shows, in the data's own terms]
@@ -389,6 +389,10 @@ Still open:     [what the data does not show]
 - **`Cause` is what the data shows broke; `Changed` is what landed before it.** Keep them apart: a
   commit on the Cause row reads as the cause, and what a commit contains is never in the telemetry.
   `Changed` carries the identifier and the gap, and is left out when no change was found.
+- **A negative gap is a real result, not a broken row.** Dynatrace can open a problem before the first
+  failure that carries an exception message, because it sees failing requests the exception query does
+  not. Say it in that direction and name which measurement each end came from; never flip the sign to
+  make the sentence read the usual way, and never drop the row to avoid the awkwardness.
 - `Detected` needs a precise first-failure timestamp, so it is filled only where a scenario's Handoff
   fields table names its source (an exception's `first_seen` against the survey row's `started`). Where
   the earliest signal is a five-minute bucket the row is left out rather than rounded into a claim.
@@ -424,12 +428,16 @@ replace either with a question of your own ("Want me to check whether anything e
 
 ```text
 [The handoff block, exactly as "Handoff block" above defines it.]
-[Explore only] Timeline: one sentence per beat, chronological, with the actual values you showed.
+[Explore only] Timeline: one sentence per beat, **ordered by the clock, not by the order the beats ran**,
+with the actual values you showed.
 From the first look to the full picture in [X] minutes: [the two or three things established, such as the change, the exact error and the sessions with a replay].
 [The affected-sessions link, when the scenario's Handoff fields table has one and the handoff block has not already given it.]
 [The way out, below.]
 ```
 
+- **Chronological means by the timestamps in the findings.** Beats can run in any order the `Requires`
+  graph allows, so beat order and clock order diverge; the reader is following the incident, not the
+  investigation. The same ordering goes into the report's `timeline`.
 - **[X]:** "under a minute" when the figure rounds to 0 — a walk-through pulls every query at once, so 0 is
   the normal result there and "in 0 minutes" reads as a broken field. Otherwise the latest `elapsed_min` a result in this conversation returned, in minutes since the survey (in a
   walk-through it measures the executive summary, which pulls every beat's first query at once). If there is none,

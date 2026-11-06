@@ -181,6 +181,25 @@ identifier the viewer can paste, where before it could only say "open the task i
 
 Why retrieval fails for consecutive days is upstream, on the AWS DevOps Agent integration.
 
+## Fourth pass: verifying the fixes, and four more gaps
+
+Three runs on demo-live (payment, lambda, k8s), each self-driving to the close and auditing its own
+transcript. **Everything from passes one to three verified**: turn 1 gives the mode question and runs no
+query; `Changed:` is its own row with `Cause:` free of the commit; the header carries the incident's
+duration and the footer "Worked out in 1 minute"; routes are clauses with no repeated stem; no run
+recommended an incident; the unreadable-notes path named the task id and the agent space ARN.
+
+| # | Finding | Outcome |
+|---|---|---|
+| 21 | **`Detected` assumed a positive gap.** Payment returned `detected_after_min = -2.1`: the problem opened *before* the first request carrying an exception, because Dynatrace sees failing requests the exception query does not. The template sentence would have been false; the run wrote it truthfully and off-template | **Fixed.** The template carries both directions, and a negative gap is named as a real result with each end's measurement, never sign-flipped and never dropped |
+| 22 | **The report timeline was ordered by beat, not by clock.** Two runs sent `16:02` before `16:01`. "One sentence per beat, chronological" cannot be both once `Requires` lets beats run out of order | **Fixed.** Ordered by the timestamps in the findings; the reader follows the incident, not the investigation |
+| 23 | **"It investigated and recommended"** — said where no recommendation text was readable | **Fixed.** It finished; what it concluded is in the task |
+| 24 | **Two measurements in one sentence.** "2,181 ms against a 3 ms baseline" pairs a span percentile with the problem record's own learned figure over a different window | **Fixed.** Each number carries the measurement it came from, or only one is stated |
+
+Two agent slips against rules that are already clear, recorded rather than fixed: one run omitted a
+beat's deep link in the beat turn and gave it only in the handoff, and one missed the status line on
+two turns.
+
 ## Still owed
 
 - The rest of the matrix: two more runs of each scenario in each mode.

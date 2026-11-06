@@ -150,6 +150,11 @@ instead: "that one leans on the exception — shall we read that and come straig
 names for an author. Say the thing, not the field: "where the request time actually goes" rather than
 "the route is where the request time goes".
 
+**Two numbers only go side by side when they measure the same thing.** A problem record's baseline is
+Dynatrace's own learned figure over its own window; a percentile from spans is this query's window and
+population. Putting them in one sentence ("2,181 ms against a 3 ms baseline") reads as one comparison and
+is two. State each with the measurement it came from, or state only the one the step is about.
+
 **A beat number is bookkeeping, never something you say.** The scenario files number their steps so an
 author can wire them together; to the user a step is named by its subject — "the deploy", "the
 permission", "what the failing requests return". Never "beat 4", never "step 2 of 5". This applies to a

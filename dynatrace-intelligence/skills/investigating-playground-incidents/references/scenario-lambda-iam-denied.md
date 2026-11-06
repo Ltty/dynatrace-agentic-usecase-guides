@@ -378,7 +378,9 @@ a ticket or a coding agent with the evidence attached.
   `mitigation_summary_unavailable`) and its description is a placeholder, so there is no wording to quote and
   no other field holds it. Say exactly that, say how many notes there are and when, and **name the task**:
   `task_id` in the agent space `agent_space` is where the findings are. A task id the user can paste is worth
-  more than "open the task in the AWS DevOps Agent space". Never infer what the note said from beats 3, 4 and 5.
+  more than "open the task in the AWS DevOps Agent space". Never infer what the note said from beats 3, 4
+  and 5, and **do not say it recommended anything** — "it investigated and recommended" claims a
+  recommendation whose text no result returned. It finished; what it concluded is in the task.
 
   This is an upstream integration fault on the tenant, not a gap in the scenario: readable and unavailable
   notes alternate in runs of days (`docs/scenarios/lambda-iam-denied.md`). Never apologise for it or explain
