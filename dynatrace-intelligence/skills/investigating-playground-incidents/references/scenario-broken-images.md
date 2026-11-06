@@ -145,7 +145,7 @@ there.
 
 **Success signal:** User identifies the deploy as the trigger, or asks what that commit changed.
 
-**Deep link** (label "Problem in Dynatrace"):
+**Deep link** (label "The deploys on the problem record"):
 
 ```text
 https://{{LINK_HOST}}/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TF_FROM_MS}}&to={{TF_TO_MS}}

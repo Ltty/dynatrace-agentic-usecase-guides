@@ -47,12 +47,6 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "from": {
-          "type": "string"
-        },
-        "to": {
-          "type": "string"
-        },
         "duration": {
           "type": "string"
         }
