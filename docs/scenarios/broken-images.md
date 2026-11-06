@@ -52,7 +52,7 @@ S3 `HeadObject` (80 ms), then `Resize original product image` (about 6.1 s) cont
 
 ## Beat DQL status (plugin-era file names, verified live 2026-10-07)
 
-The queries now live in the skill's `scenario-broken-images-beats.md`, one block per beat; the names below are the
+The queries now live in the skill's `references/scenario-broken-images.md`, one block per beat; the names below are the
 retired plugin edition's.
 
 | Query | Records | Notes |

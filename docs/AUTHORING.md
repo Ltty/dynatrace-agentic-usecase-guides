@@ -51,10 +51,21 @@ not use (`description` is read by beat 1). Date arithmetic and any cost figure b
 
 ### 3. Write the beats
 
-In `scenario-<id>.md`, one `## Beat N — Title` section each, with: **Why this step**, **Objective**,
-**Evidence DQL**, **Reveal**, **Success signal**, **Deep link**, and for a climax `**peak_moment: true**` plus
-**Staging**. Optional: an **Objection** paragraph (skeptic pushback and the answer, used only when the user
+In `scenario-<id>.md`, one `## Beat N — Title` section each, with: **Requires**, **Why this step**,
+**Objective**, **Evidence DQL**, **Reveal**, **Success signal**, **Deep link**, and for a climax
+`**peak_moment: true**` plus **Staging**. Optional: an **Objection** paragraph (skeptic pushback and the answer, used only when the user
 raises it) and a **Fold in on a jump** note when a beat's evidence is needed even if the user skips it.
+
+**Requires** is the beats whose *findings* this one builds on, or `none`. It is about the argument,
+never the query: most of these queries would run in any order, but a reveal that leans on an earlier
+finding is incoherent without it. The agent offers every beat whose Requires are complete, so this is
+what lets a user steer without the story coming apart — and what lets the agent say plainly when an
+order is forced. Beat 1 requires `none`; a beat may only require an earlier beat.
+`tools/tests/test_deep_links.py` checks the graph.
+
+**A linear scenario is a legitimate answer.** If every beat requires the one before it, the agent
+offers one step at a time and says why that is the only way forward. Do not loosen a real dependency
+to manufacture a choice: an option the evidence cannot serve is worse than no option.
 
 **Why this step** and **Objective** are not the same thing, and both are required.
 
@@ -125,6 +136,26 @@ discovery hook is a row in the "Discovery hooks" table in `session-protocol.md`,
 (`{affected_users}`, `{duration_min}`, `{revenue_usd}`). Only reference values the survey row supplies. If the problem record carries no clean rate, describe severity qualitatively and let a beat's query
 carry the exact number.
 
+**The hook opens on what a person using the product met, not on the component that broke.** "Shoppers
+couldn't pay — card payments failed at checkout" rather than "the payment service was failing": a viewer
+who does not know the architecture cannot size the second one. Keep it to scenario knowledge, never a
+measured claim the survey row does not carry.
+
+**Its `Route` cell** is a short closing clause naming what the investigation is *about* — "a cloud
+permission, and whatever the AWS DevOps Agent made of it" — so the user can choose between incidents on
+something other than a user count. It names the subject, never a finding, a cause or a count, and is
+phrased openly enough that a beat returning no rows does not contradict it. `test_deep_links.py` fails a
+hook row with an empty Route.
+
+Hook and route live in `session-protocol.md`, never in the scenario file: the survey answers without
+opening one (`tests/evals/dt-agent/survey-live.yaml` → `reads_exclude`).
+
+**`approach`** is a row in the scenario's own Business context: one line in the SRE's voice proposing how
+they would work it ("Here's how I'd work it: start with who it hit, then what changed on the service just
+before, …"), said once as beat 1 opens and never recited again. It is the Feedforward principle below, and
+`test_deep_links.py` fails an incident scenario without one. It is **not** `pull_line`, which is a status
+line shown while queries run.
+
 The **Handoff fields** table says which beat provides each value the agent needs to hand an incident to its
 owner (owning team, commit and link, populations, replay link). If the owning team and the deploy owner
 differ, say which is who. The row `Goes to` says who the handoff goes to: the team, or the host when there is no
@@ -184,7 +215,7 @@ reviewable.
 
 | Principle | The rule it becomes |
 |---|---|
-| Feedforward | State the approach before the first query, so the user knows the shape before it starts |
+| Feedforward | State the approach before the first query, so the user knows the shape before it starts — the scenario's `approach` row, said once at beat 1 |
 | Goal Gradient | Once a target is named, place every finding against it — "$2,454 against a $1,332 target" |
 | Storytelling Effect | A scenario has an order and an argument; each Reveal connects to the one before |
 | Chunking, Miller's Law | 3–5 fields per table, findings grouped |
@@ -194,7 +225,7 @@ reviewable.
 | Anchoring | The first number in a turn is the impact figure, never a row count |
 | Loss Aversion | Unowned spend is exposure, not a missed gain — "$6,725 nobody is accountable for" |
 | Framing | Give the absolute and the share when the share carries the meaning |
-| Reactance | A proposal is offered once; the other choice gets no comment and no second attempt |
+| Reactance | Which incident to investigate is never recommended or ranked — the bullets are the choice. Inside an investigation a next step is proposed once; the other option gets no comment and no second attempt |
 | Progressive Disclosure | Beats exist so the estate is not dumped in turn one |
 | Curse of Knowledge | "What does that mean?" is answered in plain words, no product vocabulary assumed |
 | Labor Illusion | The proof stamp shows the work behind the answer |
@@ -218,9 +249,11 @@ uses the same file layout, beats, reveals, deep links and data-only rule, with t
 - **Tracks, when a showcase has more than one story in it.** A `## Tracks` section maps each arc to its beats
   and what it closes on, so entering in the middle walks one arc forward rather than backwards through another.
   The session close fires when the track's beats have all run, in whatever order they ran.
-- **One delivery.** A showcase is a presentation: no `mode_question`, no `pull_line`, and
-  `references/walk-through.md` does not apply to it. It is always guided step by step, with a call to action after
-  every step.
+- **One delivery, and no `Requires:`.** A showcase is a presentation: no `mode_question`, no `pull_line`,
+  and `references/walk-through.md` does not apply to it — no executive summary, no on-request report. It is
+  always guided step by step, with a call to action after every step. Because nothing is ever offered, its
+  beats declare no `Requires:`; `## Tracks` carries the ordering instead, and
+  `tools/tests/test_deep_links.py` exempts showcases from the beat-graph check.
 - **Its own tokens.** A "Tokens" section says which beat result fills each token: beat 1's `queried_at` is
   `{{SURVEY_AT}}`, and a beat that returns `problem_id`, `tf_from_ms` and `tf_to_ms` fills the problem link. Windows
   are relative (`now()-24h`, `now()-7d`), since there is no incident window.
@@ -229,7 +262,7 @@ uses the same file layout, beats, reveals, deep links and data-only rule, with t
 - **Register it** in `SHOWCASES` in `tools/validate_dt_skill.py` as well as `SCENARIO_FILES`; the validator then skips
   the survey and harvests the tokens from the beat results, for both the live run and `--links`.
 - **Extras** (optional): a `## Extra — <title>` section after the last beat, for a guide part that is offered after the
-  close and is not in the walk-through report. It has its own evidence DQL, reveal and labelled deep link; the validator
+  close and is not part of the tour itself. It has its own evidence DQL, reveal and labelled deep link; the validator
   runs its query and `test_deep_links.py` counts its link.
 
 ## What the agent guarantees
@@ -242,9 +275,12 @@ It reads your two files and runs your queries. It will:
   withheld until the user guesses and never a dead end;
 - offer the deep link at the end of each beat, and follow the user's detours before re-anchoring on what is
   still unknown;
-- when the user asks to be walked through it, deliver the same beats as a report and close with a handoff
-  block built only from your Handoff fields table. A value the table has no source for is left out of the
-  block, so say plainly there when a scenario has no owning team or no user count;
+- when the user asks to be walked through it, deliver the same beats in the same order, one per turn,
+  each following from the last, with nothing offered and the user only ever saying "next" — and close
+  with a handoff block built only from your Handoff fields table. A value the table has no source for is
+  left out of the block, so say plainly there when a scenario has no owning team or no user count. The
+  condensed one-turn report still exists but only when asked for by name (`walk-through.md` → "The
+  report, on request");
 - show no query ID: local `/demo` adds a proof stamp from the dtctl envelope, the Dynatrace agent shows none.
 
 It will not guarantee that entity IDs stay stable if the Playground is reset, and it does not parse a failure

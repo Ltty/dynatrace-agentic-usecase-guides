@@ -23,6 +23,7 @@ Reveals describe the *shape* of a finding, never its values. Commit SHA, excepti
 | `service_name` | "payment service" |
 | `avg_order_value_usd` | 87 (also in the survey query's `revenue_usd`) |
 | `symptom` | "card payments failing at checkout" |
+| `approach` | "Here's how I'd work it: start with who it hit, then what changed on the service just before, then the failing requests themselves, and finish on what the shoppers saw." |
 | `pull_line` | "Pulling the deployments, the failure rate, the failing requests and the affected sessions together." |
 
 The failure rate comes from the service deep dive (beat 3), never from the problem record.
@@ -48,9 +49,10 @@ which one a number counts.
 
 | Value | Source |
 |---|---|
+| `Detected` | Beat 4's exception `first_seen` against the survey row's `started`: how long after the first failed request the problem opened |
 | `owning_team` | Survey row (beat 1 shows it); who to page first |
 | `Goes to` | `owning_team` |
-| `commit`, `git_url`, `owner` | Beat 2 — The Change; `owner` is who shipped it. If it differs from `owning_team`, list both and say which is which |
+| `Changed` (`commit`, `git_url`, `owner`) | Beat 2 — The Change; `owner` is who shipped it. If it differs from `owning_team`, list both and say which is which. Its own handoff row, never folded into `Cause` |
 | Affected users (problem record) | survey row `affected_users` |
 | Sessions with server errors (5xx) | Beat 5 — sum of `sessions` across all countries |
 | Per-country sessions | Beat 5 — individual rows |
@@ -59,6 +61,8 @@ which one a number counts.
 ---
 
 ## Beat 1 — The Page
+
+**Requires:** none
 
 **Why this step:** Before we chase a cause we need the blast radius: what is failing, for how many, and whose service it is.
 
@@ -103,6 +107,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?fr
 
 ## Beat 2 — The Change
 
+**Requires:** 1
+
 **Why this step:** A failure that starts at a point in time usually starts with a change, so the next thing worth knowing is what shipped just before it.
 
 **Objective:** User sees which deployment lines up with the start of the failure, who shipped
@@ -137,15 +143,22 @@ between `first_deploy` and the problem start (`deploy_before_problem_min`; negat
 
 **Success signal:** User asks which commit to revert, who owns it, or for deployment details.
 
-**Deep link** (label "Explain with Dynatrace Intelligence"):
+**Deep link** (label "The deploys on the problem record"):
 
 ```text
-https://{{LINK_HOST}}/ui/intent/dynatrace.davis.copilot/ask-question#%7B%22prompt%22%3A%22Explain%20what%20happened%20in%20the%20problem%20with%20id%20{{PROBLEM_ID}}%2C%20why%20it%20happened%2C%20and%20actionable%20steps%20to%20remediate%20it.%22%2C%22execute%22%3Atrue%7D
+https://{{LINK_HOST}}/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TF_FROM_MS}}&to={{TF_TO_MS}}{{PROBLEM_SEGMENTS}}
 ```
+
+The deploy events are correlated onto the problem record, which is the view that shows what this beat
+found. An Assist prompt is **not** a deep link: `docs/AUTHORING.md` step 5 fails a link that opens a
+chat, and testrun 14 caught this one doing exactly that. The prompt is kept in
+`docs/scenarios/payment-failure.md` for anyone who wants it by hand.
 
 ---
 
 ## Beat 3 — Service Deep Dive
+
+**Requires:** 2
 
 **Why this step:** A deploy landing near the start is not yet a cause — to tie them together we need the failure rate either side of it.
 
@@ -205,6 +218,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.services/explorer/services?detailsId={{R
 ## Beat 4 — Failing Traces
 
 **`peak_moment: true`**
+
+**Requires:** 3
 
 **Why this step:** We know the rate moved with the deploy; to say what actually broke we need the exception itself and the request it happened in.
 
@@ -298,6 +313,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.distributedtracing/explorer?filter=reque
 ## Beat 5 — The Humans
 
 **`peak_moment: true`**
+
+**Requires:** 1
 
 **Why this step:** A root cause is only half the handoff — the owning team also needs to know who this reached and what they experienced.
 

@@ -19,9 +19,10 @@ turns:
     - goal in mind
     - propose one
     reply_excludes:
-    - hands-on with me
     - whole tour
     - CTO
+    reply_excludes_quoted:
+    - investigate this hands-on
 - ask: '20%'
   expect:
     requires_dql: true

@@ -18,6 +18,7 @@ turns:
     - without a team
     reply_excludes:
     - account team
-    - hands-on with me
     - whole tour
     - Which should we take first
+    reply_excludes_quoted:
+    - investigate this hands-on

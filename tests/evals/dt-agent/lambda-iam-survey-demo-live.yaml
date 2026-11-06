@@ -1,0 +1,22 @@
+id: lambda-iam-survey-demo-live
+tenant: demo-live
+runs: 3
+status: draft
+description: >-
+  DRAFT: the image-provider incident is an outage, not a slowdown. Its survey bullet says the images
+  are failing, never that they are slow or degraded, carries no cost line (the scenario defines no
+  order value), and states no failure rate — the survey query returns none. The scenario is never
+  named by its id.
+turns:
+- ask: What's wrong right now?
+  expect:
+    requires_dql: true
+    reply_contains_any:
+    - image
+    - images
+    reply_excludes:
+    - lambda-iam-denied
+    - payment-failure
+    - slowdown
+    - degraded
+    - '%'

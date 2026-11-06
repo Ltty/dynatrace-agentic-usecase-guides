@@ -1,0 +1,45 @@
+id: walk-stepped-demo-live
+tenant: demo-live
+runs: 3
+status: draft
+description: >-
+  DRAFT: being walked through is a story told forwards, not a conclusion followed by proof. The first
+  turn is beat 1 with the approach line and no up-front summary, each turn offers nothing, and the
+  throttling finding must not appear before the step that establishes it. This is the only runnable
+  coverage of the walk: the four non-draft walk cases are on dev, which is readwrite-all.
+turns:
+- ask: Let's look at the EasyTrade slowdown.
+- ask: Walk me through it step by step.
+  expect:
+    reads_include:
+    - walk-through.md
+    - scenario-k8s-cpu-throttling.md
+    requires_dql: true
+    reply_contains_any:
+    - how I'd work it
+    - how I would work it
+    reply_excludes:
+    - throttl
+    - 600m
+    - Which one
+    - 'a) '
+    - I can't
+- ask: next
+  expect:
+    requires_dql: true
+    reply_excludes:
+    - Which one
+    - 'a) '
+- ask: next
+  expect:
+    requires_dql: true
+    reply_contains:
+    - throttl
+    reply_contains_any:
+    - say next
+    - when you're ready
+    - Say next
+    reply_excludes:
+    - Which one
+    - 'a) '
+    - Shall I continue

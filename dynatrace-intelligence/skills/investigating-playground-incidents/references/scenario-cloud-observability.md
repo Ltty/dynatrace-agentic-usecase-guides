@@ -111,6 +111,10 @@ they arrived, and the session close fires when that track's beats have all run (
   what we actually run". Never walk back into beats 1–4 as a continuation of the cost story.
 - A pick of the cloud tour walks `estate`, then `cost`, as one sequence — that is the full guide.
 - The Extra comes after either close, on request.
+- Beat 3 shows a problem at tour depth and beat 4 counts the notes on it; the investigation that walks
+  that same problem to its root cause is `lambda-iam-denied`. Offer it **only after a close**, never
+  mid-tour, and only as what it is — the long way round the problem just shown, not a second tour.
+  Name it by what it investigates, never by its id.
 
 ## Tokens
 
@@ -234,10 +238,10 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.clouds/smartscape/functions?perspective=
 **Objective:** User connects the infrastructure to the application: the service running on the function, how it
 behaves, and the latest problem on it, with the business context and the AWS DevOps Agent's notes on the same record.
 
-**Evidence DQL — the service on the function (last 24 hours):**
+**Evidence DQL — the service on the function (last 6 hours):**
 
 ```dql
-fetch spans, from: now()-24h
+fetch spans, from: now()-6h
 | filter cloud.resource_id == "arn:aws:lambda:us-east-1:246186168471:function:image-provider-live"
 | filter request.is_root_span == true
 | summarize requests = count(), failed = countIf(request.is_failed == true),
@@ -251,7 +255,13 @@ fetch spans, from: now()-24h
     queried_at = now(), elapsed_min = round(toDouble(now() - toTimestamp("{{SURVEY_AT}}")) / 60000000000, decimals: 0)
 ```
 
-The spans name the function by its ARN; the service is joined to the Clouds-app resource through it.
+The spans name the function by its ARN; the service is joined to the Clouds-app resource through it —
+that join is the point of the step, so the ARN filter stays even though it is the expensive one.
+
+**Six hours, not twenty-four.** The same shape over 24h scans 6.83 GB against 1.67 GB for 6h, which made
+this the heaviest query in the framework — heavier than the whole cost track. The function takes roughly
+48,000 requests an hour, so 6 hours is never empty and the behaviour reads the same. Adding a service-id
+filter alongside the ARN does not prune anything: measured at 6.84 GB, marginally worse.
 
 **Evidence DQL — its latest problem, with the AWS DevOps Agent's notes:**
 
@@ -277,8 +287,8 @@ fetch dt.davis.problems, from: now()-48h, to: now()
 The problem the AWS DevOps Agent annotated comes first; without one, the newest. `problem_id`, `tf_from_ms` and
 `tf_to_ms` fill the deep link.
 
-**Reveal:** The service's requests, failure rate and p50/p95 over 24 hours come straight from its traces — label them
-"requests in the last 24 hours". Every signal is correlated into one problem, not a pile of alerts: the problem card
+**Reveal:** The service's requests, failure rate and p50/p95 over 6 hours come straight from its traces — label them
+"requests in the last 6 hours". A window that holds no failures is a clean window, said as that, not as an absence of data: the incident has its own step. Every signal is correlated into one problem, not a pile of alerts: the problem card
 gives the business impact first — `affected_users` as the problem record's affected users, and an `affected` list that
 runs from the services to the Astroshop frontend, the ingress, the application and a synthetic image check (that list is
 the business context, what depends on the function) — then the root cause, and `owning_team`. The dependency picture
@@ -356,7 +366,9 @@ fetch dt.davis.problems, from: now()-7d, to: now()
           affected_users = dt.davis.affected_users_count, owning_team = team }
 | sort if(event.category == "SLOWDOWN", 0, else: 1) asc, if(isNotNull(change_at), 0, else: 1) asc, event.start desc
 | limit 1
-| fieldsAdd rc_at = indexOf(note, "Root Cause"), fix_at = indexOf(note, "Recommended Fix")
+| fieldsAdd rc_at = indexOf(note, "## Root Cause"), sol_at = indexOf(note, "## Solution"),
+    rf_at = indexOf(note, "Recommended Fix")
+| fieldsAdd fix_at = if(sol_at >= 0, sol_at + 12, else: rf_at)
 | fieldsAdd agent_root_cause = if(rc_at >= 0, substring(note, from: rc_at, to: rc_at + 500), else: substring(note, from: 0, to: 500))
 | fieldsAdd agent_fix = if(fix_at >= 0, substring(note, from: fix_at, to: fix_at + 300), else: "")
 | fields display_id, title = event.name, status = event.status, started = event.start, ended = event.end, affected_users,
@@ -366,11 +378,12 @@ fetch dt.davis.problems, from: now()-7d, to: now()
 
 A slowdown with a resource-limit change in the two hours before it comes first; without one, the newest annotated
 EasyTrade problem. `change` is the Kubernetes spec-change event's own text; `agent_fix` is the note's own
-"Recommended Fix" section, which is what staging step 5 quotes; `agent_root_cause` is the start of the
+"Solution" section, which is what staging step 5 quotes; its notes head that section `## Solution` and only
+rarely "Recommended Fix", so the query prefers the first and falls back to the second; `agent_root_cause` is the start of the
 agent's note at its root-cause heading.
 
 **Reveal:** First the agents: one row each, with the problems they wrote on in 7 days and their note types — the AWS
-DevOps Agent (investigation and mitigation, met in beat 3), the SRE Agent from Cloud SRE Agents (investigation, then a root
+DevOps Agent (investigation and mitigation, the one annotating the problem earlier in the tour if that step has run), the SRE Agent from Cloud SRE Agents (investigation, then a root
 cause with a verdict) and the Kubernetes troubleshooting agent ("Dynatrace AI Analysis"). They are triggered from the
 problems and post back onto them, so the on-call engineer reads every investigation in one place. Then one of them at
 work: an EasyTrade problem (`title`, `display_id`, its window as UTC times) where the Kubernetes troubleshooting agent
@@ -395,7 +408,7 @@ hours before it, and give the agent's root cause alone.
    it — goes from alert to a named cause and a proposed fix without anyone assembling the evidence by hand. AI is only as
    good as the context it gets.
 4. The agent's root cause, quoted and attributed, then the agents table, one row per agent.
-5. The proposed fix in one line, quoted from `agent_fix` — the note's own "Recommended Fix" — as the
+5. The proposed fix in one line, quoted from `agent_fix` — the note's own "Solution" section — as the
    agent's recommendation, not something applied. Empty `agent_fix` means the note carried no fix
    section: say that, and do not infer one from the root cause. Name the team only from **this**
    problem's `owning_team`; it is often null, and then it is "the owning team", never the team
@@ -580,10 +593,15 @@ tag changed inside the window; list both, as returned.
      Not to touch: [db] ([cpu_avg_pct]% CPU, [free_mem_min_mb] MB free) — low CPU, no memory headroom
 
    Goes to:       [the teams from the team split] — they act, we supply the evidence
-   Evidence:
-     Cost explorer:  [this beat's deep link]
+   Evidence:      [every labelled link given in this session, one per line, in the order they were given]
    Still open:    which lines close the gap to $[target_usd] is the owners' call
    ```
+
+**Evidence is every link, not the last one.** A tour that opened the Clouds overview, the function, its
+problem, the agents app and the cost explorer hands over all of them; a cost-track-only session hands
+over what that track gave. This block is also what the local report's `evidence` list is built from
+(`skills/local-runtime/SKILL.md` → "Report (local only)"), which is why a single-line Evidence section
+produced reports with one link where the incidents carried three to five.
 
    **These are findings, not a forecast.** The block says where the money is and where the evidence is
    thinnest — the best places to look first. It never says what any of them would save. Say that in the

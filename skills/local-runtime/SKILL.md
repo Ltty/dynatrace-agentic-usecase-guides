@@ -95,12 +95,39 @@ It prints the file it wrote.
 - **`kind`** is `incident` for a scenario with a problem record, `showcase` for one whose Business
   context says `kind: showcase`. `incident` carries the handoff block's rows; `showcase` carries the
   cost figures and the action list under `cost`.
+- **An incident's payload is the handoff block, row for row**: `display_id`, `headline` from "What
+  happened", `incident.when` / `.detected` / `.impact` / `.rate` / `.cause` from their rows, `goes_to`,
+  the labelled deep links as `evidence[]`, and `still_open`. Two more the handoff has no row for:
+  **`investigated_in`** is the session's own elapsed figure, the close's "[X] minutes" — it renders in the footer, labelled as the working-out time, and is the only place that figure belongs. `window.duration` is **the incident's** duration, the handoff's `When:` row — it prints beside the problem ID, so the session's own elapsed figure there would read as the outage lasting two minutes. `stats[]` takes the figures the session actually
+  established — the problem record's affected users, the failure rate, the slowest percentile — each
+  with the population label it carried in the conversation. Omit either when the session has no such
+  number; never add one for the sake of a tile.
 - **An action is what to do, why, and whose it is.** Each entry in `cost.actions` carries `label`
   (the action), `why` (the evidence that makes it the right call) and `owner` (from the team split,
   omitted when the spend has none). An action with no `why` is a line item, not a recommendation.
   **Never a saving.** No result holds what an action would save, so no `why` claims one; the report
   says in its own words that these are places to look, not a forecast.
-- **`evidence`** is the deep links you already gave, each with the label you used for it.
+- **`evidence`** is **every** deep link you gave in the session, each with the label you used for it —
+  not just the last one. A five-beat investigation hands over five links; one is a report nobody can
+  check. This is the field most often sent short.
+
+A fully-populated incident payload, so the shape is not inferred from the minimal one above. Omit any
+key the session has no source for; send no key you would have to invent:
+
+```json
+{ "kind": "incident", "environment": "<env>", "scenario": "<id>",
+  "title": "<what broke, in plain words>", "display_id": "P-…",
+  "headline": "<the handoff's What happened>",
+  "window": { "duration": "<how long the incident lasted, e.g. 31 minutes>" },
+  "investigated_in": "<the close's elapsed figure, e.g. 11 minutes>",
+  "stats": [ { "label": "Affected users (problem record)", "value": "…" },
+             { "label": "Failure rate at peak", "value": "…" } ],
+  "incident": { "when": "…", "detected": "…", "impact": "…", "rate": "…", "cause": "…" },
+  "timeline": [ { "time": "<UTC>", "what": "<one beat's finding>" } ],
+  "evidence": [ { "label": "<the label you used>", "url": "<the link you gave>" } ],
+  "goes_to": "<owning team, or the workload when there is none>",
+  "still_open": "<what the data does not settle>" }
+```
 - **If the session continues past the close** — the Extra, or a beat the user went back for — render
   again at the end of that turn and give the new path. A report that silently omits what came after
   it is worse than no report.

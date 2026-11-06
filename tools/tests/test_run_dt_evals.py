@@ -12,6 +12,7 @@ import traceback
 from pathlib import Path
 
 TOOLS = Path(__file__).parent.parent
+REPO_ROOT = TOOLS.parent
 spec = importlib.util.spec_from_file_location("run_dt_evals", TOOLS / "run_dt_evals.py")
 ev = importlib.util.module_from_spec(spec)
 sys.modules["run_dt_evals"] = ev
@@ -162,11 +163,39 @@ def test_narrating_the_working_fails():
     assert fails(progress_stream(text, reply="All fine."), {}, forbid=False) == []
 
 
+def test_quoted_exclusions_still_exist_in_the_skill():
+    """A forbidden phrase the skill can no longer produce has stopped testing anything.
+
+    `reply_excludes` is mostly intent ("global outage", "davis", "I can't") and those must never
+    appear in the skill. `reply_excludes_quoted` is the other kind: a phrase copied *from* the skill,
+    forbidden where it does not belong — a showcase asking the incident mode question, say. Reword the
+    skill and such a case keeps passing while asserting nothing, which is how the mode-question
+    rewrite silently emptied six cases. This test fails instead, naming the case.
+    """
+    roots = [REPO_ROOT / "dynatrace-intelligence", REPO_ROOT / "skills"]
+    corpus = chr(10).join(
+        f.read_text(encoding="utf-8").lower()
+        for root in roots for f in root.rglob("*.md")
+    )
+    assert corpus, "no skill documents found"
+    checked = 0
+    for case in ev.load_cases():
+        for turn in case["turns"]:
+            for needle in turn.get("expect", {}).get("reply_excludes_quoted", []):
+                if needle.startswith("{truth."):
+                    continue
+                checked += 1
+                assert needle.lower() in corpus, (
+                    case["id"], f"quoted exclusion no longer in any skill document: {needle!r}")
+    assert checked, "reply_excludes_quoted is declared but unused"
+
+
 def test_case_files_are_well_formed():
     cases = ev.load_cases()
     assert len(cases) >= 9
     known = {"first_read_contains", "reads_include", "reads_exclude", "no_dql", "requires_dql", "ends_on_text",
              "reply_equals", "reply_contains", "reply_contains_any", "reply_excludes",
+             "reply_excludes_quoted",
              "max_progress_lines", "progress_equals", "max_dql_calls"}
     ids = [c["id"] for c in cases]
     assert len(ids) == len(set(ids)), "duplicate case ids"
@@ -178,7 +207,8 @@ def test_case_files_are_well_formed():
             assert turn["ask"], case["id"]
             assert set(turn.get("expect", {})) <= known, (case["id"], set(turn["expect"]) - known)
             for item in sum((turn.get("expect", {}).get(k, []) for k in
-                             ("reply_contains", "reply_contains_any", "reply_excludes")), []):
+                             ("reply_contains", "reply_contains_any", "reply_excludes",
+                              "reply_excludes_quoted")), []):
                 if item.startswith("{truth."):
                     assert ev.TRUTH_RE.match(item), item
                     assert item.split(".")[1] in [t.replace("-", "_") for t in case.get("truth", [])], (case["id"], item)

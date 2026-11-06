@@ -69,7 +69,7 @@ def test_both_kinds_render_with_nothing_left_unresolved():
 def test_each_kind_shows_only_its_own_section():
     inc = render(INCIDENT)
     assert "Incident report" in inc
-    assert "Cost action list" not in inc and "Cloud cost summary" not in inc
+    assert "Action items" not in inc and "Cloud cost summary" not in inc
 
     show = render(SHOWCASE)
     assert "Cloud cost summary" in show and "Action items" in show
@@ -79,7 +79,7 @@ def test_each_kind_shows_only_its_own_section():
 def test_a_fact_with_no_source_leaves_no_empty_scaffolding():
     out = render(MINIMAL)
     for heading in ("At a glance", "Timeline", "Evidence", "Still open",
-                    "What the evidence shows", "Cost action list"):
+                    "What the evidence shows", "Action items"):
         assert heading not in out, heading
     assert "<li>" not in out and "<dd>" not in out
 

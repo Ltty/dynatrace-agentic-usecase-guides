@@ -1,0 +1,30 @@
+id: walk-report-on-request-demo-live
+tenant: demo-live
+runs: 3
+status: draft
+description: >-
+  DRAFT: asking for the artefact is not asking for the walk. "Just give me the report" produces the
+  condensed report with its timeline and does not begin stepping; taking the offer afterwards starts
+  at beat 1, because the report proved nothing, it only said it. That turn asserts no DQL: the report
+  already ran every beat's first query, so replaying beat 1 correctly needs none.
+turns:
+- ask: Let's look at the EasyTrade slowdown.
+- ask: Just give me the report.
+  expect:
+    reads_include:
+    - walk-through.md
+    requires_dql: true
+    reply_contains_any:
+    - how we know
+    - show you
+    reply_excludes:
+    - Which one
+    - say next
+    - I can't
+- ask: Show me how we know.
+  expect:
+    reply_contains_any:
+    - affected users
+    - problem record
+    reply_excludes:
+    - Which one

@@ -46,6 +46,59 @@ def test_every_beat_says_why_it_exists():
             assert "**Why this step:**" in head, (
                 scenario, "a beat is missing its 'Why this step' line before the Objective")
 
+def test_every_beat_declares_what_it_requires():
+    """Real options need a real graph: a beat is offered once its Requires are complete.
+
+    Without this the agent either offers everything (a choice the argument cannot survive) or
+    nothing (the ok-only path the modes collapsed into). The showcase is exempt: it is a
+    presentation and orders itself with Tracks.
+    """
+    for scenario, path in v.SCENARIO_FILES.items():
+        if scenario in v.SHOWCASES:
+            continue
+        text = path.read_text(encoding="utf-8")
+        beats = re.findall(r"^## Beat (\d+) ", text, re.M)
+        declared = re.findall(r"^\*\*Requires:\*\* (.+)$", text, re.M)
+        assert len(declared) == len(beats), (scenario, len(beats), len(declared))
+        for n, req in zip(beats, declared):
+            if req.strip() == "none":
+                continue
+            for dep in re.findall(r"\d+", req):
+                assert int(dep) < int(n), (scenario, f"beat {n} requires {dep}: not an earlier beat")
+                assert dep in beats, (scenario, f"beat {n} requires {dep}: no such beat")
+        assert declared[0].strip() == "none", (scenario, "beat 1 must require nothing")
+
+
+def test_every_incident_proposes_an_approach():
+    """Feedforward: the user should know the shape before the first query (conversation-craft).
+
+    The showcase states its approach in its own register, so it is exempt; every incident
+    carries an `approach` row in Business context, said once at beat 1.
+    """
+    for scenario, path in v.SCENARIO_FILES.items():
+        if scenario in v.SHOWCASES:
+            continue
+        text = path.read_text(encoding="utf-8")
+        assert "| `approach` |" in text, (scenario, "no `approach` row in Business context")
+
+
+def test_every_discovery_hook_has_a_route():
+    """A bullet is the hook plus its route; without one the openings read interchangeably.
+
+    Parsed from the markdown table rather than a registry, because the survey may not open a
+    scenario file (tests/evals/dt-agent/survey-live.yaml -> reads_exclude) and so the route has
+    to live here.
+    """
+    text = v.SESSION_PROTOCOL.read_text(encoding="utf-8")
+    table = text.split("**Discovery hooks.**", 1)[1]
+    rows = [r for r in table.splitlines() if r.startswith("| `")]
+    assert len(rows) >= 5, rows
+    for row in rows:
+        cells = [c.strip() for c in row.strip().strip("|").split("|")]
+        assert len(cells) == 4, (cells[0], "expected scenario | hook | route | notes")
+        assert cells[2], (cells[0], "empty Route cell")
+
+
 def test_links_use_known_tokens_only():
     for scenario, path in v.SCENARIO_FILES.items():
         for label, url in v.deep_links(path):

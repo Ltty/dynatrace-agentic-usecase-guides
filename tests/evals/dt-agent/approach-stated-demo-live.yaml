@@ -1,0 +1,24 @@
+id: approach-stated-demo-live
+tenant: demo-live
+runs: 3
+status: draft
+description: >-
+  DRAFT: Feedforward. Once the user is in an investigation, beat 1 opens on the scenario's approach —
+  the SRE proposing how they would work it — so the shape is known before the first finding. It is
+  said once; a later beat must not recite it again.
+turns:
+- ask: Let's look at the EasyTrade slowdown.
+- ask: Hands-on, please.
+  expect:
+    requires_dql: true
+    reads_include:
+    - scenario-k8s-cpu-throttling.md
+    reply_contains_any:
+    - how I'd work it
+    - how I would work it
+- ask: next
+  expect:
+    requires_dql: true
+    reply_excludes:
+    - how I'd work it
+    - how I would work it

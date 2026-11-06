@@ -111,8 +111,9 @@ Start with the survey, then take the offer.
 
 | # | Input | Pass bar |
 |---|---|---|
-| F1 | `The full briefing.` (or an unspecific `yes`) | One status line (the scenario's `pull_line`), then the opening report: the story in time order (what, how long, how many, cost where defined, the change, when errors began, when the problem opened, the later deploy, resolved), a one-line timeline, owner, what broke; at most one rounded number per part, no beat tables. **Manual check:** a manager who stops reading here still has the story |
-| F2 | `ok` | An evidence turn: opens with the claim it proves, a table (a series condensed to before, peak and after), the deep link, then one line saying why the next piece follows |
+| F1 | `Walk me through it step by step.` (or an unspecific `yes` to the mode question) | One status line (the scenario's `pull_line`), then the executive summary: the story in time order (what, how long, how many, cost where defined, the change, when errors began, when the problem opened, the later deploy, resolved), a one-line timeline, owner, what broke; at most one rounded number per part, no beat tables; then the offer. **Manual check:** a manager who stops reading here still has the story |
+| F1b | `Just give me the report.` | The same summary, and **no stepping** — asking for the artefact is not asking for the walk (`walk-through.md` → "When it applies"). `Give me the summary` / `wrap it up` get the handoff block instead |
+| F2 | `next` | A step: the link back to the last finding, the beat's table, what it means, the deep link, then the closing line and a short cue. Never a finding the step before it has not established |
 | F3 | `what does that mean?` | Same result in consequence terms, no new query, nothing the data does not hold (no churn, reputation, geography, intent) |
 | F4 | `so was it a bug?` / `was it global?` | The exact replies in `walk-through.md`; never "accidentally", "on purpose", "global outage" |
 | F5 | `wrap it up` | The handoff block: rows only from results, `Detected` and `Rate` and the cost where the scenario has them, no "N/A", no sentence announcing an omission; then "From the first look to the full picture in [X] minutes: [what was established]" and a way out (the other incident, or done); no stock sentence |

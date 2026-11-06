@@ -22,6 +22,7 @@ Reveals describe the *shape* of a finding, never its values. Timestamps, percent
 |---|---|
 | `service_name` | "frontend-high-cpu host" |
 | `symptom` | "low disk space on /data, with CPU saturation on the same host" |
+| `approach` | "Here's how I'd work it: what the record says, then the disk, then the CPU on the same host, then what the disk has actually blocked, and a handoff for whoever owns the box." |
 | `pull_line` | "Pulling the disk, the CPU, the blocked update and the problem record together." |
 
 No `avg_order_value_usd` is defined, and the problem record has no affected-user count: report `affected_count` (entities), never users. Its impact level is Infrastructure; nothing here says whether any user was affected, so claim neither.
@@ -69,6 +70,8 @@ No `avg_order_value_usd` is defined, and the problem record has no affected-user
 
 ## Beat 1 — The Page
 
+**Requires:** none
+
 **Why this step:** Before anything else we need what the platform itself concluded: which entity is the root cause and what is only affected.
 
 **Objective:** User grasps the blast radius: the `/data` disk is the root cause Dynatrace Intelligence
@@ -110,6 +113,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?fr
 ---
 
 ## Beat 2 — The Disk
+
+**Requires:** 1
 
 **Why this step:** The root cause is a disk, so the first thing to establish is how little space there is and whether it is a spike or a standing condition.
 
@@ -153,6 +158,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.infraops/explorer?entityId=HOST-A2BABAD0
 ---
 
 ## Beat 3 — The CPU
+
+**Requires:** 2
 
 **Why this step:** The CPU is on the same host and in the same problem — to say whether the disk explains it we have to look at what the CPU data does and does not show.
 
@@ -206,6 +213,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.infraops/explorer?entityId=HOST-A2BABAD0
 ## Beat 4 — The Platform Victim
 
 **`peak_moment: true`**
+
+**Requires:** 2
 
 **Why this step:** One symptom the data does tie to the disk in so many words is the platform's own agent, which is worth seeing because it shows the blast radius reaching the monitoring itself.
 
@@ -271,6 +280,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.infraops/explorer?entityId=HOST-A2BABAD0
 
 ## Beat 5 — The Handoff
 
+**Requires:** 1
+
 **Why this step:** Everything we have now has to become something the owning host's team can act on, with the limits of the data stated.
 
 **Objective:** User has everything needed to act: the root cause, what the data shows on the host, the blocked
@@ -297,7 +308,7 @@ fetch dt.davis.problems, from: now()-48h, to: now()
 
 **Reveal:** Summarise from the live data and the earlier beats: the root cause entity, the host, how long the
 problem has been open (the survey row's `duration_days` and `duration_hours`; still open if the status says so), `affected_count`, and
-the blocked OneAgent version from beat 4. The data supports one action: free space on `/data`, which is what the
+the blocked OneAgent version, when that step has run (**Fold in on a jump**: it is the only source, so run its query first if the handoff is reached without it). The data supports one action: free space on `/data`, which is what the
 update failure's message asks for. Say plainly that the data does not show whether that also resolves the CPU
 saturation. The record has no owner, so hand off by host name and host group; do not name a team.
 

@@ -1,0 +1,135 @@
+# lambda-iam-denied: stable entity IDs and debugging notes
+
+Maintainer notes. The agent never reads this file.
+
+Source: the "AWS DevOps Agent integration" step of the *Modern Cloud Observability* golden demo, taken
+to incident depth. The showcase (`scenario-cloud-observability.md`) names this same problem in its
+beat 3 and counts the agents' notes in beat 4; this scenario walks it to the root cause.
+
+## Stable entity IDs (safe to hardcode in queries and deep links)
+
+| Name | Entity ID | Type |
+|------|-----------|------|
+| image-provider-live-products in us-east-1 | SERVICE-F4E5246FA8EA27D7 | Service — the DynamoDB side, and the problem's root cause |
+| image-provider-live in us-east-1 | SERVICE-42411741F5F4AC50 | Service — the Lambda, where the failing spans are |
+| image-provider-live | AWS_LAMBDA_FUNCTION-9365828D44E6A036 | Clouds-app function node |
+| image-provider-live | AWS_IAM_ROLE-4EBB0A40DB75D204 | Its execution role |
+
+The function ARN carried by the spans as `cloud.resource_id` is
+`arn:aws:lambda:us-east-1:246186168471:function:image-provider-live`; the table is
+`arn:aws:dynamodb:us-east-1:246186168471:table/image-provider-live-products`.
+
+**`SERVICE-F4E5246FA8EA27D7` has no spans.** It is the detected DynamoDB-side service; the
+`GetItem dynamodb` client spans belong to `SERVICE-42411741F5F4AC50`. A span query or a Distributed
+Tracing link built on `{{ROOT_CAUSE_ID}}` returns nothing, which is why the beats use the Lambda
+service ID as a literal from the Scope table.
+
+## What rotates every problem cycle (never hardcode)
+
+problem id / display id, affected-user count, the failure rate and bucket counts, the exact window,
+the number of agent notes, and the agent's own wording.
+
+## Resolver notes
+
+The survey branch matches `root_cause_entity_id == "SERVICE-F4E5246FA8EA27D7"`. Entity ID, not name:
+playground runs its own `image-provider-playground`, and a name match is how `disk-cpu-cascade` leaked
+across tenants in testruns 12 and 13.
+
+The cluster also produces `Response time degradation` problems rooted on the *Lambda* service
+(`SERVICE-42411741F5F4AC50`). Those are a different story and are deliberately not matched.
+
+## The incident shape (verified 2026-11-04 across the last 7 days)
+
+Fires **daily at about 16:05 UTC**, closes about 16:43, 268–390 affected users on the record.
+Non-duplicate instances on 6 of the last 7 days, so the 48-hour survey window catches it reliably.
+
+A new Lambda version is deployed whose IAM inline policy for DynamoDB carries a trailing `/*` on the
+resource ARN. The deploy is visible: two `CUSTOM_DEPLOYMENT` events on `SERVICE-42411741F5F4AC50`
+from `Dynatrace/opentelemetry-demo-gitops`, one re-deployed several times from about a minute before
+the first denial, one about five minutes before the last. **This was missed in the first pass** — a
+search of `SDLC_EVENT` and `task.deployment.finished` found only ten-minute ArgoCD noise and the
+scenario shipped saying no deploy signal existed. `CUSTOM_DEPLOYMENT` is the event type
+`broken-images` already uses for exactly this; check it first next time. A resource ARN ending `/*` addresses what is *under* a table — its indexes — not the
+table, so `dynamodb:GetItem` on the table itself is allowed by nothing:
+
+```text
+GET (root span, endpoint "invoke") on image-provider-live
+  → GetItem dynamodb  →  AccessDeniedException
+```
+
+Measured on 2026-11-03, window 15:51–16:59 UTC:
+
+- root spans on the Lambda go **0% → 100% → 0%** across 5-minute buckets, 8,927 failed of 25,881;
+- throughput in the failing buckets falls to about a third (4,200 → 1,400 per 5 min). What drives
+  that is not in the data — the beats state it and attribute nothing;
+- exactly **one** distinct exception, `AccessDeniedException`, message:
+
+  > User: arn:aws:sts::246186168471:assumed-role/image-provider-live/image-provider-live is not
+  > authorized to perform: dynamodb:GetItem on resource:
+  > arn:aws:dynamodb:us-east-1:246186168471:table/image-provider-live-products because no
+  > identity-based policy allows the dynamodb:GetItem action
+
+- the problem description names the endpoint (`GetItem`) and a 100% error rate;
+- `team` on the problem is `Team-UI`, while the function's AWS tags say `dt_owner_team:team-unc` and
+  `team:Team-Cloud-Services`. Beat 4 states both when asked rather than picking one.
+
+## Two known limits
+
+### 1. The AWS DevOps Agent summary is intermittently unreadable — corrected 2026-11-06
+
+**An earlier note here said readable summaries stopped on 2026-10-26. That was wrong.** They alternate.
+Counted over 40 days on this tenant, every AWS DevOps Agent note belongs to this scenario's problem, and
+they split 76 readable to 30 unavailable:
+
+| Dates | State | Fires at |
+|---|---|---|
+| 2026-10-02 → 10-26 | readable | 15:12, then 16:12 after the DST change |
+| 2026-10-27 → 11-04 | **unavailable**, nine consecutive days | 16:12 |
+| 2026-11-05 | readable again | 09:03 |
+
+**It is not a query gap and not a version change.** `aws_devopsagent.version` is `3` throughout. The event
+states the fault itself: `aws_devopsagent.response_type` is `investigation_summary_unavailable` or
+`mitigation_summary_unavailable`, `event.description` is a placeholder saying the summary could not be
+read, and `event.description.truncated` is `false`. No field carries the text. The integration failed to
+retrieve the summary from the agent task; the task itself still exists and the event names it:
+
+```text
+aws_devopsagent.task_id         20c92076-c12d-45ce-99e4-f9d062152996
+aws_devopsagent.agent_space_arn arn:aws:aidevops:us-east-1:246186168471:agentspace/892b5027-…
+```
+
+**For a demo this matters**, because the agent's recommendation is the scenario's payoff. Two consequences:
+
+- Beat 6 detects the state from `response_type`, not by string-matching the event name, and surfaces
+  `task_id` so the viewer can open the right task rather than hunting for it.
+- The scenario cannot choose a readable occurrence: the survey picks the newest non-duplicate problem, and
+  which notes it carries is upstream luck. A run on 2026-11-04 got the last day of the bad streak.
+
+**Worth chasing on the AWS side**: why summary retrieval fails for runs of consecutive days. The readable
+note on 2026-11-05 at 09:03 suggests it recovers, and that its schedule moved.
+
+### 2. The broken policy is never visible in Smartscape — settled 2026-11-04
+
+`smartscapeNodes` holds current state; passing a historical `from:`/`to:` changes nothing. The open
+question was whether the trailing `/*` could at least be read **while the problem was open**. It
+cannot. The IAM role was polled once a minute for 70 minutes across the 2026-11-04 window (problem
+P-26111500, 16:04–16:43 UTC, 362 affected users): 70 polls, one policy variant, the correct one.
+
+Smartscape is a configuration snapshot, not a series, and a grant that is wrong for 39 minutes and
+then restored falls between snapshots. Beat 4 is written around the match being the normal case, and
+treats it as evidence — the configuration running now is not the one that was running then — rather
+than as a miss. Beat 4 returns:
+
+```json
+{"Action":["dynamodb:GetItem"],"Effect":"Allow","Resource":"arn:aws:dynamodb:us-east-1:246186168471:table/image-provider-live-products"}
+```
+
+which is correct, and the beat says so as a finding rather than narrating a `/*` that no row returned.
+
+## Notes against other scenarios
+
+`broken-images` on playground lists this same `AccessDeniedException` as background noise ("fails
+thousands of spans every day, but at other hours, not in the incident window"). The two scenarios live
+on different tenants and are never offered in the same conversation, but their SKILL.md match phrases
+are kept apart on purpose: `broken-images` owns *slow images, slowdowns*, this one owns *access denied,
+IAM, permissions, DynamoDB*.

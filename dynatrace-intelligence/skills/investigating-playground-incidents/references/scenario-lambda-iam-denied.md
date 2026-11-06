@@ -1,0 +1,403 @@
+# Scenario: Lambda Denied by IAM (Outage) — Context and Beats
+
+Read once the user has picked a scenario. The survey query and the discovery hooks are in `references/session-protocol.md`.
+Reveals describe the *shape* of a finding, never its values. Counts, failure rates, user numbers, the window and the agent's own wording rotate every cycle — read them from the live result.
+
+## Contents
+
+- [Business context](#business-context)
+- [Scope](#scope)
+- [Handoff fields](#handoff-fields)
+- [Beat 1 — The Page](#beat-1--the-page)
+- [Beat 2 — The Failing Window](#beat-2--the-failing-window)
+- [Beat 3 — What the Failures Say](#beat-3--what-the-failures-say) (peak)
+- [Beat 4 — The Permission](#beat-4--the-permission)
+- [Beat 5 — The Deploy](#beat-5--the-deploy)
+- [Beat 6 — What the Agent Found](#beat-6--what-the-agent-found)
+
+---
+
+## Business context
+
+| Field | Value |
+|---|---|
+| `service_name` | "image provider" |
+| `symptom` | "product images failing on the storefront" |
+| `approach` | "Here's how I'd work it: who it hit, then the shape of the failures, then what they actually throw, then the permission behind that, what changed it, and what the agent found on the AWS side." |
+| `pull_line` | "Pulling the problem, the failing requests, the exception behind them, the function's permissions and the agent's notes together." |
+
+This is an **outage, not a slowdown**: the requests return an error, they are not merely late. No `avg_order_value_usd` is defined: no revenue figure, and none is to be estimated from the affected users.
+
+The root cause entity is the DynamoDB side of the call; the requests that fail run on the Lambda. Both are named below, and they are not interchangeable.
+
+## Scope
+
+**Data objects:** `dt.davis.problems`, `spans`, `smartscapeNodes`, `events`
+
+**Stable IDs** (demo-live entities):
+
+| Name | ID |
+|---|---|
+| image-provider-live-products in us-east-1 (root cause, the DynamoDB side) | `SERVICE-F4E5246FA8EA27D7` — resolves as `{{ROOT_CAUSE_ID}}` |
+| image-provider-live in us-east-1 (the Lambda service, where the failing spans are) | `SERVICE-42411741F5F4AC50` |
+| image-provider-live (the function, Clouds app) | `AWS_LAMBDA_FUNCTION-9365828D44E6A036` |
+| image-provider-live (its execution role) | `AWS_IAM_ROLE-4EBB0A40DB75D204` |
+| The AWS DevOps Agent's notes | `events` where `annotation.source == "aws_devopsagent"` |
+
+`{{ROOT_CAUSE_ID}}` has **no spans of its own**: the DynamoDB client spans belong to the Lambda service. Span queries and any Distributed Tracing filter use the literal Lambda service ID above; built on `{{ROOT_CAUSE_ID}}` they return nothing.
+
+## Handoff fields
+
+Two populations coexist — always say which one a number counts.
+
+| Value | Source |
+|---|---|
+| `owning_team` | Survey row (beat 1 shows it) |
+| `Goes to` | `owning_team`, with the function's own AWS owner tags beside it when beat 4 returns different ones |
+| Affected users (problem record) | survey row `affected_users` |
+| Failed requests on the Lambda | Beat 2 — `failed`, against `requests` |
+| `Detected` | Beat 3's `first_seen` against the survey row's `started`: how long after the first refusal the problem opened. State it in minutes, from those two values, never estimated |
+| The exception, verbatim | Beat 3 — `exception_type` and `message` |
+| The role and the policy | Beat 4 — `role_arn`, `policy_name`, `document` |
+| `Changed` | Beat 5 — `commit`, `git_url` and `change_before_problem_min`. Its own row, never folded into `Cause` |
+| What to change | Beat 6 — the agent's own recommendation, when the note carries one |
+
+---
+
+## Beat 1 — The Page
+
+**Requires:** none
+
+**Why this step:** Before we chase a cause we need the blast radius: what is failing, for how many, and whose service it is.
+
+**Objective:** User grasps the blast radius: a storefront-facing image call is failing outright, how
+many users it reached, how far it spread, and who owns it.
+
+**Evidence DQL:**
+
+```dql
+fetch dt.davis.problems, from: now()-48h, to: now()
+| filter event.id == "{{PROBLEM_ID}}"
+| fields
+    display_id,
+    status         = event.status,
+    started        = event.start,
+    ended          = event.end,
+    affected_users = dt.davis.affected_users_count,
+    root_cause     = root_cause_entity_name,
+    owning_team    = team,
+    also_affected  = affected_entity_names,
+    description    = event.description,
+    queried_at = now(), elapsed_min = round(toDouble(now() - toTimestamp("{{SURVEY_AT}}")) / 60000000000, decimals: 0)
+```
+
+**Reveal:** Three values carry this beat — the rate, the users and the team. The query returns more than that;
+don't put the whole row on screen. `description` names the endpoint that failed and the rate it reached —
+quote both; a rate at or near 100% is the finding, because it means every call, not a share of them. Say which
+population `affected_users` counts: the problem record's. Then `also_affected`, read as a chain rather than a
+list — it runs from the DynamoDB-side service in `root_cause` out through the Lambda to the storefront
+frontend, the ingress and a synthetic image check, which is the distance from the call that broke to the shop
+page someone is looking at. Name `owning_team` last, as the one thing here that is a person rather than a
+number.
+
+**Success signal:** User names the image provider, or asks what the failing call was.
+
+**Deep link** (label "Problem in Dynatrace"):
+
+```text
+https://{{LINK_HOST}}/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TF_FROM_MS}}&to={{TF_TO_MS}}
+```
+
+---
+
+## Beat 2 — The Failing Window
+
+**Requires:** 1
+
+**Why this step:** A problem record says something broke; to know whether it drifted or switched we need the requests themselves, minute by minute.
+
+**Objective:** User sees the failure arrive and leave as a step rather than a slope, with the clean
+traffic either side of it in the same table.
+
+**Evidence DQL:**
+
+```dql
+fetch spans, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
+| filter dt.entity.service == "SERVICE-42411741F5F4AC50"
+| filter request.is_root_span == true
+| summarize requests = count(), failed = countIf(request.is_failed == true), by: { bucket = bin(start_time, 5m) }
+| fieldsAdd failure_rate_pct = round(100.0 * failed / requests, decimals: 1)
+| sort bucket asc
+| fields bucket, requests, failed, failure_rate_pct,
+    queried_at = now(), elapsed_min = round(toDouble(now() - toTimestamp("{{SURVEY_AT}}")) / 60000000000, decimals: 0)
+```
+
+The window is the problem's, padded 15 minutes each side, so the clean buckets either side come back in the
+same result.
+
+**Reveal:** Give the shape, not every row: clean before, the rate it climbs to and how many buckets it holds
+there, clean after, with the clock times of the first and last failing bucket. A rate that goes from zero to
+its ceiling inside one or two buckets is a switch being thrown, not a resource filling up or a dependency
+degrading — which is what rules out load, saturation and a slow backend before we have spent a query on any
+of them. Throughput in the failing buckets is its own number: state it as returned and leave what drove it to
+the owning team, since nothing here says whether callers retried, backed off, or were served elsewhere.
+
+**Success signal:** User asks what the failing requests return, or what changed at that minute.
+
+**Deep link** (label "Requests on the function"):
+
+```text
+https://{{LINK_HOST}}/ui/apps/dynatrace.distributedtracing/explorer?filter=dt.smartscape.service+%3D+SERVICE-42411741F5F4AC50&tf={{TF_FROM_ISO}}%3B{{TF_TO_ISO}}&v=requests
+```
+
+All requests, not only the failing ones: the step is only visible with the clean traffic beside it.
+
+---
+
+## Beat 3 — What the Failures Say
+
+**`peak_moment: true`**
+
+**Requires:** 2
+
+**Why this step:** A failure rate says how much broke, never why — for that we read what the failing requests themselves threw.
+
+**Objective:** User reads the root cause off the exception: one error, repeated on every failure, naming
+the identity, the action and the resource it was refused.
+
+**Evidence DQL:**
+
+```dql
+fetch spans, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
+| filter dt.entity.service == "SERVICE-42411741F5F4AC50"
+| filter request.is_root_span == true and request.is_failed == true
+| expand span.events
+| filter span.events[span_event.name] == "exception"
+| summarize failures = count(), first_seen = min(start_time), last_seen = max(start_time),
+    by: { exception_type = span.events[exception.type], message = span.events[exception.message] }
+| sort failures desc
+| fields exception_type, message, failures, first_seen, last_seen,
+    queried_at = now(), elapsed_min = round(toDouble(now() - toTimestamp("{{SURVEY_AT}}")) / 60000000000, decimals: 0)
+```
+
+`expand span.events` first, then bracket access — `span.events[exception.type]` on an unexpanded array returns nothing.
+
+**Reveal:** Quote `message` verbatim; it is the whole finding and paraphrasing it loses the three things that
+matter. Say how many distinct exceptions came back: **one** row means a single cause, not a flaky dependency
+or a pile of unrelated errors. An authorization error is not a failure of the thing being called — DynamoDB
+answered, and what it answered was no. So the table is fine, the function is fine, and what is wrong is what
+the function is allowed to do. The message names three things, and all three get read out, in plain words as well as verbatim: the
+**identity** the function runs as (AWS calls it an execution role — the set of permissions the function
+borrows while it runs), the **action** it tried, and the **resource** it tried it on, written as an ARN, which
+is AWS's full address for one thing in one account and region. Assume none of that is known. Whether the
+permission was always missing or was taken away is not in this result.
+
+**Success signal:** User names the permission, the IAM role or the policy as the thing to look at.
+
+**Staging:**
+
+1. The finding alone on its own line, before any commentary:
+   `[exception_type] on [failures] failed requests — [the action] on [the resource], refused`
+2. Blank line.
+3. What kind of problem it is: a permission, not a fault. Nothing is broken, overloaded or unreachable; the
+   call is being denied. That is a configuration change somewhere, and it is instant rather than gradual —
+   which is the step in beat 2.
+4. The message quoted in full, as returned.
+5. The three names it hands us — identity, action, resource — and that the role is the one thing of the three
+   we can read in Dynatrace right now.
+
+**Deep link** (label "The failed requests"):
+
+```text
+https://{{LINK_HOST}}/ui/apps/dynatrace.distributedtracing/explorer?filter=dt.smartscape.service+%3D+SERVICE-42411741F5F4AC50+AND+request.is_failed+%3D+true&tf={{TF_FROM_ISO}}%3B{{TF_TO_ISO}}&v=requests
+```
+
+---
+
+## Beat 4 — The Permission
+
+**Requires:** 3
+
+**Why this step:** The exception named an identity, an action and a resource, and the policy that is supposed to join them is in Dynatrace with everything else about the function.
+
+**Objective:** User sees the function's execution role and its inline policies as the cloud provider holds
+them, and compares the DynamoDB grant against the ARN the exception named — without opening AWS.
+
+**Evidence DQL:**
+
+```dql
+smartscapeNodes "AWS_IAM_ROLE"
+| filter id == toSmartscapeId("AWS_IAM_ROLE-4EBB0A40DB75D204")
+| parse aws.object, "JSON:o"
+| fieldsAdd role_name = o[configuration][roleName], role_arn = o[configuration][arn]
+| expand policy = o[configuration][rolePolicyList]
+| fieldsAdd policy_name = policy[policyName], doc = toString(policy[policyDocument])
+| fieldsAdd is_dynamodb = contains(doc, "dynamodb:")
+| fields role_name, role_arn, policy_name, is_dynamodb,
+    document = if(is_dynamodb, doc, else: ""),
+    queried_at = now(), elapsed_min = round(toDouble(now() - toTimestamp("{{SURVEY_AT}}")) / 60000000000, decimals: 0)
+| sort is_dynamodb desc, policy_name asc
+```
+
+Smartscape holds the role as it is **now**, and only as it is now. It is a configuration snapshot, not a
+series: a grant that is wrong for half an hour and then put back is not captured, so expect the grant here to
+read correct even while the problem is open. Polled every minute through a full incident window on
+2026-11-04, it never read otherwise.
+
+**Reveal:** The role in the result is the one the exception named — say so by matching `role_arn` to the
+identity in beat 3's message. List the policy names so the shape is visible: an inline policy is a grant
+attached to this role and nothing else, and there is one per thing the function touches, each scoped to its
+own resources. Then the DynamoDB one: read its `Action` and its `Resource` out of `document`, and hold the
+`Resource` next to the ARN the exception quoted.
+
+Normally **they match**, and that is the finding rather than a disappointment. The grant allows exactly the
+action on exactly the table the exception says was refused — so the configuration that is running now is not
+the configuration that was running then. Taken with beat 3 that settles something a single query could not:
+the permission was changed and changed back, which is why the failures start and stop instead of persisting.
+It also says where the rest of the answer is not — not in the current configuration — which is what beats 5
+and 6 go after.
+
+If `Resource` and the exception's ARN ever **do** differ, state both strings exactly as returned and let the
+difference be the finding; an ARN ending `/*` addresses the things *under* a table rather than the table, so
+a grant written that way allows nothing on the table itself. Do not expect this, and never describe a `/*`,
+or any other difference, that the returned `document` does not contain.
+
+`primary_tags` and `tags:aws` on the function carry owner tags of their own. When the user asks who owns it
+and those differ from beat 1's `owning_team`, state both as returned; which one is right is the owners' call.
+
+**Success signal:** User asks what changed the policy, or when it changed.
+
+**Deep link** (label "The function in the Clouds app"):
+
+```text
+https://{{LINK_HOST}}/ui/apps/dynatrace.clouds/smartscape/functions?perspective=health&detailsId=AWS_LAMBDA_FUNCTION-9365828D44E6A036&sidebarOpen=false&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}
+```
+
+---
+
+## Beat 5 — The Deploy
+
+**Requires:** 3
+
+**Why this step:** A permission does not change itself, and the platform records what deployed onto this function — so before we hand anything over we can name what landed, and when.
+
+**Objective:** User sees the change that did it: a commit deployed onto the function a minute or so before the
+first denial, and a second one deployed before the failures stop.
+
+**Evidence DQL:**
+
+```dql
+fetch events, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
+| filter event.type == "CUSTOM_DEPLOYMENT"
+| filter dt.entity.service == "SERVICE-42411741F5F4AC50"
+| parse event.description, "LD \"(\" LD:git_url \")\""
+| parse git_url, "LD \"/commit/\" ALNUM:commit"
+| summarize first_deploy = min(timestamp), last_deploy = max(timestamp), deploys = count(),
+    by: { commit, git_url, deployment = event.name }
+| sort first_deploy asc
+| fieldsAdd deploy_before_problem_min = round(toDouble(toTimestamp("{{STARTED}}") - first_deploy) / 60000000000, decimals: 1),
+    queried_at = now(), elapsed_min = round(toDouble(now() - toTimestamp("{{SURVEY_AT}}")) / 60000000000, decimals: 0)
+```
+
+These GitHub Actions events leave `commit` and `gitUrl` null; both are parsed out of the markdown link in
+`event.description`, and the summarize collapses one commit's repeated re-deploys into a row.
+
+**Reveal:** Lead with the gap, not the row count: `deploy_before_problem_min` between the first deploy and
+the problem start, held against beat 3's `first_seen`, which is the minute the denials actually began.
+Typically two rows. The first commit is re-deployed several times and is the lead suspect; the second lands
+before the failures stop and is not a second regression. Their descriptions read alike, so tell them apart by
+timing, never by text. State both SHAs and the `git_url` of the first.
+
+What the commit *contains* is not in the telemetry. The platform says a deploy landed on this function at
+that minute; the diff is in the repository, and so is the proof. Say that rather than describing a change no
+row returned.
+
+**Objection** — "a minute apart doesn't prove it": agree, a gap that short is suggestive, not proof. What
+makes it more than coincidence is beat 2's shape — the failure arrived as a switch, at that minute, and
+stopped around the second deploy — and beat 3's exception, which says the thing that changed was a
+permission. Three independent results pointing at one minute is the argument; none of them alone is.
+
+**Success signal:** User names the commit as the trigger, or asks what it changed.
+
+**Deep link** (label "The deploy on the problem record"):
+
+```text
+https://{{LINK_HOST}}/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TF_FROM_MS}}&to={{TF_TO_MS}}
+```
+
+---
+
+## Beat 6 — What the Agent Found
+
+**Requires:** 3
+
+**Why this step:** We can name the commit but not what is inside it, and nothing here says what to change — the AWS DevOps Agent was sent this problem's context and worked the account side, where the change history and the policy live together.
+
+**Objective:** User sees the hand-off close: Dynatrace correlated the incident, triggered the AWS DevOps
+Agent with it, and the agent's findings came back onto the same problem record rather than into a separate
+tool.
+
+**Evidence DQL:**
+
+```dql
+fetch events, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
+| filter annotation.source == "aws_devopsagent"
+| expand pid = annotation.problem_ids
+| lookup [fetch dt.davis.problems, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
+          | filter root_cause_entity_id == "{{ROOT_CAUSE_ID}}"
+          | fields pid = event.id, display_id],
+    sourceField: pid, lookupField: pid, fields: { display_id }
+| filter isNotNull(display_id)
+| fieldsAdd d = toString(event.description),
+    has_summary = not contains(aws_devopsagent.response_type, "unavailable")
+| fieldsAdd h = indexOf(d, "#### ")
+| fieldsAdd kind = if(contains(aws_devopsagent.response_type, "mitigation"), "Mitigation Recommendations", else: "Investigation Results")
+| summarize notes = count(), on_problems = countDistinct(display_id), last_at = max(timestamp),
+    task_id = takeFirst(aws_devopsagent.task_id), agent_space = takeFirst(aws_devopsagent.agent_space_arn),
+    summary = takeFirst(if(has_summary and h >= 0, substring(d, from: h + 5, to: h + 505), else: "")),
+    by: { kind, has_summary }
+| sort has_summary desc, kind asc
+| fields kind, has_summary, notes, on_problems, last_at, task_id, agent_space, summary,
+    queried_at = now(), elapsed_min = round(toDouble(now() - toTimestamp("{{SURVEY_AT}}")) / 60000000000, decimals: 0)
+```
+
+The notes attach to several records of the same cluster, which is why `on_problems` can exceed one and why
+the lookup matches on the root cause rather than on `{{PROBLEM_ID}}` alone.
+
+**Reveal:** The agent wrote `notes` notes in two kinds — an investigation and a mitigation — onto this
+incident's records, `last_at` minutes after it started. State what that chain is: Dynatrace saw it, named the
+root cause, and handed the agent the context; the agent worked the AWS side, where CloudTrail and the deploy
+history are, and wrote back here. One problem record, every investigation on it, and from here it can go on to
+a ticket or a coding agent with the evidence attached.
+
+- **`has_summary` is true** — quote `summary` as the agent's own words, attributed to it, and say plainly it
+  is a recommendation for the owning team to review, not a change anyone has made. If it names a deploy, a
+  repository or a time, those are the agent's findings from AWS, not Dynatrace's: attribute them that way.
+- **`has_summary` is false** — the agent finished, but the summary never reached Dynatrace. The event says so
+  itself in `aws_devopsagent.response_type` (`investigation_summary_unavailable` /
+  `mitigation_summary_unavailable`) and its description is a placeholder, so there is no wording to quote and
+  no other field holds it. Say exactly that, say how many notes there are and when, and **name the task**:
+  `task_id` in the agent space `agent_space` is where the findings are. A task id the user can paste is worth
+  more than "open the task in the AWS DevOps Agent space". Never infer what the note said from beats 3, 4
+  and 5, and **do not say it recommended anything** — "it investigated and recommended" claims a
+  recommendation whose text no result returned. It finished; what it concluded is in the task.
+
+  This is an upstream integration fault on the tenant, not a gap in the scenario: readable and unavailable
+  notes alternate in runs of days (`docs/scenarios/lambda-iam-denied.md`). Never apologise for it or explain
+  the integration to the user — report what the record holds and hand over the task.
+- **No rows at all** — nothing has been written on this record yet. On a problem that is still open that is
+  what it sounds like: the agent is triggered by the problem and takes minutes, so early in an incident there
+  is nothing to read. Say that, and say the beats before this one already name the root cause and the
+  deploy without it.
+
+**Objection** — "so it fixed it?": no. The agent investigated and recommended; the role is still whatever
+the grant reads as now, and the commits the platform recorded, are not anything the agent did — name either only where that step has run. Everything an agent does here is written down and attributed, with a human deciding whether
+to apply it.
+
+**Success signal:** User asks what to do about it, or who to send it to.
+
+**Deep link** (label "The agent's notes on the problem"):
+
+```text
+https://{{LINK_HOST}}/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TF_FROM_MS}}&to={{TF_TO_MS}}
+```

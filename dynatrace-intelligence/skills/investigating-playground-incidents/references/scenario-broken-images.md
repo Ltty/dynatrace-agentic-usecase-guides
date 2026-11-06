@@ -22,6 +22,7 @@ Reveals describe the *shape* of a finding, never its values. Commit SHAs, timest
 |---|---|
 | `service_name` | "image service" |
 | `symptom` | "product images loading slowly" |
+| `approach` | "Here's how I'd work it: who it hit first, then the deploys around it, then where the request time actually goes, and finish on the sessions that sat through it." |
 | `pull_line` | "Pulling the deploys, the response times, the slow requests and the affected sessions together." |
 
 This is a **slowdown, not an outage**: image requests still return 200, just seconds late. Never call it failing or erroring. No `avg_order_value_usd` is defined: no revenue figure.
@@ -47,7 +48,7 @@ Three populations coexist — always say which one a number counts.
 |---|---|
 | `owning_team` | Survey row (beat 1 shows it); deploy `owner` is null on these GitHub Actions events |
 | `Goes to` | `owning_team` |
-| `commit`, `git_url` | Beat 2 — The Deploy (parsed from `event.description` in DQL) |
+| `Changed` (`commit`, `git_url`) | Beat 2 — The Deploy (parsed from `event.description` in DQL). Its own handoff row, never folded into `Cause` |
 | Affected users (problem record) | survey row `affected_users` |
 | Real-user sessions with a slow image load (>1 s) | Beat 5 — sum of `sessions` across all countries |
 | Per-country sessions | Beat 5 — individual rows |
@@ -56,6 +57,8 @@ Three populations coexist — always say which one a number counts.
 ---
 
 ## Beat 1 — The Page
+
+**Requires:** none
 
 **Why this step:** Before we chase a cause we need the blast radius: what is degraded, for how many, and whose service it is.
 
@@ -99,6 +102,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?fr
 
 ## Beat 2 — The Deploy
 
+**Requires:** 1
+
 **Why this step:** Something made the Lambda slower at a point in time, so the next thing worth knowing is what shipped around it.
 
 **Objective:** User connects the slowdown to a specific commit, and sees both deploys on the
@@ -140,7 +145,7 @@ there.
 
 **Success signal:** User identifies the deploy as the trigger, or asks what that commit changed.
 
-**Deep link** (label "Problem in Dynatrace"):
+**Deep link** (label "The deploys on the problem record"):
 
 ```text
 https://{{LINK_HOST}}/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TF_FROM_MS}}&to={{TF_TO_MS}}
@@ -149,6 +154,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?fr
 ---
 
 ## Beat 3 — The Slowdown
+
+**Requires:** 2
 
 **Why this step:** A deploy near the slowdown is not yet a cause — to connect them we need what the Lambda's behaviour did at that moment.
 
@@ -191,6 +198,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.services/explorer/services?detailsId={{R
 ## Beat 4 — The Slow Trace
 
 **`peak_moment: true`**
+
+**Requires:** 3
 
 **Why this step:** We know the behaviour changed; to say where the seconds actually go we need one slow request broken down end to end.
 
@@ -267,6 +276,8 @@ https://{{LINK_HOST}}/ui/apps/dynatrace.distributedtracing/explorer?filter=dt.sm
 ## Beat 5 — The Humans
 
 **`peak_moment: true`**
+
+**Requires:** 1
 
 **Why this step:** Latency only matters as what someone waited through, so the last thing to establish is who felt it and what they saw.
 

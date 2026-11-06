@@ -1,8 +1,8 @@
 # Conversation Craft
 
 The beat loop, the data-only rule, divergence handling, staying in role, pacing, and response-length
-rules. In a walk-through, `references/walk-through.md` replaces the ending of each turn, and the choice
-in "Set the scene"; everything else here applies to both deliveries.
+rules. In a walk-through, `references/walk-through.md` replaces the ending of each turn and adds an
+executive summary before the first one; everything else here applies to both deliveries.
 
 ## Contents
 
@@ -23,10 +23,14 @@ Each beat has: objective, evidence DQL, reveal, optionally an objection, success
 and optionally `peak_moment` + `staging`. An objection is the user's likely pushback, with the
 answer to give.
 
-**The scenario is a guided flow, not a quiz.** Work through beats in order — don't skip one because
-it seems obvious — advancing once you've shown the evidence and given your own read, not once the
-user produces the "right" answer. A user who never says anything but "yes" should still get a
-complete, well-narrated investigation.
+**The scenario is a guided flow, not a quiz.** Advance once you've shown the evidence and given your
+own read, not once the user produces the "right" answer. A user who never says anything but "yes"
+should still get a complete, well-narrated investigation, in the order the scenario recommends.
+
+**Each beat declares `Requires:`** — the beats whose *findings* it builds on, or `none`. It is about
+the argument, not the query: most queries would run in any order, but a reveal that leans on an
+earlier finding is incoherent without it. `Requires:` is what lets the user steer without the story
+coming apart, and what lets you say plainly when an order is forced ("How a turn ends").
 
 **Keep `beats_completed`.** Add each beat to it as that beat's turn ends, folded-in beats included.
 It is a set, not a counter: the user can arrive at any beat and walk them in any order, so "are we
@@ -34,20 +38,54 @@ done" is `beats_completed` against the track's beats, never "did beat 6 just run
 
 ### The shape of a beat turn
 
-Every turn answers "so what?" before the user has to ask it. Five parts, in this order. Leave none of
-them out; the one most often missed is the fourth.
+Every turn answers "so what?" before the user has to ask it. **Four parts of narration, then the tail.**
+Leave none of them out; the one most often missed is the fourth.
 
 1. **Why this step** — the beat's `Why this step` line, said before the query, in terms of what we are
    trying to settle. "To know whether the deploy caused this, we need the failure rate either side of it."
-2. **The evidence** — all queries first, then a table of 3–5 fields (below).
+2. **The evidence** — all queries first, then a table of 3–5 fields (below). Every table has a header
+   row naming its columns, and a column name says what the number is and its unit: "95th percentile
+   (ms)", not "p95". A table whose header is blank makes the reader guess.
 3. **What it means** — your read, and what it changes about the question we are answering. Not just
    "the rate jumped to 61%" but what that settles and what it leaves open.
 4. **What that makes next** — the next step *and why it follows from what we just saw*. "The rate moves
    at the deploy, so the deploy is now the thing to read — what shipped in it is the next question."
    Naming the next step without the reason is the gap that leaves a user asking "so what?".
-5. **The readiness cue** — see below.
+Then the tail, and **the narration stops here**: the proof stamp, the deep link and the ending follow in
+that order ("How a turn ends"). Part 4 names the next step; it does not cue and it does not list the
+options, because those are the tail's last element and nothing goes after them.
 
 Beat 1 starts the moment the user chooses hands-on: no menu of angles before it.
+
+### Who you are explaining to
+
+**A senior person who does not know this platform** — a product or engineering manager — in both
+deliveries. They can follow an argument; they cannot be assumed to know what a span, a limit, an ARN,
+a baseline or a percentile is.
+
+- **Plain words first, the term once and in passing.** Gloss anything the platform or the cloud
+  provider named, on first use, in the same sentence: "its execution role — the permissions the
+  function borrows while it runs". Never a glossary, never a digression.
+- **What it means before how it works.** Each finding lands as its consequence first and its mechanism
+  second. "Every request through this container waits out those stops" before "the limit is enforced
+  per scheduling slice".
+- **"What does that mean?" is answered in place** — in plain words, without leaving the step and
+  without running a query. It is not a divergence and does not re-anchor.
+- **Never simplify the evidence.** The values stay exactly as returned, with their units and their
+  population label. Plain language is about the words around a number, never the number.
+
+### Say the approach before the first query
+
+Beat 1's turn opens on the scenario's `approach` — one line, in your own voice, proposing how you
+would work it: "Here's how I'd work it: start with who it hit, then what changed on the service just
+before, then the failing requests themselves, and finish on what the shoppers saw."
+
+It comes before part 1 of the turn and is said **once**. The user should know the shape before it
+starts, and a named set of steps is one worth finishing. Never recite it again at a later beat; part 4
+of each turn carries the thread from there.
+
+The showcase's own version of this rule is in "Showcase register" below — it is the same rule, with a
+tour's wording.
 
 ### One query, one turn
 
@@ -70,33 +108,76 @@ steps are ordinary steps with ordinary endings; the finding lands when the last 
 
 ### How a turn ends
 
-**One rule, for every scenario and both peak and ordinary beats.** The turn ends on the next step, the
-reason it follows, and an invitation to continue — with one alternative named so the user knows they can
-steer, but never a choice they must make before they can go on.
+**The turn ends on what we could do next and why.** How many options there are is decided by the
+scenario, never by wanting to sound interactive: offer every beat whose `Requires:` are already in
+`beats_completed`, and nothing else.
 
-Right: "Next I'd put utilisation next to the bill, so we only cut what's safe to touch. Say when you're
-ready — or if you'd rather see who owns the spend first, we can start there."
+**Several beats unlocked** — name up to three, one short line each saying what that step would settle,
+then recommend one with the reason, then the cue:
 
+```text
+Two things are worth doing next, and they stand on their own:
+  a) the container's own CPU numbers — why it was slow, not just that it was
+  b) what changed on the workload just before
+I'd take (a): (b) only means something once we know what to look for.
+Which one — or say next and I'll take (a).
+```
+
+**One beat unlocked** — say what it is, why it follows, and **why it is the only way forward**: "the
+exception has to come before the permission, or the permission tells us nothing." Then the readiness
+cue. This is not a lesser ending. A forced order, explained, is worth more than a choice invented to
+seem interactive — and some scenarios are a single chain by their nature.
+
+Right: "Next I'd put utilisation next to the bill, so we only cut what's safe to touch. Say when
+you're ready."
 Wrong: "Want me to look at the traces?" — a yes/no with nothing behind it.
-Wrong: "The deploy, or the failing requests?" — a decision demanded before the user can simply continue.
+Wrong: offering a beat whose `Requires:` have not run, or inventing a step the scenario has no query
+for. **A choice that is not real is worse than no choice**; it is the one thing a viewer who notices
+cannot un-notice.
 
-**An alternative the user passed over is spent.** If they said "ok" or "ready" rather than taking it,
-offer something else next time, or nothing at all — "Say when you're ready" on its own is a complete
-ending. Re-offering the same side road every turn makes it sound like you would rather be on it, and
-it is the quickest way to make a guided track feel repetitive.
+**`next`, `ok`, `continue`, `go` and an unspecific yes always take the recommendation.** That is the
+guarantee the option list must never break: a user who says nothing else still gets a complete,
+well-narrated investigation in the scenario's own order.
 
-A walk-through turn ends on its closing line instead (`references/walk-through.md`).
+**An option not taken stays on the list** — it is a real remaining step, not a side road being pushed.
+Don't recommend the same one twice in a row after it was passed over; do keep offering it.
+
+**A beat the user names that is not unlocked** gets what it needs first, and the offer to take that
+instead: "that one leans on the exception — shall we read that and come straight back?"
+
+**The scenario files' own vocabulary is bookkeeping, never something you say.** `Route`, `Requires`,
+`approach`, `pull_line`, `peak_moment`, `Staging`, `beats_completed`, `delivery` and the rest are field
+names for an author. Say the thing, not the field: "where the request time actually goes" rather than
+"the route is where the request time goes".
+
+**Two numbers only go side by side when they measure the same thing.** A problem record's baseline is
+Dynatrace's own learned figure over its own window; a percentile from spans is this query's window and
+population. Putting them in one sentence ("2,181 ms against a 3 ms baseline") reads as one comparison and
+is two. State each with the measurement it came from, or state only the one the step is about.
+
+**A beat number is bookkeeping, never something you say.** The scenario files number their steps so an
+author can wire them together; to the user a step is named by its subject — "the deploy", "the
+permission", "what the failing requests return". Never "beat 4", never "step 2 of 5". This applies to a
+reveal's forward references too: "that is confirmed by the trace", not "that is confirmed in beat 4".
+
+**A reveal may only lean on a beat that has run.** Where a reveal refers to an earlier finding, say it
+only if that beat is in `beats_completed`; otherwise give this beat's finding on its own and never
+refer to evidence the user has not seen. Where the earlier evidence is genuinely required, the
+scenario says so with a **Fold in on a jump** note and that evidence runs first.
+
+A walk-through turn ends on its closing line instead (`references/walk-through.md`). A showcase is a
+presentation and offers no choice: it keeps its own order (`Tracks` in the scenario file).
 
 ### Act: query, then narrate
 
-Before the step's query write the status line (SKILL.md → "Classify the opening"). Write nothing
+Before the step's query write the status line (SKILL.md → "Classify the opening, then read"). Write nothing
 between tool calls: no plans, no retries, no file reads.
 
 Substitute `{{TOKENS}}` from session state (`references/session-protocol.md` → "Session state").
 For a chained query, run the producing query first, take the value from its first record, then
 substitute and run — and still write nothing in between. A chained pair is one step.
 
-The walk-through's opening report is the exception: it runs every beat's first query in one turn
+The walk-through's executive summary is the exception: it runs every beat's first query in one turn
 (`references/walk-through.md`), and it applies to incidents only.
 
 Once the step's query is done, present:
@@ -126,7 +207,12 @@ that is not the view the answer shows.
 **The tail of every turn runs in this order, and nothing else goes after it:**
 
 1. the deep link — on the beat's **last** step only; earlier steps have none;
-2. the readiness cue, as the final line.
+2. the ending — the option block or the readiness cue — as the final thing in the turn.
+
+**Say the ending once.** Part 4 of the turn ("what that makes next") names what follows and why; it does
+**not** cue, and it does not list the options. Those belong to the tail, after the link. A turn that
+names the next step, then stamps and links, then asks again has ended twice, and the second ending
+reads as a stammer.
 
 A runtime that shows a proof stamp puts it immediately before the deep link, or before the readiness
 cue on a step that has no link (`skills/local-runtime/SKILL.md`). Never after the cue: the cue is what
@@ -209,21 +295,19 @@ with these additions.
 - **Whose question it answers.** A tour has a fixed order, so part 1 of the turn also says which of
   the tour's challenges this step answers — in the beat's own words, once per beat, so it reads as an
   argument rather than a sequence of screens.
-- **Say the approach before the first query.** One line naming the steps, then take them in that
-  order: "Three steps. First what the bill actually says, then utilisation next to it so we only cut
-  what's safe, then who owns what." The user should know the shape before it starts, and a named set
-  of steps is one worth finishing. Those are the steps of "One query, one turn" above — announce as
-  many as you will actually take, and take them one turn at a time.
+- **Say the approach before the first query** ("Say the approach before the first query" above, in a
+  tour's wording). One line naming the steps, then take them in that order: "Three steps. First what
+  the bill actually says, then utilisation next to it so we only cut what's safe, then who owns what."
+  Those are the steps of "One query, one turn" above — announce as many as you will actually take, and
+  take them one turn at a time.
 - **Place every finding against the target,** once one has been named. Not "CloudWatch logs cost
   $2,454" but "$2,454 on one line, against a $1,332 working target — this line alone would cover it
   twice". A number with nothing to measure it against is a fact; a number measured against the goal
   is progress, and progress is what makes a tour read as a story instead of a list.
-- **Minimal replies advance.** "ok", "continue", "got it", "I understand" move to the next step you
-  named, with no new question and no re-explaining. A user who only ever says "ok" still gets the
-  whole thing, well narrated.
-- **"What does that mean?" is answered in place** — in plain words, no product vocabulary assumed,
-  without leaving the step and without running a query. It is not a divergence and does not
-  re-anchor.
+- **Minimal replies advance** ("How a turn ends" above): "ok", "continue", "got it" move to the next
+  step you named, with no new question and no re-explaining.
+- **Plain words and "what does that mean?"** are general rules now ("Who you are explaining to"
+  above); a tour is held to them like everything else.
 
 The data-only rule is not relaxed: a tour states what the rows hold and nothing else. A number that
 sounds like a benefit ("saves 40%") needs a row behind it, or it is not said.
@@ -323,8 +407,8 @@ Never escalate in length or get coy.
 |---|---|
 | A step (explore) | ≤12 lines: why this step, 3–5 fields, the read, what follows and why, the deep link on the beat's last step, readiness cue; a peak moment's staging may run longer |
 | Side quest | ≤6 lines, then re-anchor |
-| Opening report (walk-through) | Up to 14 lines, prose |
-| Evidence turn (walk-through) | 8–12 lines: claim, table, what it adds, deep link, closing line |
+| Executive summary (walk-through) | Up to 14 lines, prose |
+| Step (walk-through) | 8–12 lines: the link back, table, what it adds, deep link, closing line and cue |
 | Session close | Per `references/session-protocol.md` → "Session close"; the handoff block is its own length |
 
 Never use bullet points for narration. Use prose. The one exception is the opening listing,

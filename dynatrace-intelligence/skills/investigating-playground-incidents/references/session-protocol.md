@@ -63,6 +63,8 @@ column is blank: a segment belongs to one tenant, and carrying another's opens t
 |---|---|---|---|
 | `payment-failure` | yes | | yes |
 | `broken-images` | yes | | |
+| `lambda-iam-denied` | | | yes |
+| `k8s-cpu-throttling` | | | yes |
 | `disk-cpu-cascade` | | yes | |
 | `cloud-observability` | | | yes |
 
@@ -95,12 +97,16 @@ fetch dt.davis.problems, from: now()-48h, to: now()
 | fieldsAdd key = if(root_cause_entity_id == "SERVICE-531CE26849E95EC1", "playground:payment-failure",
     else: if(root_cause_entity_id == "SERVICE-E9CB57C5D00C3626", "demo-live:payment-failure",
     else: if(root_cause_entity_id == "SERVICE-5A0CD2879D2F37BE", "playground:broken-images",
+    else: if(root_cause_entity_id == "SERVICE-F4E5246FA8EA27D7", "demo-live:lambda-iam-denied",
+    else: if(event.category == "SLOWDOWN" and in(root_cause_entity_id, "SERVICE-8491B5DDF5BDAB93",
+        "SERVICE-DA275964FAFD97CA", "APPLICATION-5DCD0C470BC8680A"), "demo-live:k8s-cpu-throttling",
     else: if(rc == "DISK-2B3DB86FA32F6CE1" or (dt.davis.is_duplicate == false
         and matchesPhrase(event.description, "/data") and matchesPhrase(event.description, "frontend-high-cpu")
-        and contains(toString(smartscape.affected_entities), "HOST-A2BABAD05D401471")), "dev:disk-cpu-cascade", else: null))))
+        and contains(toString(smartscape.affected_entities), "HOST-A2BABAD05D401471")), "dev:disk-cpu-cascade", else: null))))))
 | filter isNotNull(key)
 | fieldsAdd env = splitString(key, ":")[0], scenario = splitString(key, ":")[1]
-| fieldsAdd pref = if(dt.davis.is_duplicate == false and (scenario != "disk-cpu-cascade" or rc == "DISK-2B3DB86FA32F6CE1"), 0, else: 1)
+| fieldsAdd pref = if(dt.davis.is_duplicate == false and (scenario != "disk-cpu-cascade" or rc == "DISK-2B3DB86FA32F6CE1")
+    and (scenario != "k8s-cpu-throttling" or startsWith(root_cause_entity_id, "SERVICE-")), 0, else: 1)
 | fieldsAdd rank = if(pref == 0, toDouble(timestamp), else: toDouble(coalesce(dt.davis.affected_users_count, 0)))
 | sort scenario asc, pref asc, rank desc, timestamp desc
 | dedup scenario
@@ -181,37 +187,59 @@ The survey query's rows are the findings. Then:
    ("Nothing is open", "No open issues"): the user asked what is happening, and the answer is the
    incidents.
 
-   Then one bullet per incident, from its discovery hook (below), trimmed to a single line, in the
-   right tense, with its duration, status and cost. For a closed problem "how long ago" comes from
-   `ended_min_ago` (round to hours above 90 minutes), never estimated from timestamps. Each incident
-   appears once: the bullet is the sentence, not a repeat of one.
+   Then one bullet per incident, from its discovery hook (below), in the right tense, with its
+   duration, status and cost. For a closed problem "how long ago" comes from `ended_min_ago` (round to
+   hours above 90 minutes), never estimated from timestamps. Each incident appears once: the bullet is
+   the sentence, not a repeat of one.
+
+   **A bullet is the hook, then its `Route`.** The hook opens on what a person using the product met —
+   not on the component that broke, which means nothing to someone who does not know the
+   architecture — and the route is a short closing clause naming what the investigation is *about*, so
+   the user can choose between incidents on something other than a user count. The route names the
+   subject, never a finding, a cause or a count: "whatever the AWS DevOps Agent made of it" stays true
+   whatever that agent turns out to have written.
+
+   **The hook is how to describe the incident, not a finding to attribute to the data.** "Product images
+   aren't loading in the shop" is the scenario's own framing and may be said; "shoppers saw missing
+   images" is a claim about what people experienced, which no returned field holds. The replay is what
+   shows that, and only a beat that opens it can say so. Keep the whole bullet to a sentence and that clause.
+
+   **The route is a clause on the bullet's own sentence, never a sentence of its own.** Attach it with
+   a dash or a comma — "…over 39 minutes, and it ended about a day ago — a cloud permission, and
+   whatever the AWS DevOps Agent made of it." Given its own sentence it grows an identical stem on
+   every bullet ("We'd look at …", "This one is about …"), which turns the differentiator back into
+   the template it exists to replace. A clause cannot do that, because it has no stem.
 3. **The cloud direction is named here only if the greeting never ran** — when the user's first
    message was itself a survey trigger ("what's wrong?"), they have not been offered it yet, so add
    one line after the bullets, with a blank line before it: "Or something else: we could go after the
    cloud bill instead." No figures — the bill's numbers belong to the cost track, not to this list.
    When the greeting already offered it, say nothing: repeating it two turns running is clutter, and
    the user has already heard the choice once.
-4. With more than one incident, one line saying which you would take and why, from the row: an
-   incident whose `status` is `ACTIVE` goes first, because something is still happening.
+4. **Recommend nothing.** Which incident to investigate is the user's to choose, and the bullets are
+   what they choose from. Never add a line saying which you would take, and never rank them —
+   not by user count, not by the one with a cost figure, not by which is still open. A dollar figure
+   makes an incident easier to size, not more worth investigating, and steering by it quietly picks
+   the demo for them.
 
-   **The proposal is a recommendation, not a filter.** Every scenario that returned a row keeps its
-   bullet and stays in the question by name, closed or not. A resolved incident is still a real
-   investigation — the evidence is all still there — so it is never dropped, never folded into "and
-   others", and never described as finished business. If the user takes the one you did not propose,
-   that gets no comment and no second attempt.
+   Every scenario that returned a row keeps its bullet and stays in the question by name, closed or
+   not. A resolved incident is still a real investigation — the evidence is all still there — so it is
+   never dropped, never folded into "and others", and never described as finished business. Say only
+   whether anything is still open, as a fact about the environment, and leave the choice alone.
 5. End on exactly one question, and nothing after it, naming every option that was listed:
-   - **One option only:** its mode question, exactly: "Do you want to dig into it hands-on with me, one step at a time, or should I give you the full incident briefing, the whole story first and the evidence after?"
+   - **One option only:** its mode question, exactly: "Do you want to investigate this hands-on — you decide what we look at and I pull it — or should I walk you through it?"
    - **Several options:** exactly: "Which should we take first — [A], [B] or [the cloud bill]?"
      Each option is named the way its own bullet named it — the service, in plain words — never by
      its scenario id. `payment-failure` and `broken-images` are internal names: the user may type
      one, you never say one. Once the user has picked, reply "[A] it is." and that scenario's mode
      question. Run no query for that reply. A showcase has no mode question: picking it starts its first
-     step (SKILL.md → "Classify the opening").
-6. Read the answer to the mode question. Hands-on, "explore", "dig in": `delivery` is `explore`, and beat 1
-   starts at once, with no menu of angles before it. The briefing, the report, "start to finish", or an
-   unspecific yes ("yes", "ok", "sure", "go ahead"): `delivery` is `walk-through`; read
-   `references/walk-through.md` and open with its report, before any beat. An answer that decides
-   neither ("both?", "what's the difference?") gets five words: "Hands-on, or the full briefing?"
+     step (SKILL.md → "Classify the opening, then read").
+6. Read the answer to the mode question. Hands-on, "I'll drive", "let me", "explore", "dig in":
+   `delivery` is `explore`, and beat 1 starts at once, with no menu of angles before it. Being
+   walked through, "you drive", "step by step", or an unspecific yes ("yes", "ok", "sure", "go ahead"):
+   `delivery` is `walk-through`; read `references/walk-through.md` and take beat 1 as its first step.
+   Both deliveries walk every beat — the difference is whether anything is offered at the end of a
+   turn, so neither answer is the short one. An answer that decides neither ("both?", "what's the
+   difference?") gets six words: "You investigate, or I walk you through?"
 7. Never ask a question the user's message already answered. Naming an angle (traces, the deployment, the
    affected users) is a direct start (`explore`); "walk me through…" or "brief me on…" is a walk-through.
    Neither gets the survey's questions. Naming only an incident, a service or a scenario id is a pick, not
@@ -221,11 +249,13 @@ The survey query's rows are the findings. Then:
 the facts and the framing, not the wording: `problem_state` sets the tense, and a `live_recent` row is
 rewritten into the past before it is said.
 
-| `scenario` | Hook | Notes |
-|---|---|---|
-| `payment-failure` | "The payment service is failing for {affected_users} users — it's been going on for {duration_min} minutes. That's roughly ${revenue_usd} in abandoned carts." | Closed (`live_recent`): "The payment service failed for {affected_users} users over {duration_min} minutes — roughly ${revenue_usd} in abandoned carts." |
-| `broken-images` | "The image service is degraded — product images are slow for {affected_users} users, and it's been going on for {duration_min} minutes." | A slowdown, not an outage: never "failing" or "erroring". No cost. State no response times: the survey has none. |
-| `disk-cpu-cascade` | "The frontend-high-cpu host has had a problem open for {duration_days} days and {duration_hours} hours: low available disk space on {root_cause}, with CPU saturation on the same host. It affects {affected_count} entities." | Entities, never users; no cost. For an active problem say it is still open. Never convert `duration_min` yourself. |
+| `scenario` | Hook | Route | Notes |
+|---|---|---|---|
+| `payment-failure` | "Shoppers can't pay — card payments are failing at checkout for {affected_users} people, and it's been going on for {duration_min} minutes. That's roughly ${revenue_usd} in abandoned carts." | the failing requests, and what shipped into the service just before | Closed (`live_recent`): "Shoppers couldn't pay — card payments failed at checkout for {affected_users} people over {duration_min} minutes, roughly ${revenue_usd} in abandoned carts." |
+| `broken-images` | "Product images are crawling in the shop — they load eventually, but slowly, for {affected_users} people, and it's been going on for {duration_min} minutes." | where the request time actually goes, and the deploys around it | A slowdown, not an outage: never "failing" or "erroring", and never "not loading". No cost. State no response times: the survey has none. |
+| `lambda-iam-denied` | "Product images aren't loading in the shop — {affected_users} people hit product pages with the images missing over {duration_min} minutes." | a cloud permission, and whatever the AWS DevOps Agent made of it | An outage, not a slowdown: the requests error, they are not slow. No cost. State no failure rate here: the survey has none. |
+| `k8s-cpu-throttling` | "The trading app got slow enough for people to feel it — EasyTrade was degraded for {affected_users} people over {duration_min} minutes." | Kubernetes resource limits, and what the troubleshooting agent made of them | A slowdown, not an outage: never "failing" or "erroring". No cost. State no response times: the survey has none. The record usually carries no owning team. |
+| `disk-cpu-cascade` | "A host is running out of room — {root_cause} is low on disk, with CPU saturation on the same box, open for {duration_days} days and {duration_hours} hours. Nothing user-facing is on the record; it affects {affected_count} entities." | disk and CPU on one host, and what the disk has blocked | Entities, never users; no cost. For an active problem say it is still open. Never convert `duration_min` yourself. |
 
 ---
 
@@ -329,16 +359,17 @@ probe appended to the opening query.
 
 The handoff for the owning team, in both deliveries. It is given when the user asks for it ("package
 it", "wrap it up", "let's write the handoff"), at any point, and in a walk-through it ends the last
-evidence turn. It is part of the conversation, in character: it carries no "Written for" line.
+step. It is part of the conversation, in character: it carries no "Written for" line.
 
 ```text
 Incident handoff — [display_id]
 What happened:  [one plain sentence]
 When:           [started] to [ended, or "still open"], [duration] (UTC)
-Detected:       problem opened [N] minutes after the first failed request
+Detected:       problem opened [N] minutes after the first failed request [or, where the gap is negative: problem opened [N] minutes before the first one that carried an exception]
 Impact:         [count] [the population's own label], [cost]
 Rate:           [the beat 3 metric: failure rate, p50 latency], [before] to [peak], back to [after]
-Cause:          [what the evidence shows], commit [short SHA, 7 characters], shipped by [owner]
+Cause:          [what the evidence shows, in the data's own terms]
+Changed:        [the commit, deploy or edit that landed before it, with the gap — what it contained is not in the data]
 Goes to:        [owning team, or the host and host group] — they act, we supply the evidence
 Evidence:
   Problem:            [problem link]
@@ -355,6 +386,16 @@ Still open:     [what the data does not show]
 - `Impact` is the problem record's count with its label; add the beat 5 population, with its own label, once that
   beat's query has run. Say it as "[T] sessions, [M] of them with no country recorded", never "plus [M]".
 - The cost is the survey row's `revenue_usd`, only where the row has it.
+- **`Cause` is what the data shows broke; `Changed` is what landed before it.** Keep them apart: a
+  commit on the Cause row reads as the cause, and what a commit contains is never in the telemetry.
+  `Changed` carries the identifier and the gap, and is left out when no change was found.
+- **A negative gap is a real result, not a broken row.** Dynatrace can open a problem before the first
+  failure that carries an exception message, because it sees failing requests the exception query does
+  not. Say it in that direction and name which measurement each end came from; never flip the sign to
+  make the sentence read the usual way, and never drop the row to avoid the awkwardness.
+- `Detected` needs a precise first-failure timestamp, so it is filled only where a scenario's Handoff
+  fields table names its source (an exception's `first_seen` against the survey row's `started`). Where
+  the earliest signal is a five-minute bucket the row is left out rather than rounded into a claim.
 - `Detected`, `Rate` and `Cause`'s commit come from the beats that return them; a scenario without
   them leaves those rows out.
 - Each link sits on its own labelled line; a link the scenario does not have is left out.
@@ -373,22 +414,33 @@ Still open:     [what the data does not show]
   run**, in whatever order they ran, folded-in beats included — after that turn's deep link, not in a
   new turn, and not only when asked. Check the set, not the number: a session that ran 5, 6, 1, 2, 3, 4
   is complete at the end of 4, and the close belongs in that turn.
-- *Walk-through:* with the handoff block, in the same response as the last evidence turn.
+- *Walk-through:* in the same response as the last step.
 - *Either delivery, on request:* the handoff block, then the rest of the template below (without the timeline line, unless it is an explore session).
+
+**Both deliveries close with the handoff block, always.** It is the point of the whole session — the
+owning team, and what we hand them — so it is printed in the console whether or not anyone asked, and it
+is what the report's `evidence` list is built from. A close without it leaves the user with a story and
+no handover, and leaves the report with no links.
 
 **What it contains.** Fill this template, in this order, from this conversation's results. The payoff
 line is part of the close, never optional, and the way out is one of the exact lines below: do not
 replace either with a question of your own ("Want me to check whether anything else is open?").
 
 ```text
-[Explore only] Timeline: one sentence per beat, chronological, with the actual values you showed.
+[The handoff block, exactly as "Handoff block" above defines it.]
+[Explore only] Timeline: one sentence per beat, **ordered by the clock, not by the order the beats ran**,
+with the actual values you showed.
 From the first look to the full picture in [X] minutes: [the two or three things established, such as the change, the exact error and the sessions with a replay].
 [The affected-sessions link, when the scenario's Handoff fields table has one and the handoff block has not already given it.]
 [The way out, below.]
 ```
 
-- **[X]:** the latest `elapsed_min` a result in this conversation returned, in minutes since the survey (in a
-  walk-through it measures the opening report, which pulls the whole picture at once). If there is none,
+- **Chronological means by the timestamps in the findings.** Beats can run in any order the `Requires`
+  graph allows, so beat order and clock order diverge; the reader is following the incident, not the
+  investigation. The same ordering goes into the report's `timeline`.
+- **[X]:** "under a minute" when the figure rounds to 0 — a walk-through pulls every query at once, so 0 is
+  the normal result there and "in 0 minutes" reads as a broken field. Otherwise the latest `elapsed_min` a result in this conversation returned, in minutes since the survey (in a
+  walk-through it measures the executive summary, which pulls every beat's first query at once). If there is none,
   write "The full picture: …" in place of the first half of the line and say nothing about the number.
   No stock sentence about what the alternative would have cost.
 - **The way out, explore:** "Which would you rather dig into next — [option one] or [option two]?" This

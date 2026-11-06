@@ -15,9 +15,10 @@ turns:
     reply_contains:
     - $
     reply_excludes:
-    - hands-on with me
     - whole tour
     - CTO
     - cloud-observability
     - davis
     - copilot
+    reply_excludes_quoted:
+    - investigate this hands-on

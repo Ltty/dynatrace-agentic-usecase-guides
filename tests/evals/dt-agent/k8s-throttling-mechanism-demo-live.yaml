@@ -1,0 +1,22 @@
+id: k8s-throttling-mechanism-demo-live
+tenant: demo-live
+runs: 3
+status: draft
+description: >-
+  DRAFT: the peak beat must name throttling and say that usage stayed below the reduced ceiling —
+  the point being that the container was cut off, not starved. Asserted positively on purpose: a
+  forbidden-word list cannot express this, because the correct reply negates the wrong read ("not
+  out of CPU", "nothing is overloaded") and a substring check fails it. Turn 1 carries no assertion:
+  naming a service is a pick, and a pick may answer with the mode question before any query.
+turns:
+- ask: Why is EasyTrade slow?
+- ask: What is that service actually waiting on?
+  expect:
+    requires_dql: true
+    reply_contains:
+    - throttl
+    - limit
+    reply_contains_any:
+    - never
+    - below
+    - under
