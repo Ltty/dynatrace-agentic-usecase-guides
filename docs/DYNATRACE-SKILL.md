@@ -32,6 +32,15 @@ These are the app format's rules. `python tools/dt_agent.py check` enforces them
 - **Working tenant:** `https://fxz0998d.dev.apps.dynatracelabs.com`. The AI API base path is `/platform-reserved/ai/v0.1` (no `/platform` prefix). The Swagger UI rejects tokens, so it only opens in a browser session.
 - **Token:** a personal platform token in the `DT_DEV_AGENT_TOKEN` environment variable, set at user level (restart VS Code afterwards). The helper never prints or stores it. Give it a short expiry and delete it when you are done. Never put it in a repo file; `.claude/settings.local.json` is not git-ignored here.
 - **Scopes:** `ai:operator:execute`, `mcp-gateway:servers:read`, `mcp-gateway:servers:invoke`, `document:documents:read`, and the `storage:*:read` scopes the DQL needs (`events`, `spans`, `user.sessions`, `user.events`, `buckets`, and `metrics` for the disk scenario's `timeseries` beats). `document:documents:write` is only for uploading skill documents on dev. The storage scopes are inferred, not documented; a missing one shows up as a named DQL permission error.
+- **demo-live (`guu84124`) takes documents, not agent templates.** A personal platform token in
+  `DT_DEMO_LIVE_AGENT_TOKEN` uploads the skill: no app is installed there, so every document name is
+  free and lands user-owned (`app=None`), editable, unlike dev's three ready-made ones. The agent
+  runtime is not on prod yet, so every agent-template call answers `403 Message type '<name>' is not
+  allowed` (`get_agent_template`, `list_agent_templates`, `list_agents`). That is the capability
+  missing, not a scope or a document problem — the documents upload fine beside it, and `status`
+  reports the closed API as a line rather than failing. Deploying the skill and deploying the agent
+  are therefore independent on prod, and the skill half needs no `ai:` scope at all.
+
 - **`dtctl` is separate.** It only reads (ground-truth DQL and validation) and cannot deploy. Keep its `playground` context read-only. `validate_dt_skill.py` pins each scenario's context from `--environment`, but other `dtctl` calls use whatever the current context is, so check `dtctl config current-context` first.
 
 ## Change the skill

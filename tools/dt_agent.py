@@ -317,7 +317,11 @@ def cmd_status(tenant: Tenant, args: argparse.Namespace) -> int:
         print(f"  {name}  v{d.get('version')}  private={d.get('isPrivate')}  app={d.get('originAppId')}")
     print(f"\n{len(remote)} skill documents on the tenant, {len(local)} in the repo")
     name = json.loads((AGENT_DIR / "template.json").read_text(encoding="utf-8"))["name"]
-    deployed = deployed_template(tenant, name)
+    try:
+        deployed = deployed_template(tenant, name)
+    except TemplateApiClosed:
+        print(f"{name}: no agent runtime on this tenant, the documents above are the whole deploy")
+        return 0
     if deployed is None:
         print(f"{name}: not deployed")
     else:
@@ -400,12 +404,23 @@ def render_template() -> dict:
     return template
 
 
+class TemplateApiClosed(Exception):
+    """The tenant has no agent runtime: it refuses every agent-template message type.
+
+    Prod tenants (demo-live) answer 403 "Message type 'get_agent_template' is not allowed" to the
+    whole family, including list_agents. Document upload is unaffected and the skill deploys there
+    normally, so this is reported and stepped over rather than raised as a failure.
+    """
+
+
 def deployed_template(tenant: Tenant, name: str) -> dict | None:
     try:
         return tenant.json("GET", f"{AI_API}/operator/agent-templates/{name}")
     except ApiError as e:
         if e.status == 404:
             return None
+        if e.status == 403 and "is not allowed" in e.body:
+            raise TemplateApiClosed(e.body) from None
         raise
 
 
@@ -420,7 +435,11 @@ def cmd_template(tenant: Tenant, args: argparse.Namespace) -> int:
         sys.exit("error: template checks failed, nothing was done:\n  " + "\n  ".join(errors))
     wanted = render_template()
     name, data = wanted["name"], wanted["data"]
-    current = deployed_template(tenant, name)
+    try:
+        current = deployed_template(tenant, name)
+    except TemplateApiClosed:
+        print(f"{name}: no agent runtime on this tenant; deploy the skill with `docs` instead")
+        return 1
     tools = {s: v.get("tools", "all tools") for s, v in data.get("mcp_servers", {}).items()}
     print(f"  template {name}: {wanted['agent_type']}, model {data['llm']}, tools {tools}")
     print(f"  mounts {list(data['resources'])}\n  skills {data['skills']}")
