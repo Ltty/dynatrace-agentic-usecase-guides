@@ -118,6 +118,21 @@ def test_no_label_called_replays():
             assert "replay" not in label.lower(), (scenario, label)
 
 
+def test_every_showcase_opens_on_what_it_is():
+    """A picked tour must say what it is before its first table (user report, 2026-11-06).
+
+    The opening told a user "First challenge: there is no single view" and a table, with no
+    word on what the tour was or why it ran in that order. An incident has an `approach` row;
+    a showcase has an "Opening" section that says the same thing at the length a tour needs.
+    """
+    for scenario in v.SHOWCASES:
+        text = v.SCENARIO_FILES[scenario].read_text(encoding="utf-8")
+        assert "## Opening" in text, (scenario, "no Opening section")
+        body = text.split("## Opening", 1)[1].split("## Scope", 1)[0]
+        for needed in ("What this is", "The through-line", "The route", "How it goes"):
+            assert needed in body, (scenario, f"Opening is missing: {needed}")
+
+
 def main() -> int:
     failed = 0
     for name, fn in sorted((n, f) for n, f in globals().items() if n.startswith("test_") and callable(f)):

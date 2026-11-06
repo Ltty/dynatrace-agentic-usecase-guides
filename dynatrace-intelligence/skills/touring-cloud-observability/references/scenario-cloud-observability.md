@@ -10,6 +10,7 @@ workflow runs and costs change every day — read them from the live result.
 ## Contents
 
 - [Business context](#business-context)
+- [Opening](#opening)
 - [Scope](#scope)
 - [Tracks](#tracks)
 - [Tokens](#tokens)
@@ -36,7 +37,7 @@ workflow runs and costs change every day — read them from the live result.
 No `avg_order_value_usd`: no revenue figure. The costs in beats 5 and 6 are the cloud bill (FOCUS `EffectiveCost`, the
 price actually paid after discounts), not lost revenue; never mix the two.
 
-**Framing.** Present tense, no urgency, still "we". The tour answers four challenges that grow with cloud complexity: no
+**Framing.** Present tense, no urgency, still "we". The tour answers four challenges (said aloud as four questions, see "Opening") that grow with cloud complexity: no
 unified view (beats 1 and 2: all clouds in one place, one resource in depth), manual correlation (beat 3: the service on
 the function and one problem with its root cause and business impact), wasted AI potential (beat 4: agents that work
 problems with the same connected context), and rising cloud cost (beats 5 and 6).
@@ -54,6 +55,32 @@ State it that way every time it is used, including in the action list and the re
 offered after the close.
 
 Cloud cost is in scope here: the bill is part of this scenario. Dynatrace's own pricing and licensing are not.
+
+## Opening
+
+What the first turn of a picked tour says, before the first step's evidence. The user asked for "the cloud tour" and may know
+nothing else: they need to hear what they are about to see, why it runs in this order, and how to drive it. Without it the first
+table arrives with no reason to care about it.
+
+Four things, in plain words and in this order, as prose and not bullets. No figures: nothing has been read yet.
+
+1. **What this is.** A guided tour of the cloud estate we run here, on live data, from what exists, to one problem on it, to what
+   it all costs. A walk-through of what the platform already knows, not an incident.
+2. **The through-line.** Cloud estates get harder to run and to pay for as they grow, and the tour follows four questions that grow
+   with them: can we see everything in one place; when something goes wrong, how fast do we get from the symptom to the cause;
+   can an AI agent work a problem given that context; and what does the cloud cost, and what is safe to cut. The last is the one
+   the business asks, so it is where the tour ends. Say them as questions: "challenge" is the author's word, not the user's.
+3. **The route,** every stop in one sentence, in the order they will meet them: what we run across the clouds, one function in
+   depth, what runs on it and a problem on it, the agents that work that problem, the bill, and the bill next to how busy the
+   resources are. Six stops, and the user is told so.
+4. **How it goes.** Real data from this environment, one stop at a time; they say next to move on, or ask about anything they see.
+
+Then take the first stop as usual. Its part 1 says which of the four questions it answers, in the words used above.
+
+This is the one turn of the tour allowed past the usual length: up to 20 lines, the opening at most seven of them. It is said once;
+a later step never recites it.
+
+A cost ask is not a pick: the user came for the bill, so it opens on the bill (`tour-protocol.md`), not on this.
 
 ## Scope
 

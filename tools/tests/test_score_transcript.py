@@ -81,6 +81,25 @@ def test_shell_reads_of_skill_files_count_as_reads():
     assert st.shell_reads("cat README.md") == []
 
 
+def test_shell_reads_credit_each_file_to_the_skill_it_names():
+    """With two skills, an agent cds into the skills folder and names the skill in the path.
+
+    The scorer used to find only `skills/<name>` and credit every file in the command to that one
+    skill, so a read of the tour's SKILL.md after such a cd was dropped, and a case asserting it
+    failed although the agent had read it.
+    """
+    base = "/resources/documents/skills/"
+    two = ("cd C:/repo/dynatrace-intelligence/skills; cat touring-cloud-observability/SKILL.md "
+           "investigating-demo-incidents/references/session-protocol.md")
+    assert st.shell_reads(two) == [base + "touring-cloud-observability/SKILL.md",
+                                   base + "investigating-demo-incidents/references/session-protocol.md"]
+    absolute = "cat C:/repo/dynatrace-intelligence/skills/touring-cloud-observability/references/tour-protocol.md"
+    assert st.shell_reads(absolute) == [base + "touring-cloud-observability/references/tour-protocol.md"]
+    inside = "cd C:/repo/dynatrace-intelligence/skills/touring-cloud-observability && cat SKILL.md"
+    assert st.shell_reads(inside) == [base + "touring-cloud-observability/SKILL.md"]
+    assert st.shell_reads("ls touring-cloud-observability") == []
+
+
 def test_an_answer_written_before_the_handback_is_not_progress():
     rows = [assistant({"type": "text", "text": "Checking."}, use("Read", file_path=SKILL)),
             assistant({"type": "text", "text": "The answer."}),

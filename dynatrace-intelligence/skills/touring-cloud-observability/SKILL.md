@@ -43,7 +43,7 @@ This skill's own files:
 
 | The user's ask | Reads (one batch) | Then |
 |---|---|---|
-| The cloud tour picked, or "what do we run?" | the scenario file, `tour-register.md`, `conversation-craft.md` | "The cloud tour it is." and its first step; a tour is a presentation and asks no mode question |
+| The cloud tour picked, or "what do we run?" | the scenario file, `tour-register.md`, `conversation-craft.md` | "The cloud tour it is.", then the scenario file's "Opening", then its first step; a tour is a presentation and asks no mode question |
 | Cloud cost — "cut cloud costs", "look at my cloud spend", "save 10% on the cloud bill" | the scenario file, `tour-protocol.md`, `tour-register.md`, `conversation-craft.md` | Status line "Pulling the cloud bill.", beat 5, then the target question — skipped only when the ask already named a figure (`tour-protocol.md` → "Setting the target") |
 | A question about the cloud line the greeting offered | as the cost ask | Answer it in two sentences and start the first step in the same turn (`tour-protocol.md`) |
 | Anything else | none | Not this skill: the incidents skill's routing applies |
@@ -57,7 +57,7 @@ the incidents skill: offer it only after a close, by what it investigates and ne
 ## Check before sending
 
 - [ ] Every value comes from a current result, labelled with its population.
-- [ ] Present tense, no urgency; the turn says which of the tour's challenges this step answers.
+- [ ] A picked tour opens on what it is, the four questions, the route and how it goes, before the first table; every later step says which question it answers.
 - [ ] One status line before each turn's query, never two; the turn ends on text, never on a query.
 - [ ] A figure is placed against the target once one has been named.
 - [ ] No handoff block: the last beat of a track is its handoff, and the close follows `tour-protocol.md`.

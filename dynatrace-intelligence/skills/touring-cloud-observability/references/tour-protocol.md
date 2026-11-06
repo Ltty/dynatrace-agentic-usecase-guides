@@ -92,7 +92,7 @@ probe run when the cost track starts. The opening itself carries no figures.
 - **Handoff block:** the showcase's last beat is its handoff (the cost action list), so the handoff block in the incidents skill's `session-protocol.md` is not used.
 - **Session close:** as in the incidents skill's `session-protocol.md` ("Session close"), and it fires when the **track** the user walked is complete (the scenario file →
   "Tracks"), not when beat 6 runs.
-  - After `estate`: the payoff line names the four challenges the tour answered, in one sentence ("one view of the
+  - After `estate`: the payoff line names the four questions the tour answered, in one sentence ("one view of the
     three clouds, one problem with its cause and impact, agents working it with that context, and where the 10% is").
   - After `cost`: the payoff line is the answer to the question you opened with — what the bill is, what the working
     10% comes to, and which lines carry it — and the cost action list is the handoff.

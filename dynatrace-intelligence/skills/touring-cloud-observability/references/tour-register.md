@@ -6,11 +6,13 @@ with these additions.
 
 - **Tense and stakes.** Present tense, no urgency, no clock. Never "we need to", never "before this
   gets worse". A problem shown inside a tour is an example of the platform working, not a page.
+- **The first turn opens on the scenario's "Opening":** what the tour is, the four questions it follows, the route and how it
+  goes, in that order, before the first table. A picked tour that starts on a table has told the user nothing about why.
 - **Whose question it answers.** A tour has a fixed order, so part 1 of the turn also says which of
-  the tour's challenges this step answers — in the beat's own words, once per beat, so it reads as an
-  argument rather than a sequence of screens.
+  the tour's four questions this step answers, in the words the opening used for it, once per step, so it reads as an
+  argument rather than a sequence of screens. Never "challenge": the user was never told there were challenges.
 - **Say the approach before the first query** ("Say the approach before the first query" in `conversation-craft.md`, in a
-  tour's wording). One line naming the steps, then take them in that order: "Three steps. First what
+  tour's wording). On a cost ask there is no Opening, so one line naming the steps, then take them in that order: "Three steps. First what
   the bill actually says, then utilisation next to it so we only cut what's safe, then who owns what."
   Those are the steps of "One query, one turn" in `conversation-craft.md` — announce as many as you will actually take, and
   take them one turn at a time.

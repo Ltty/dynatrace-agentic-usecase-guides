@@ -3,10 +3,11 @@ tenant: demo-live
 runs: 3
 status: draft
 description: >-
-  DRAFT: being walked through is a story told forwards, not a conclusion followed by proof. The first
-  turn is beat 1 with the approach line and no up-front summary, each turn offers nothing, and the
-  throttling finding must not appear before the step that establishes it. This is the only runnable
-  coverage of the walk: the four non-draft walk cases are on dev, which is readwrite-all.
+  DRAFT: being walked through opens on the executive summary and ends on the offer, then tells the same
+  beats forwards, one per turn, with the user only saying next. The opening pulls every beat's first
+  query at once, so the steps that follow narrate from it and need no query of their own. The first step
+  opens on the approach line, and no step offers a choice. This is the only runnable coverage of the walk:
+  the four non-draft walk cases are on dev, which is readwrite-all.
 turns:
 - ask: Let's look at the EasyTrade slowdown.
 - ask: Walk me through it step by step.
@@ -15,31 +16,33 @@ turns:
     - walk-through.md
     - scenario-k8s-cpu-throttling.md
     requires_dql: true
+    reply_contains:
+    - I can show you how we know each of these
+    reply_excludes:
+    - or say next
+    - 'a) '
+    - I can't
+    - I can’t
+- ask: next
+  expect:
     reply_contains_any:
     - how I'd work it
     - how I would work it
     reply_excludes:
-    - throttl
-    - 600m
-    - Which one
+    - or say next
     - 'a) '
+    - Shall I continue
     - I can't
+    - I can’t
 - ask: next
   expect:
-    requires_dql: true
-    reply_excludes:
-    - Which one
-    - 'a) '
-- ask: next
-  expect:
-    requires_dql: true
-    reply_contains:
-    - throttl
     reply_contains_any:
     - say next
     - when you're ready
     - Say next
     reply_excludes:
-    - Which one
+    - or say next
     - 'a) '
     - Shall I continue
+    - I can't
+    - I can’t

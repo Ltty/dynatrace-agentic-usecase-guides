@@ -37,16 +37,37 @@ DTCTL_QUERY = re.compile(r"\bdtctl(?:\.exe)?['\"]?\s+query\b")
 READ_COMMAND = re.compile(r"\b(?:cat|head|tail|sed|less|more|type|Get-Content)\b")
 SKILL_DIR = re.compile(r"dynatrace-intelligence/skills/([\w-]+)")
 MD_FILE = re.compile(r"[\w-]+\.md\b")
+QUALIFIED_MD = re.compile(r"(?<![\w-])([\w-]+)/(?:references/)?([\w-]+\.md)\b")
+SKILL_NAMES = {p.name for p in (TOOLS_DIR.parent / "dynatrace-intelligence" / "skills").iterdir() if p.is_dir()}
 
 
 def shell_reads(command: str) -> list[str]:
-    """Skill documents a shell command reads, as read_file paths (cat a.md b.md after a cd into the skill)."""
-    skill = SKILL_DIR.search(command.replace("\\", "/"))
-    if not skill or not READ_COMMAND.search(command):
+    """Skill documents a shell command reads, as read_file paths.
+
+    Two ways to name a file, and a command may mix them across skills:
+    `cat <skill>/references/a.md`, with the skill in the path (after a cd into the skills folder or
+    from anywhere), and `cat a.md` after a cd into one skill's folder. The first is credited to the
+    skill it names, the second to the one skill folder the command names.
+    """
+    command = command.replace("\\", "/")
+    if not READ_COMMAND.search(command):
         return []
-    base = MOUNT + skill.group(1) + "/"
-    names = list(dict.fromkeys(MD_FILE.findall(command)))
-    return [base + ("SKILL.md" if n == "SKILL.md" else "references/" + n) for n in names]
+    found: list[str] = []
+
+    def path_for(skill: str, name: str) -> str:
+        return MOUNT + skill + "/" + ("SKILL.md" if name == "SKILL.md" else "references/" + name)
+
+    def take_qualified(match: re.Match) -> str:
+        if match.group(1) not in SKILL_NAMES:
+            return match.group(0)
+        found.append(path_for(match.group(1), match.group(2)))
+        return " "
+
+    rest = QUALIFIED_MD.sub(take_qualified, command)
+    skill = SKILL_DIR.search(rest)
+    if skill and skill.group(1) in SKILL_NAMES:
+        found += [path_for(skill.group(1), n) for n in MD_FILE.findall(rest)]
+    return list(dict.fromkeys(found))
 
 
 def load_runner():

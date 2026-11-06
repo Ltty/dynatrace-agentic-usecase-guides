@@ -6,7 +6,8 @@ description: >-
   DRAFT: the image-provider incident is an outage, not a slowdown. Its survey bullet says the images
   are failing, never that they are slow or degraded, carries no cost line (the scenario defines no
   order value), and states no failure rate — the survey query returns none. The scenario is never
-  named by its id.
+  named by its id. The exclusions are phrases about the images, not the words alone: the Kubernetes
+  incident beside it is a slowdown, and its own bullet may say so.
 turns:
 - ask: What's wrong right now?
   expect:
@@ -17,6 +18,10 @@ turns:
     reply_excludes:
     - lambda-iam-denied
     - payment-failure
-    - slowdown
-    - degraded
+    - images are slow
+    - images were slow
+    - slow images
+    - images are degraded
+    - images were degraded
+    - degraded images
     - '%'
