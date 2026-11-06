@@ -6,8 +6,9 @@ description: >-
   DRAFT. A showcase is a presentation, not a choice of format: picking the cloud tour starts its
   first step rather than asking how to run it. No mode question, no survey, no incident list, and
   the turn ends on a call to action.
-  The turn says what the tour is before its first table: that it is a guided tour, that it ends at the
-  bill, and how to move on. "Challenge" is the author's word and is never spoken.
+  The turn states the job before its first table, as a labelled premise (take 10% off the bill without
+  breaking anything), then the route to the bill and how to move on. "Challenge" is the author's word and
+  is never spoken, and the premise is never attributed to a CTO or finance.
 turns:
 - ask: Show me the cloud tour.
   expect:
@@ -17,8 +18,9 @@ turns:
     - touring-cloud-observability/SKILL.md
     requires_dql: true
     reply_contains:
+    - 10%
+    - without breaking anything
     - bill
-    - tour
     - AWS
     reply_contains_any:
     - say next
@@ -26,6 +28,9 @@ turns:
     - ask about anything
     reply_excludes:
     - challenge
+    - your CTO
+    - finance wants
+    - the CTO
     - whole tour
     - Which should we take first
     - account team

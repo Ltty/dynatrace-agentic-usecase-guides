@@ -123,13 +123,14 @@ def test_every_showcase_opens_on_what_it_is():
 
     The opening told a user "First challenge: there is no single view" and a table, with no
     word on what the tour was or why it ran in that order. An incident has an `approach` row;
-    a showcase has an "Opening" section that says the same thing at the length a tour needs.
+    a showcase has an "Opening" section that says the same thing at the length a tour needs:
+    the job, why it is hard, the route and how to drive it.
     """
     for scenario in v.SHOWCASES:
         text = v.SCENARIO_FILES[scenario].read_text(encoding="utf-8")
         assert "## Opening" in text, (scenario, "no Opening section")
         body = text.split("## Opening", 1)[1].split("## Scope", 1)[0]
-        for needed in ("What this is", "The through-line", "The route", "How it goes"):
+        for needed in ("The job", "The four questions", "The route", "How it goes"):
             assert needed in body, (scenario, f"Opening is missing: {needed}")
 
 

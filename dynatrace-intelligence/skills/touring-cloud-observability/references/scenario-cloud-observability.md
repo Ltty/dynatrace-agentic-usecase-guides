@@ -42,40 +42,46 @@ unified view (beats 1 and 2: all clouds in one place, one resource in depth), ma
 the function and one problem with its root cause and business impact), wasted AI potential (beat 4: agents that work
 problems with the same connected context), and rising cloud cost (beats 5 and 6).
 
-**The cost track is a method demonstration**, not a savings engagement: what it shows is *how* to find money on a
-cloud bill from real data — what the bill says, where it concentrates, what is safe to touch, and who owns it. A
-figure the user brings is a lens that makes the method concrete, never a target the session is scored against. Open
-beat 5 by putting the question yourself, then answer it from the data, the way an analyst would.
+**The tour is one job, done on a real estate:** take a stated share off the cloud bill without breaking anything. The
+constraint is what makes the four questions prerequisites and not features: you cannot cut what you cannot see or do not
+understand, and a cut that goes wrong shows up as an outage. What the tour shows is *how* to do that from real data, never a
+promise that the saving exists: the data decides how far the premise is covered, and "the data gets us this far" is a
+complete answer. A figure the user brings is theirs and replaces ours.
 
-**The 10% is this scenario's own constant,** the same way beat 6's CPU and memory thresholds are. No row returns it
-and nobody in the session asked for it, so it is never "the target" and never attributed to a CTO or any other
-stakeholder the conversation does not contain. It is the SRE's working assumption, said as one — "my working
-assumption is there's at least 10% in here" — and motivated by a figure that did come back, the untagged share.
-State it that way every time it is used, including in the action list and the report. The workflows that prevent, remediate and optimize are an extra,
-offered after the close.
+**The 10% is this scenario's own constant,** the same way beat 6's CPU and memory thresholds are. No row returns it, so it
+is never presented as a fact about the user's organisation and never attributed to a CTO, finance or any other stakeholder
+the conversation does not contain. It reaches the conversation one of two ways, and it is labelled for the way it came:
+on a picked tour, as a **stated premise** in the Opening ("Suppose you've been asked to take 10% off the cloud bill without
+breaking anything"), a hypothetical said as one; on a cost ask that names no figure, as the SRE's **working assumption**,
+motivated by a figure that did come back, the untagged share ("my working assumption is there's at least 10% in here").
+State it with its label every time it is used, including in the action list and the report. The workflows that prevent,
+remediate and optimize are an extra, offered after the close.
 
 Cloud cost is in scope here: the bill is part of this scenario. Dynatrace's own pricing and licensing are not.
 
 ## Opening
 
 What the first turn of a picked tour says, before the first step's evidence. The user asked for "the cloud tour" and may know
-nothing else: they need to hear what they are about to see, why it runs in this order, and how to drive it. Without it the first
+nothing else: they need to hear what job they are being walked through, why it is hard, and how to drive it. Without it the first
 table arrives with no reason to care about it.
 
-Four things, in plain words and in this order, as prose and not bullets. No figures: nothing has been read yet.
+Four things, in plain words and in this order, as prose and not bullets. The only figure is the premise's own: nothing has been read yet.
 
-1. **What this is.** A guided tour of the cloud estate we run here, on live data, from what exists, to one problem on it, to what
-   it all costs. A walk-through of what the platform already knows, not an incident.
-2. **The through-line.** Cloud estates get harder to run and to pay for as they grow, and the tour follows four questions that grow
-   with them: can we see everything in one place; when something goes wrong, how fast do we get from the symptom to the cause;
-   can an AI agent work a problem given that context; and what does the cloud cost, and what is safe to cut. The last is the one
-   the business asks, so it is where the tour ends. Say them as questions: "challenge" is the author's word, not the user's.
+1. **The job.** Say it as a premise, in the user's own seat, in these words: "Suppose you've been asked to take 10% off the cloud
+   bill without breaking anything." It is a hypothetical and is said as one: never "your CTO", never "finance wants", never a
+   person the conversation does not contain, and never a claim that the saving exists. *Without breaking anything* is the
+   part the rest rests on.
+2. **The four questions the job runs into,** said as what it needs: can you see everything in one place; when something goes wrong,
+   how fast do you get from the symptom to the cause; can an AI agent work that problem given the same context; and what does
+   the cloud cost, and what is safe to cut. A cut that goes wrong shows up as the second one. Say them as questions:
+   "challenge" is the author's word, not the user's.
 3. **The route,** every stop in one sentence, in the order they will meet them: what we run across the clouds, one function in
    depth, what runs on it and a problem on it, the agents that work that problem, the bill, and the bill next to how busy the
-   resources are. Six stops, and the user is told so.
-4. **How it goes.** Real data from this environment, one stop at a time; they say next to move on, or ask about anything they see.
+   resources are. Six stops, on this estate, on live data, and the user is told so.
+4. **How it goes.** One stop at a time; they say next to move on, or ask about anything they see.
 
-Then take the first stop as usual. Its part 1 says which of the four questions it answers, in the words used above.
+Then take the first stop as usual. Its part 1 says which of the four questions it answers, in the words used above, and what that
+answer adds to the job.
 
 This is the one turn of the tour allowed past the usual length: up to 20 lines, the opening at most seven of them. It is said once;
 a later step never recites it.
@@ -166,7 +172,7 @@ There is no incident to hand off. The handoff is the **cost action list** that b
 | Value | Source |
 |---|---|
 | `Goes to` | Beat 6's team split: the owner teams by their `dt_owner_team` tag; the untagged spend is named as having no owner |
-| Working assumption | Beat 5 `target_usd` (10% of `total_usd`) — the SRE's, never "the target" |
+| The 10% | Beat 5 `target_usd` (10% of `total_usd`) — the Opening's premise or the SRE's assumption, never attributed to anyone |
 | Largest line | Beat 5's cost-lines query, first row, with its `teams` |
 | Do not shrink | Beat 6 rows with verdict "low CPU, no memory headroom" |
 | Monitor first | Beat 6 row "no utilization data": `dbs` and `usd_30d` |
@@ -417,7 +423,8 @@ work: an EasyTrade problem (`title`, `display_id`, its window as UTC times) wher
 wrote a note on `agent_workload`. Quote the root cause from `agent_root_cause` in the agent's words, attributed to the
 agent. `change` is the platform's record of a spec change on `changed_workload`, `change_lead_min` minutes before the
 problem started: state it as returned. Kubernetes tuning cuts both ways — too little CPU or memory and the application
-slows or fails — and that is what the change and the note show side by side. When the note gives a different time for the
+slows or fails — and that is what the change and the note show side by side. Tie it to the job as an example of what a cut that goes wrong looks
+like, never as a cost decision: nothing returned says why the limit changed, so never say it was made to save money. When the note gives a different time for the
 change than `change_at`, the event is the record. The fix the note proposes is the agent's recommendation for the owning
 team to review, not something applied — and that team is this problem's `owning_team` or nobody,
 never one carried over from beat 3. No `change` row: say the platform recorded no resource-limit change in the two
@@ -456,8 +463,10 @@ https://{{LINK_HOST}}/ui/apps/community.cloudsreagents/
 **Objective:** User sees the real bill answer the question the SRE put: what a 10% working assumption is in dollars,
 where the money goes, and how much of it has no owner.
 
-Open by putting the question yourself, in one line, with the assumption owned: "Half this bill has no owner, so my
-working assumption is there's at least 10% in here — about $[target_usd]. Let's find out where." Then work through it
+Open by putting the question in one line, owned the way the 10% arrived. After the tour's Opening, return to its premise: "Back
+to the ask: 10% of this bill is about $[target_usd], and [untagged_pct]% of it has no owner. Let's find out where." On a cost
+ask that named no figure, own it as the assumption it is: "[untagged_pct]% of this bill has no owner, so my working assumption
+is there's at least 10% in here — about $[target_usd]. Let's find out where." Then work through it
 in steps, the way an analyst would: the bill first (this beat), then utilization next to cost (beat 6). The bill and the monitoring data sit in the same place, which is what lets a cost be
 matched to the resource behind it and to how busy that resource is.
 
@@ -500,8 +509,8 @@ go, so a 7-day fetch already holds every row of the last 30 days of charges and 
 fetch does. If the import ever stops for more than a week the query returns nothing and the showcase reads as
 unavailable — check the import first when that happens, rather than widening the window.
 
-**Reveal:** `total_usd` over the last 30 days of charges, and `target_usd` as the 10% you are assuming is in there —
-your assumption, not a target anyone set. The `top_categories`, with
+**Reveal:** `total_usd` over the last 30 days of charges, and `target_usd` as the 10% the session started from, the Opening's
+premise or your assumption where none was stated, never a figure anyone set. The `top_categories`, with
 their dollars. `untagged_usd` and `untagged_pct`: that share of the bill carries no team tag, so nobody is asked to
 explain or reduce it. The largest single line is usually CloudWatch log ingestion (`PutLogEvents`, billed per byte); state
 whichever line is first, its dollars, and how much of it is `untagged_usd`. **`teams` is the set of tags that
@@ -607,7 +616,8 @@ tag changed inside the window; list both, as returned.
 3. What kind of finding it is: a cost recommendation that is only safe because utilization sits next to it. This is the
    difference between a cost report and an answer.
 4. The table: verdict, `dbs`, `usd_30d`, the shown rows.
-5. The cost action list (it is this scenario's handoff block), built only from beat 5 and 6 results:
+5. The cost action list (it is this scenario's handoff block), built only from beat 5 and 6 results. Where the tour opened on its
+   premise, the parenthesis on the working-target line reads "our starting premise, not a figure anyone set":
 
    ```text
    Cloud cost findings — last 30 days of charges

@@ -96,5 +96,9 @@ probe run when the cost track starts. The opening itself carries no figures.
     three clouds, one problem with its cause and impact, agents working it with that context, and where the 10% is").
   - After `cost`: the payoff line is the answer to the question you opened with — what the bill is, what the working
     10% comes to, and which lines carry it — and the cost action list is the handoff.
+    When the tour opened on its premise ("take 10% off the cloud bill without breaking anything"), the payoff line answers it
+    in the data's terms, both halves of it: how far the evidence gets toward the 10%, and what *without breaking anything* came
+    to — what not to touch, and what cannot be judged yet. Never a plain yes or no the rows do not hold: "the data gets us this
+    far, and here is what stands between us and the rest" is a complete answer, and the honest one when the lines are small.
   The way out offers what is left *inside the scenario*: the other track, the "Extra" (the workflows that prevent,
   remediate and optimize), a beat the user skipped, or a view from its "Other views" table.
