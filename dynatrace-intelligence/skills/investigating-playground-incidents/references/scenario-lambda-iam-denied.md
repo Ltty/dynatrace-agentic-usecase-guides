@@ -59,7 +59,7 @@ Two populations coexist — always say which one a number counts.
 | `Detected` | Beat 3's `first_seen` against the survey row's `started`: how long after the first refusal the problem opened. State it in minutes, from those two values, never estimated |
 | The exception, verbatim | Beat 3 — `exception_type` and `message` |
 | The role and the policy | Beat 4 — `role_arn`, `policy_name`, `document` |
-| What changed it | Beat 5 — `commit`, `git_url` and the gap to the first denial |
+| `Changed` | Beat 5 — `commit`, `git_url` and `change_before_problem_min`. Its own row, never folded into `Cause` |
 | What to change | Beat 6 — the agent's own recommendation, when the note carries one |
 
 ---
@@ -348,14 +348,16 @@ fetch events, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
           | fields pid = event.id, display_id],
     sourceField: pid, lookupField: pid, fields: { display_id }
 | filter isNotNull(display_id)
-| fieldsAdd d = toString(event.description), has_summary = not contains(event.name, "summary not available")
+| fieldsAdd d = toString(event.description),
+    has_summary = not contains(aws_devopsagent.response_type, "unavailable")
 | fieldsAdd h = indexOf(d, "#### ")
-| fieldsAdd kind = if(contains(event.name, "Mitigation"), "Mitigation Recommendations", else: "Investigation Results")
+| fieldsAdd kind = if(contains(aws_devopsagent.response_type, "mitigation"), "Mitigation Recommendations", else: "Investigation Results")
 | summarize notes = count(), on_problems = countDistinct(display_id), last_at = max(timestamp),
+    task_id = takeFirst(aws_devopsagent.task_id), agent_space = takeFirst(aws_devopsagent.agent_space_arn),
     summary = takeFirst(if(has_summary and h >= 0, substring(d, from: h + 5, to: h + 505), else: "")),
     by: { kind, has_summary }
 | sort has_summary desc, kind asc
-| fields kind, has_summary, notes, on_problems, last_at, summary,
+| fields kind, has_summary, notes, on_problems, last_at, task_id, agent_space, summary,
     queried_at = now(), elapsed_min = round(toDouble(now() - toTimestamp("{{SURVEY_AT}}")) / 60000000000, decimals: 0)
 ```
 
@@ -371,9 +373,16 @@ a ticket or a coding agent with the evidence attached.
 - **`has_summary` is true** — quote `summary` as the agent's own words, attributed to it, and say plainly it
   is a recommendation for the owning team to review, not a change anyone has made. If it names a deploy, a
   repository or a time, those are the agent's findings from AWS, not Dynatrace's: attribute them that way.
-- **`has_summary` is false** — the notes are on the record but their summary is not readable from here; say
-  exactly that, say how many there are and when, and point at the AWS DevOps Agent task as where the findings
-  are. Never infer what the note said from beats 3, 4 and 5.
+- **`has_summary` is false** — the agent finished, but the summary never reached Dynatrace. The event says so
+  itself in `aws_devopsagent.response_type` (`investigation_summary_unavailable` /
+  `mitigation_summary_unavailable`) and its description is a placeholder, so there is no wording to quote and
+  no other field holds it. Say exactly that, say how many notes there are and when, and **name the task**:
+  `task_id` in the agent space `agent_space` is where the findings are. A task id the user can paste is worth
+  more than "open the task in the AWS DevOps Agent space". Never infer what the note said from beats 3, 4 and 5.
+
+  This is an upstream integration fault on the tenant, not a gap in the scenario: readable and unavailable
+  notes alternate in runs of days (`docs/scenarios/lambda-iam-denied.md`). Never apologise for it or explain
+  the integration to the user — report what the record holds and hand over the task.
 - **No rows at all** — nothing has been written on this record yet. On a problem that is still open that is
   what it sounds like: the agent is triggered by the problem and takes minutes, so early in an incident there
   is nothing to read. Say that, and say the beats before this one already name the root cause and the

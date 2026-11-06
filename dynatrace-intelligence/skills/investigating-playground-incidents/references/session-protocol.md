@@ -368,7 +368,8 @@ When:           [started] to [ended, or "still open"], [duration] (UTC)
 Detected:       problem opened [N] minutes after the first failed request
 Impact:         [count] [the population's own label], [cost]
 Rate:           [the beat 3 metric: failure rate, p50 latency], [before] to [peak], back to [after]
-Cause:          [what the evidence shows], commit [short SHA, 7 characters], shipped by [owner]
+Cause:          [what the evidence shows, in the data's own terms]
+Changed:        [the commit, deploy or edit that landed before it, with the gap — what it contained is not in the data]
 Goes to:        [owning team, or the host and host group] — they act, we supply the evidence
 Evidence:
   Problem:            [problem link]
@@ -385,6 +386,9 @@ Still open:     [what the data does not show]
 - `Impact` is the problem record's count with its label; add the beat 5 population, with its own label, once that
   beat's query has run. Say it as "[T] sessions, [M] of them with no country recorded", never "plus [M]".
 - The cost is the survey row's `revenue_usd`, only where the row has it.
+- **`Cause` is what the data shows broke; `Changed` is what landed before it.** Keep them apart: a
+  commit on the Cause row reads as the cause, and what a commit contains is never in the telemetry.
+  `Changed` carries the identifier and the gap, and is left out when no change was found.
 - `Detected` needs a precise first-failure timestamp, so it is filled only where a scenario's Handoff
   fields table names its source (an exception's `first_seen` against the survey row's `started`). Where
   the earliest signal is a five-minute bucket the row is left out rather than rounded into a claim.

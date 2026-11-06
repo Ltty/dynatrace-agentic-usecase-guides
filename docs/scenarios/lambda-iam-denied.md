@@ -75,27 +75,38 @@ Measured on 2026-11-03, window 15:51–16:59 UTC:
 
 ## Two known limits
 
-### 1. The AWS DevOps Agent summary has been unreadable since 2026-10-27
+### 1. The AWS DevOps Agent summary is intermittently unreadable — corrected 2026-11-06
 
-Every note since then is named `… (summary not available)` with a body that says the summary could not
-be read and to open the task in the AWS DevOps Agent space. Readable notes ran from 2026-10-06 to
-**2026-10-26** (32 investigation + 32 mitigation). Beat 5 is written to handle both and does not
-degrade silently.
+**An earlier note here said readable summaries stopped on 2026-10-26. That was wrong.** They alternate.
+Counted over 40 days on this tenant, every AWS DevOps Agent note belongs to this scenario's problem, and
+they split 76 readable to 30 unavailable:
 
-The last readable mitigation note, 2026-10-26T16:12:09Z, is the scenario's own ground truth:
+| Dates | State | Fires at |
+|---|---|---|
+| 2026-10-02 → 10-26 | readable | 15:12, then 16:12 after the DST change |
+| 2026-10-27 → 11-04 | **unavailable**, nine consecutive days | 16:12 |
+| 2026-11-05 | readable again | 09:03 |
 
-> **Action** — Manually correct the IAM inline policy 'image-provider-live-dynamodb-read-only' on role
-> 'image-provider-live' to remove the trailing /* from the DynamoDB resource ARN, restoring Lambda
-> function access to perform dynamodb:GetItem operations on table 'image-provider-live-products'.
->
-> **Reasoning** — At 2026-04-22T15:01:27Z, a GitHub Actions Terraform deployment from the
-> Dynatrace/opentelemetry-demo-gitops repository re-introduced a broken IAM policy configuration…
+**It is not a query gap and not a version change.** `aws_devopsagent.version` is `3` throughout. The event
+states the fault itself: `aws_devopsagent.response_type` is `investigation_summary_unavailable` or
+`mitigation_summary_unavailable`, `event.description` is a placeholder saying the summary could not be
+read, and `event.description.truncated` is `false`. No field carries the text. The integration failed to
+retrieve the summary from the agent task; the task itself still exists and the event names it:
 
-Its investigation note additionally measured 17,416 AccessDeniedException errors in the window against
-zero in the baseline. **None of this may be said by the agent while the live note carries no summary** —
-it is recorded here so a maintainer knows what the beat looks like when the integration is healthy.
+```text
+aws_devopsagent.task_id         20c92076-c12d-45ce-99e4-f9d062152996
+aws_devopsagent.agent_space_arn arn:aws:aidevops:us-east-1:246186168471:agentspace/892b5027-…
+```
 
-Worth chasing on the AWS side. Until it is fixed, beat 5 is thinner than the golden demo's version.
+**For a demo this matters**, because the agent's recommendation is the scenario's payoff. Two consequences:
+
+- Beat 6 detects the state from `response_type`, not by string-matching the event name, and surfaces
+  `task_id` so the viewer can open the right task rather than hunting for it.
+- The scenario cannot choose a readable occurrence: the survey picks the newest non-duplicate problem, and
+  which notes it carries is upstream luck. A run on 2026-11-04 got the last day of the bad streak.
+
+**Worth chasing on the AWS side**: why summary retrieval fails for runs of consecutive days. The readable
+note on 2026-11-05 at 09:03 suggests it recovers, and that its schedule moved.
 
 ### 2. The broken policy is never visible in Smartscape — settled 2026-11-04
 

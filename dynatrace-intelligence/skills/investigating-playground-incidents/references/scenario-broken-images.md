@@ -48,7 +48,7 @@ Three populations coexist — always say which one a number counts.
 |---|---|
 | `owning_team` | Survey row (beat 1 shows it); deploy `owner` is null on these GitHub Actions events |
 | `Goes to` | `owning_team` |
-| `commit`, `git_url` | Beat 2 — The Deploy (parsed from `event.description` in DQL) |
+| `Changed` (`commit`, `git_url`) | Beat 2 — The Deploy (parsed from `event.description` in DQL). Its own handoff row, never folded into `Cause` |
 | Affected users (problem record) | survey row `affected_users` |
 | Real-user sessions with a slow image load (>1 s) | Beat 5 — sum of `sessions` across all countries |
 | Per-country sessions | Beat 5 — individual rows |

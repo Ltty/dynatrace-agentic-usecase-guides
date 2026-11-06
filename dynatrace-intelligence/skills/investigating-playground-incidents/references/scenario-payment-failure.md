@@ -52,7 +52,7 @@ which one a number counts.
 | `Detected` | Beat 4's exception `first_seen` against the survey row's `started`: how long after the first failed request the problem opened |
 | `owning_team` | Survey row (beat 1 shows it); who to page first |
 | `Goes to` | `owning_team` |
-| `commit`, `git_url`, `owner` | Beat 2 — The Change; `owner` is who shipped it. If it differs from `owning_team`, list both and say which is which |
+| `Changed` (`commit`, `git_url`, `owner`) | Beat 2 — The Change; `owner` is who shipped it. If it differs from `owning_team`, list both and say which is which. Its own handoff row, never folded into `Cause` |
 | Affected users (problem record) | survey row `affected_users` |
 | Sessions with server errors (5xx) | Beat 5 — sum of `sessions` across all countries |
 | Per-country sessions | Beat 5 — individual rows |
