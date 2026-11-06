@@ -15,13 +15,13 @@ turns:
     reply_excludes:
     - take you through
     reply_excludes_quoted:
-    - walk you through it step by step
+    - should I walk you through it
 - ask: payment
   expect:
     no_dql: true
     reply_contains:
-    - pick what we look at
-    - walk you through it step by step
+    - investigate this hands-on
+    - should I walk you through it
     reply_excludes:
     - Which should we take first
 - ask: yes
@@ -32,4 +32,4 @@ turns:
     reply_excludes:
     - Which one
     reply_excludes_quoted:
-    - pick what we look at
+    - investigate this hands-on

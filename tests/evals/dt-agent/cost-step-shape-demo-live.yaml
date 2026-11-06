@@ -22,7 +22,7 @@ turns:
     - whole tour
     - CTO
     reply_excludes_quoted:
-    - pick what we look at
+    - investigate this hands-on
 - ask: '20%'
   expect:
     requires_dql: true

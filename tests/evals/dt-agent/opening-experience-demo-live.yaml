@@ -6,7 +6,9 @@ description: >-
   DRAFT: the opening is the one turn where the user has least footing, so each bullet leads on what a
   person using the product met, then carries a route naming what the investigation is about. The
   failure to catch is a bullet written from the component's side ("the image provider was erroring"),
-  which means nothing to a viewer who does not know the architecture.
+  which means nothing to a viewer who does not know the architecture. It also recommends nothing: which
+  incident to investigate is the user's to choose, and a dollar figure makes one easier to size, not more
+  worth taking.
 turns:
 - ask: What's wrong right now?
   expect:
@@ -23,6 +25,10 @@ turns:
     - resource limits
     - shipped into
     reply_excludes:
+    - I'd take
+    - I'd start
+    - I would start
+    - most attractive
     - lambda-iam-denied
     - k8s-cpu-throttling
     - payment-failure

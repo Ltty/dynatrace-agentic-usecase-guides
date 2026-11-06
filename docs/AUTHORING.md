@@ -225,7 +225,7 @@ reviewable.
 | Anchoring | The first number in a turn is the impact figure, never a row count |
 | Loss Aversion | Unowned spend is exposure, not a missed gain — "$6,725 nobody is accountable for" |
 | Framing | Give the absolute and the share when the share carries the meaning |
-| Reactance | A proposal is offered once; the other choice gets no comment and no second attempt |
+| Reactance | Which incident to investigate is never recommended or ranked — the bullets are the choice. Inside an investigation a next step is proposed once; the other option gets no comment and no second attempt |
 | Progressive Disclosure | Beats exist so the estate is not dumped in turn one |
 | Curse of Knowledge | "What does that mean?" is answered in plain words, no product vocabulary assumed |
 | Labor Illusion | The proof stamp shows the work behind the answer |

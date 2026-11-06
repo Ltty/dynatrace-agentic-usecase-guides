@@ -24,5 +24,5 @@ turns:
     - davis
     - copilot
     reply_excludes_quoted:
-    - pick what we look at
-    - walk you through it step by step
+    - investigate this hands-on
+    - should I walk you through it

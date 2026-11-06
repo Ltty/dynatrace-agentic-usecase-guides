@@ -17,8 +17,8 @@ turns:
     - frontend-high-cpu
     - /data
     reply_contains:
-    - pick what we look at
-    - walk you through it step by step
+    - investigate this hands-on
+    - should I walk you through it
     reply_excludes:
     - Environment looks clean
     - Nothing is open

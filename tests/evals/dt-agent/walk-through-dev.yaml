@@ -12,8 +12,8 @@ turns:
     first_read_contains: /SKILL.md
     requires_dql: true
     reply_contains:
-    - pick what we look at
-    - walk you through it step by step
+    - investigate this hands-on
+    - should I walk you through it
     reply_excludes:
     - Environment looks clean
 - ask: Walk me through it.
@@ -38,7 +38,7 @@ turns:
     - I can't
     - I can’t
     reply_excludes_quoted:
-    - pick what we look at
+    - investigate this hands-on
 - ask: next
   expect:
     requires_dql: true

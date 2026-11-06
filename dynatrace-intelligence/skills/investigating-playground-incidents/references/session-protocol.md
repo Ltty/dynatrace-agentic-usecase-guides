@@ -204,38 +204,42 @@ The survey query's rows are the findings. Then:
    images" is a claim about what people experienced, which no returned field holds. The replay is what
    shows that, and only a beat that opens it can say so. Keep the whole bullet to a sentence and that clause.
 
-   **Join the route as a clause, and never open two of them the same way.** Three bullets that each
-   begin "We'd look at …" turn a differentiator back into a template — the thing the route exists to
-   fix. Attach it with a dash or a comma, or vary the lead where a sentence reads better.
+   **The route is a clause on the bullet's own sentence, never a sentence of its own.** Attach it with
+   a dash or a comma — "…over 39 minutes, and it ended about a day ago — a cloud permission, and
+   whatever the AWS DevOps Agent made of it." Given its own sentence it grows an identical stem on
+   every bullet ("We'd look at …", "This one is about …"), which turns the differentiator back into
+   the template it exists to replace. A clause cannot do that, because it has no stem.
 3. **The cloud direction is named here only if the greeting never ran** — when the user's first
    message was itself a survey trigger ("what's wrong?"), they have not been offered it yet, so add
    one line after the bullets, with a blank line before it: "Or something else: we could go after the
    cloud bill instead." No figures — the bill's numbers belong to the cost track, not to this list.
    When the greeting already offered it, say nothing: repeating it two turns running is clutter, and
    the user has already heard the choice once.
-4. With more than one incident, one line saying which you would take and why, from the row: an
-   incident whose `status` is `ACTIVE` goes first, because something is still happening.
+4. **Recommend nothing.** Which incident to investigate is the user's to choose, and the bullets are
+   what they choose from. Never add a line saying which you would take, and never rank them —
+   not by user count, not by the one with a cost figure, not by which is still open. A dollar figure
+   makes an incident easier to size, not more worth investigating, and steering by it quietly picks
+   the demo for them.
 
-   **The proposal is a recommendation, not a filter.** Every scenario that returned a row keeps its
-   bullet and stays in the question by name, closed or not. A resolved incident is still a real
-   investigation — the evidence is all still there — so it is never dropped, never folded into "and
-   others", and never described as finished business. If the user takes the one you did not propose,
-   that gets no comment and no second attempt.
+   Every scenario that returned a row keeps its bullet and stays in the question by name, closed or
+   not. A resolved incident is still a real investigation — the evidence is all still there — so it is
+   never dropped, never folded into "and others", and never described as finished business. Say only
+   whether anything is still open, as a fact about the environment, and leave the choice alone.
 5. End on exactly one question, and nothing after it, naming every option that was listed:
-   - **One option only:** its mode question, exactly: "Do you want to pick what we look at as we go, or should I walk you through it step by step?"
+   - **One option only:** its mode question, exactly: "Do you want to investigate this hands-on — you decide what we look at and I pull it — or should I walk you through it?"
    - **Several options:** exactly: "Which should we take first — [A], [B] or [the cloud bill]?"
      Each option is named the way its own bullet named it — the service, in plain words — never by
      its scenario id. `payment-failure` and `broken-images` are internal names: the user may type
      one, you never say one. Once the user has picked, reply "[A] it is." and that scenario's mode
      question. Run no query for that reply. A showcase has no mode question: picking it starts its first
      step (SKILL.md → "Classify the opening, then read").
-6. Read the answer to the mode question. Picking as we go, "hands-on", "explore", "dig in", "I'll
-   steer": `delivery` is `explore`, and beat 1 starts at once, with no menu of angles before it. Being
+6. Read the answer to the mode question. Hands-on, "I'll drive", "let me", "explore", "dig in":
+   `delivery` is `explore`, and beat 1 starts at once, with no menu of angles before it. Being
    walked through, "you drive", "step by step", or an unspecific yes ("yes", "ok", "sure", "go ahead"):
    `delivery` is `walk-through`; read `references/walk-through.md` and take beat 1 as its first step.
    Both deliveries walk every beat — the difference is whether anything is offered at the end of a
    turn, so neither answer is the short one. An answer that decides neither ("both?", "what's the
-   difference?") gets six words: "You pick as we go, or me?"
+   difference?") gets six words: "You investigate, or I walk you through?"
 7. Never ask a question the user's message already answered. Naming an angle (traces, the deployment, the
    affected users) is a direct start (`explore`); "walk me through…" or "brief me on…" is a walk-through.
    Neither gets the survey's questions. Naming only an incident, a service or a scenario id is a pick, not
