@@ -137,6 +137,22 @@ specified: *"This view is a snapshot of the role as it is now, so a grant that w
 hour and then restored would not appear here"*, with the match framed as evidence — *"The configuration
 that is running now is not the one that was running at 16:02"* — and the inference labelled.
 
+## Second pass: runs that audit themselves
+
+Three runs were given the scenario and told to self-drive to the close, then to report a critical audit
+of their own transcript. Self-driven, so the user side is not independent — but the audits found things
+a watched run did not, because the agent can see its own whole transcript at once.
+
+| # | Finding | Outcome |
+|---|---|---|
+| 11 | **The status line rule was stated twice, in two scopes.** `SKILL.md` said "exactly one status line before the first query"; `conversation-craft.md` says "before the step's query". A run wrote one on turn 1 and none on turns 2–5, following the first and failing the second. Third instance today of one rule with two homes | **Fixed.** One before *every* turn's query, never more than one, in both places |
+| 12 | **The close said "in 0 minutes".** A walk-through pulls every query at once, so `elapsed_min` is legitimately 0 — and the report header then printed "0 minutes" beside a 14-minute incident | **Fixed.** Under a minute is said as "under a minute" |
+| 13 | **A label promised what it does not open.** `"The agent's analysis on the problem"` linked this session's record while the notes sat on a sibling record in the cluster, with no caveat in `Still open` | **Fixed.** Relabelled, and the beat must now say which record carries the notes |
+| 14 | **The hook was restated as an observation** — "shoppers saw it as missing images". The hook's plain-language framing is scenario knowledge and may be said; what people *experienced* is not in any field | **Fixed.** Guard added beside the hook rules; the replay is what shows that |
+
+Both runs also hit a schema rejection from the payload example I had corrected minutes earlier — they
+had read the stale version. No action: the example and the schema now agree.
+
 ## Still owed
 
 - The rest of the matrix: two more runs of each scenario in each mode.

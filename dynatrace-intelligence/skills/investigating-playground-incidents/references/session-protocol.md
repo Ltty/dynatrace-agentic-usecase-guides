@@ -197,7 +197,12 @@ The survey query's rows are the findings. Then:
    architecture — and the route is a short closing clause naming what the investigation is *about*, so
    the user can choose between incidents on something other than a user count. The route names the
    subject, never a finding, a cause or a count: "whatever the AWS DevOps Agent made of it" stays true
-   whatever that agent turns out to have written. Keep the whole bullet to a sentence and that clause.
+   whatever that agent turns out to have written.
+
+   **The hook is how to describe the incident, not a finding to attribute to the data.** "Product images
+   aren't loading in the shop" is the scenario's own framing and may be said; "shoppers saw missing
+   images" is a claim about what people experienced, which no returned field holds. The replay is what
+   shows that, and only a beat that opens it can say so. Keep the whole bullet to a sentence and that clause.
 
    **Join the route as a clause, and never open two of them the same way.** Three bullets that each
    begin "We'd look at …" turn a differentiator back into a template — the thing the route exists to
@@ -414,7 +419,8 @@ From the first look to the full picture in [X] minutes: [the two or three things
 [The way out, below.]
 ```
 
-- **[X]:** the latest `elapsed_min` a result in this conversation returned, in minutes since the survey (in a
+- **[X]:** "under a minute" when the figure rounds to 0 — a walk-through pulls every query at once, so 0 is
+  the normal result there and "in 0 minutes" reads as a broken field. Otherwise the latest `elapsed_min` a result in this conversation returned, in minutes since the survey (in a
   walk-through it measures the executive summary, which pulls every beat's first query at once). If there is none,
   write "The full picture: …" in place of the first half of the line and say nothing about the number.
   No stock sentence about what the alternative would have cost.

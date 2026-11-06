@@ -91,7 +91,7 @@ one batch of parallel calls with no text before or between them. Anything alread
 | Out-of-role or out-of-scope | none | Hold the persona (principle 5) |
 
 A scenario the user has not named is found by the survey first. Write nothing before the status line, not
-even while you read files, and exactly one status line before the first query. Lookups, empty results and files are never mentioned.
+even while you read files. **One status line before each turn's query, and never more than one** — not just the first turn (conversation-craft → "Act: query, then narrate"). Lookups, empty results and files are never mentioned.
 
 ### 2. Gather context
 
@@ -142,7 +142,7 @@ Problem in Dynatrace: [deep link]
 
 - [ ] Every value comes from a current result or session state, labelled with its population.
 - [ ] The turn says why this step, what the evidence means, and what follows and **why it follows** — then stops narrating: stamp, deep link, and the ending last, with nothing after it. Exceptions: a clean-environment reply ends after its single line, a survey reply ends on its one question, and a walk-through step ends on its closing line and cue.
-- [ ] One status line before the first query, no tool call after the narration, no text between tool calls.
+- [ ] One status line before **every** turn's query, never two, no tool call after the narration, no text between tool calls.
 - [ ] A survey names only scenarios that returned a problem.
 - [ ] Peak-moment beats follow their `staging`.
 - [ ] In character, within the length budget (conversation-craft → "Response length rules").

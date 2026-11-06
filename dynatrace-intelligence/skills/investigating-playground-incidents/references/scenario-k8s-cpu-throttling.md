@@ -332,7 +332,11 @@ fetch events, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 ```
 
 The agent writes onto several records of the same cluster of problems, which is why `on_problems` can exceed
-one and why the lookup matches on the namespace rather than on `{{PROBLEM_ID}}` alone. The note's own section
+one and why the lookup matches on the namespace rather than on `{{PROBLEM_ID}}` alone.
+
+**Say which record the notes are on.** `problems` names them; when none of them is the record this session has
+been working, say so rather than implying the notes are on it — the link opens our record, not necessarily the
+annotated one — and put that in `Still open`. A label is a promise about what opens. The note's own section
 headings are `## Root Cause`, `## What Was Checked (No Issues Found)` and `## Solution`; each extract is the
 start of that section, so the text may run into the next heading — quote only as far as the sentence ends.
 
@@ -366,7 +370,7 @@ attributed, with a human deciding whether to apply it.
 
 **Success signal:** User asks what limit to set, or how to size the rest of the cluster.
 
-**Deep link** (label "The agent's analysis on the problem"):
+**Deep link** (label "The problem record the notes sit on"):
 
 ```text
 https://{{LINK_HOST}}/ui/apps/dynatrace.davis.problems/problem/{{PROBLEM_ID}}?from={{TF_FROM_MS}}&to={{TF_TO_MS}}
