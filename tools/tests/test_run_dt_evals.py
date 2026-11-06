@@ -19,8 +19,8 @@ sys.modules["run_dt_evals"] = ev
 spec.loader.exec_module(ev)
 
 CLEAN = "Environment looks clean — nothing I'd page on right now."
-SKILL = "/resources/documents/skills/investigating-playground-incidents/SKILL.md"
-REFS = "/resources/documents/skills/investigating-playground-incidents/references/"
+SKILL = "/resources/documents/skills/investigating-demo-incidents/SKILL.md"
+REFS = "/resources/documents/skills/investigating-demo-incidents/references/"
 
 
 def call(name, **args):

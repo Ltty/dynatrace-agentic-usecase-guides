@@ -3,7 +3,7 @@
 A scenario is two markdown files in the skill, plus a row in its registry table. No engine code changes:
 the same skill runs in Dynatrace (`@demo-agent`) and locally (`/demo`), so one scenario serves both.
 
-All paths below are under `dynatrace-intelligence/skills/investigating-playground-incidents/`.
+All paths below are under `dynatrace-intelligence/skills/investigating-demo-incidents/`.
 
 ## The contract
 
@@ -241,11 +241,12 @@ verdicts.
 
 ## Showcase scenarios
 
-A showcase shows a capability instead of resolving an incident (`scenario-cloud-observability.md` is the example). It
+A showcase shows a capability instead of resolving an incident, and lives in its own skill:
+`touring-cloud-observability/references/scenario-cloud-observability.md` is the example. It
 uses the same file layout, beats, reveals, deep links and data-only rule, with these differences:
 
-- **No survey branch.** The user asks for it; the survey never finds or names it. Add the opening phrases to SKILL.md's
-  opening table instead.
+- **No survey branch.** The user asks for it; the survey never finds or names it. Add the opening phrases to the showcase skill's
+  `SKILL.md` workflow table, and a pointer row to the incidents `SKILL.md`, instead.
 - **Tracks, when a showcase has more than one story in it.** A `## Tracks` section maps each arc to its beats
   and what it closes on, so entering in the middle walks one arc forward rather than backwards through another.
   The session close fires when the track's beats have all run, in whatever order they ran.

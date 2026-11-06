@@ -11,6 +11,7 @@ turns:
   expect:
     reads_include:
     - scenario-cloud-observability.md
+    - touring-cloud-observability/SKILL.md
     requires_dql: true
     reply_contains:
     - $

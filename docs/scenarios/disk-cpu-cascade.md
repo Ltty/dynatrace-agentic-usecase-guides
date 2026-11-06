@@ -1,7 +1,7 @@
 # disk-cpu-cascade — maintainer notes
 
 Not read by the agent (it lives outside the skill folder). The scenario is in
-`dynatrace-intelligence/skills/investigating-playground-incidents/references/scenario-disk-cpu-cascade*.md`.
+`dynatrace-intelligence/skills/investigating-demo-incidents/references/scenario-disk-cpu-cascade*.md`.
 
 ## Where it runs
 

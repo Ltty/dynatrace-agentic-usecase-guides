@@ -27,7 +27,7 @@ def load(name):
 la = load("local_agent")
 ev = load("run_dt_evals")
 
-SKILL = "/resources/documents/skills/investigating-playground-incidents/SKILL.md"
+SKILL = "/resources/documents/skills/investigating-demo-incidents/SKILL.md"
 ENVELOPE = {"ok": True, "result": {"records": [{"a": 1}]},
             "metadata": {"queryId": "q-123", "scannedRecords": 5, "executionTimeMilliseconds": 3}}
 
@@ -60,7 +60,7 @@ def test_read_document_serves_the_skill_and_nothing_else():
     body, is_error = la.read_document(SKILL)
     assert not is_error and body.startswith("---") and "\r" not in body
     for bad in ("/etc/passwd", "/resources/documents/skills/../../../README.md",
-                "/resources/documents/skills/investigating-playground-incidents/references/nope.md"):
+                "/resources/documents/skills/investigating-demo-incidents/references/nope.md"):
         assert la.read_document(bad)[1], bad
 
 

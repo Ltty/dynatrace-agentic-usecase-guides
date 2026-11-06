@@ -4,15 +4,17 @@ Interactive, CLI-driven incident investigations on the Dynatrace Playground. The
 Playground data as if responding to a production incident — guided, but explorative — or is walked through
 the incident as a report.
 
-## One skill, two runtimes
+## Two skills, one agent, two runtimes
 
-The demo is one skill and one agent prompt, run in two places:
+The demo is two skills and one agent prompt, run in two places:
 
 - **Dynatrace** — `@demo-agent` in Dynatrace Assist. Tool: `execute-dql`.
 - **Locally** — `/demo` in Claude Code or OpenCode. Tool: `dtctl query`.
 
-Both read `dynatrace-intelligence/skills/investigating-playground-incidents/` (the skill, with its
-`references/`) and `dynatrace-intelligence/agents/demo-agent/instructions.md` (the agent prompt).
+Both read `dynatrace-intelligence/skills/investigating-demo-incidents/` (the incidents, with its
+`references/`), `dynatrace-intelligence/skills/touring-cloud-observability/` (the cloud tour, which reads the
+incidents skill's conversation rules rather than repeating them) and
+`dynatrace-intelligence/agents/demo-agent/instructions.md` (the agent prompt).
 `skills/local-runtime/SKILL.md` is the only local-only piece: it maps `read_file` to a local Read and
 `execute-dql` to `dtctl query` on whichever context is current, and holds no behaviour rules. A rule change goes
 in the skill once and both runtimes get it.
@@ -133,10 +135,9 @@ Adding a scenario: `docs/AUTHORING.md`.
   each of those problems fires at least once a day, so a live occurrence is almost always available
   (`disk-cpu-cascade` is one long-running problem on the dev tenant). If nothing is
   found, the agent says the environment is clean and stops.
-- `cloud-observability` is a **showcase**, not an incident, and lives on `demo-live` only. The opening
-  offers it with a live figure from the bill, from a probe appended to the opening query. That probe
-  runs only where the environment lists the showcase: on playground it would take the opening from
-  50 MB scanned to 3.77 GB for a row that cannot exist there. Cloud spend is in scope in that
+- `cloud-observability` is a **showcase**, not an incident, and lives on `demo-live` only, as its own skill. The opening names it without figures; the probe that
+  finds the bill runs when the cost track starts, and only where the environment lists the showcase:
+  on playground it would cost 3.77 GB scanned for a row that cannot exist there. Cloud spend is in scope in that
   scenario; Dynatrace's own pricing is not. Each contributor sets the context up themselves
   (`docs/scenarios/cloud-observability.md`).
 - The **report** (`tools/render_report.py`) is local-only: the Dynatrace runtime cannot write files.

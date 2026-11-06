@@ -1,7 +1,7 @@
 ---
 name: local-runtime
 description: >
-  Runs the Dynatrace demo-agent and its skill investigating-playground-incidents locally in
+  Runs the Dynatrace demo-agent and its skills (investigating-demo-incidents, touring-cloud-observability) locally in
   Claude Code or OpenCode, with dtctl in place of the Dynatrace runtime's tools. Use when running
   /demo locally. Holds only the tool and path mapping; every behaviour rule lives in the Dynatrace
   skill and agent instructions.

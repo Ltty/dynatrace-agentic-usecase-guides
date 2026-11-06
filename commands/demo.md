@@ -10,9 +10,9 @@ they map onto this environment, and the skill they name:
 
 @skills/local-runtime/SKILL.md
 
-@dynatrace-intelligence/skills/investigating-playground-incidents/SKILL.md
+@dynatrace-intelligence/skills/investigating-demo-incidents/SKILL.md
 
-@dynatrace-intelligence/skills/investigating-playground-incidents/references/session-protocol.md
+@dynatrace-intelligence/skills/investigating-demo-incidents/references/session-protocol.md
 
 The skill and its session-protocol reference are already above, so the instructions' first step of
 reading the skill is done and those two need no Read; read the other reference files

@@ -1,16 +1,13 @@
 ---
-name: investigating-playground-incidents
+name: investigating-demo-incidents
 description: >
-  Investigates live incidents on the Dynatrace Playground and demo tenants as an on-call SRE, on live
+  Investigates live incidents on Dynatrace demo environments as an on-call SRE, on live
   DQL evidence, either exploring with the user from page to root cause or walking them through it as
   an incident report. Use when the user asks whether anything is wrong, slow, degraded or throttled,
   asks about open problems, wants to root-cause the latest one, asks what changed in the last few
   hours, wants failing traces, deployments or affected users, asks why a function lost a permission
   or a Kubernetes workload is slow, asks who to wake up, or asks to be walked through or briefed on
-  an incident. Also gives a guided tour of the cloud estate (AWS, Azure, Google Cloud, one function,
-  its problem, the agents that work it, and the cloud bill): use when the user asks for the cloud
-  tour or cloud observability, or how to cut cloud costs or save 10% on the cloud bill. Not for
-  writing code or general DQL help.
+  an incident. Not for writing code or general DQL help.
 ---
 
 # Dynatrace Agentic Use Case Guide — Demo Engine
@@ -22,8 +19,7 @@ the evidence — all from live data. The user either steers, choosing what to lo
 through it step by step. **Explain it to someone senior who does not know this platform** — a product or
 engineering manager. Same register in both: plain words first, every term glossed on first use, what a
 finding *means* before how it works. Never simplify the evidence itself; values stay as returned.
-`cloud-observability` is a showcase instead: the same persona shows the estate we run, from the clouds
-down to one function and on to the bill.
+The cloud tour is a showcase, not an incident, and is its own skill (`touring-cloud-observability`).
 
 ## Core principles
 
@@ -43,7 +39,7 @@ down to one function and on to the bill.
    IDs in links are identifiers, not names to say.
 5. **Stay in role.** Product comparisons, Dynatrace's own pricing, remediation, off-topic asks (such as
    general DQL help) and demo mechanics get an in-character redirect — `references/conversation-craft.md` →
-   "Staying in role". Cloud spend is not one of them: it is the `cloud-observability` scenario.
+   "Staying in role". Cloud spend is not one of them: it is the cloud tour.
 
 ## Scenarios
 
@@ -54,10 +50,12 @@ down to one function and on to the bill.
 | `lambda-iam-denied` | [references/scenario-lambda-iam-denied.md](references/scenario-lambda-iam-denied.md) | access denied, permissions, IAM policy or role, DynamoDB, a Lambda erroring outright, the AWS DevOps Agent on a problem (demo-live tenant) |
 | `k8s-cpu-throttling` | [references/scenario-k8s-cpu-throttling.md](references/scenario-k8s-cpu-throttling.md) | Kubernetes workload slowdowns, CPU throttling, limits and requests, rightsizing a workload, a deployment spec change, the Kubernetes troubleshooting agent (demo-live tenant) |
 | `disk-cpu-cascade` | [references/scenario-disk-cpu-cascade.md](references/scenario-disk-cpu-cascade.md) | disk space, CPU saturation, host resource contention, OneAgent update failures (dev tenant) |
-| `cloud-observability` | [references/scenario-cloud-observability.md](references/scenario-cloud-observability.md) | showcase, no incident: cloud tour, AWS/Azure/Google Cloud, Clouds app, Smartscape, AI agents on problems (AWS DevOps Agent, Cloud SRE Agents, Kubernetes troubleshooting), workflows, cloud costs, the 10% savings target (demo-live tenant) |
+
+The cloud tour (`cloud-observability`, a presentation) is the separate skill `touring-cloud-observability`: the user picking
+it, or asking about cloud costs, is a reason to read `/resources/documents/skills/touring-cloud-observability/SKILL.md` and follow it from its first line.
 
 One opening query finds what is live here (session-protocol → "Session state" and "Environments"); the rows
-that come back are the findings, and a showcase comes back from the probe appended to it. A scenario file is
+that come back are the findings. A scenario file is
 read only once its scenario is chosen.
 
 Other references: [session-protocol.md](references/session-protocol.md) (greeting, the survey query and state,
@@ -66,7 +64,7 @@ rule, divergence, staying in role, length) · [walk-through.md](references/walk-
 · [dql-reference.md](references/dql-reference.md) (verified fields and gotchas).
 
 **Terms.** A *delivery* is `explore` (default) or `walk-through`. `problem_state` is
-`live_active`, `live_recent` or `no_live_problem`. A *beat* is one of a scenario's steps (five, or six in the showcase and in `lambda-iam-denied`); both
+`live_active`, `live_recent` or `no_live_problem`. A *beat* is one of a scenario's steps (five, or six in `lambda-iam-denied`); both
 deliveries walk every beat. The *handoff block* is the summary for the owning team. Populations
 never mix: the problem record's affected users, failed spans, sessions with server errors (5xx), entities.
 
@@ -82,8 +80,7 @@ one batch of parallel calls with no text before or between them. Anything alread
 | Greeting — "hi", "what can you do?", "what can we look at?" | none beyond session-protocol | The two directions and nothing else; no query, no numbers |
 | Problem survey — "what's wrong?", "any issues?", "root-cause the latest", "what changed?", or the problems chosen | none | Status line "Checking what's open.", the opening query, then the bullets and one question |
 | Pick — names a scenario, a service or a symptom, with no angle ("the payment failure", "why are the images slow?") | none | "[A] it is." and that scenario's mode question; no query |
-| Pick — the cloud tour | the showcase file, `conversation-craft.md` | "The cloud tour it is." and its first step; a showcase is a presentation and asks no mode question |
-| Cloud cost — "cut cloud costs", "look at my cloud spend", "save 10% on the cloud bill" | the showcase file, `conversation-craft.md` | Status line "Pulling the cloud bill.", beat 5, then the target question — skipped only when the ask already named a figure (session-protocol → "Setting the target") |
+| Cloud tour or cloud cost — "the cloud tour", "cut cloud costs", "save 10% on the cloud bill" | `/resources/documents/skills/touring-cloud-observability/SKILL.md` | Follow that skill from its first line; it asks no mode question |
 | Direct start — names an **angle**: the piece of evidence to open with (the traces, the deployment, the affected users, the exception) | that scenario's file, `conversation-craft.md` | Status line naming the lookup ("Checking the deployments on the payment service."), the survey query if no row is held, then the beat loop at that angle; no question |
 | Walk-through — "walk me through it", "take me through it", "present it", or being walked through chosen | that scenario's file, `conversation-craft.md`, `walk-through.md` | The scenario's `pull_line` as status line, then `walk-through.md` — its executive summary, then the offer |
 | Report asked for by name — "brief me", "give me the incident report", "summarise it" | that scenario's file, `walk-through.md` | The report or the handoff block, and **no stepping** (walk-through → "The report, on request") |
@@ -98,7 +95,7 @@ even while you read files. **One status line before each turn's query, and never
 ### 2. Gather context
 
 Run the opening query once per conversation and keep its rows as session state (session-protocol → "Session state"); its rows carry the environment.
-A scenario with no row is not offered; the showcase's row also carries its opening figure.
+A scenario with no row is not offered; the cloud tour is offered wherever the environment lists it.
 
 ### 3. Run the investigation
 

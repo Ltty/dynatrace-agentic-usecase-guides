@@ -8,8 +8,8 @@ This file is procedure.
 
 | Piece | Where | What it is |
 |---|---|---|
-| The skill | `dynatrace-intelligence/skills/investigating-playground-incidents/` | `SKILL.md` plus a flat `references/` folder. Six scenarios (payment failure, two image-service incidents, a Kubernetes slowdown, the dev-tenant disk and CPU problem, and the cloud showcase); incidents run as an exploration or a guided walk, the showcase as a presentation. Source of truth. |
-| The agent | `dynatrace-intelligence/agents/demo-agent/` | A `deep-agent` template (`template.json`, `instructions.md`) that mounts the skill and may only call `execute-dql`. |
+| The skills | `dynatrace-intelligence/skills/investigating-demo-incidents/` and `touring-cloud-observability/` | Each is a `SKILL.md` plus a flat `references/` folder. The incidents skill holds five scenarios (payment failure, two image-service incidents, a Kubernetes slowdown, the dev-tenant disk and CPU problem), run as an exploration or a guided walk, and the conversation rules both skills share. The tour skill holds the cloud showcase, a presentation, and reads the incidents skill's rules by path instead of repeating them. Source of truth. |
+| The agent | `dynatrace-intelligence/agents/demo-agent/` | A `deep-agent` template (`template.json`, `instructions.md`) that mounts both skills and may only call `execute-dql`. |
 | The helper | `tools/dt_agent.py` | `check`, `pack`, `docs`, `status`, `render`, `template`, `invoke`. Every write is a dry run unless you pass `--apply`. |
 | The validator | `tools/validate_dt_skill.py` | Runs every DQL block of a scenario live, on that scenario's tenant, named by `--environment`. |
 
@@ -25,7 +25,7 @@ These are the app format's rules. `python tools/dt_agent.py check` enforces them
 - Sample DQL goes in fenced `dql` blocks.
 - Only maintainer notes belong outside the skill folder. Anything inside it is read by the agent and can be repeated to users, so keep rationale like "why 48 hours" in `dynatrace-intelligence/README.md`.
 
-**Names.** The skill is `investigating-playground-incidents`: descriptive, and not tied to one agent. The agent is `demo-agent` because that is what people type after `@`. Renaming the skill means changing the folder, the frontmatter `name` and the mount filter in `template.json`.
+**Names.** The skill is `investigating-demo-incidents`: descriptive, and not tied to one agent. The agent is `demo-agent` because that is what people type after `@`. Renaming the skill means changing the folder, the frontmatter `name` and the mount filter in `template.json`.
 
 ## Tokens and tenants
 
@@ -45,7 +45,7 @@ These are the app format's rules. `python tools/dt_agent.py check` enforces them
 
 ## Change the skill
 
-1. Edit files under `dynatrace-intelligence/skills/investigating-playground-incidents/`.
+1. Edit files under `dynatrace-intelligence/skills/investigating-demo-incidents/`.
 2. `python tools/dt_agent.py check`
 3. `python tools/validate_dt_skill.py --scenario <id> --environment <env>` for all six (live, each on its own tenant; `--environment` is required where a scenario exists on more than one).
 4. `python tools/dt_agent.py --tenant <dev-url> docs` shows `+` create, `~` update, `=` unchanged, and `?` documents only on the tenant (never deleted).
@@ -76,7 +76,7 @@ These are the app format's rules. `python tools/dt_agent.py check` enforces them
 
   ```text
   HTTP 403: Ready-made documents are immutable and cannot be modified or deleted:
-  dynatrace.use.case.guides.investigating-playground-incidents-sessio-ab70d36d
+  dynatrace.use.case.guides.investigating-demo-incidents-sessio-ab70d36d
   ```
 
   Those three are the entry point, the survey query and the walk, so a partial upload is worse than none:
@@ -171,13 +171,13 @@ The Playground token needs `ai:operator:execute`, `mcp-gateway:servers:read` and
 - **Manual groups:** `docs/dt-skill-evals.md` and `docs/guardrail-probes.md` stay the source for cases that are not automated yet (persistence, deep links).
 - **Dev has one scenario.** The payment and image branches of the survey query hardcode Playground service IDs, so on dev they return nothing and only `disk-cpu-cascade` is live there. The `*-dev` eval cases run on it; the rest of the scenario content is tested on the Playground.
 
-## One skill, two runtimes
+## Two skills, two runtimes
 
-The Dynatrace agent (`@demo-agent`) and the local `/demo` run the same skill and the same agent instructions. Nothing is maintained twice: a DQL gotcha, a scenario change or a conversation rule is edited once, under `dynatrace-intelligence/`, and both runtimes get it.
+The Dynatrace agent (`@demo-agent`) and the local `/demo` run the same skills and the same agent instructions. Nothing is maintained twice: a DQL gotcha, a scenario change or a conversation rule is edited once, under `dynatrace-intelligence/`, and both runtimes get it.
 
 | Part | Where | Used by |
 |---|---|---|
-| The skill and its `references/` | `dynatrace-intelligence/skills/investigating-playground-incidents/` | both |
+| The skills and their `references/` | `dynatrace-intelligence/skills/investigating-demo-incidents/`, `touring-cloud-observability/` | both |
 | The agent prompt | `dynatrace-intelligence/agents/demo-agent/instructions.md` | both |
 | Tool and path mapping (`read_file`, `execute-dql`) | `skills/local-runtime/SKILL.md` | local only |
 | Entry points | `commands/demo.md` (copied to `.claude/commands/`), `commands/demo-doctor.md` | local only |

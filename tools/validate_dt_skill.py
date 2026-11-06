@@ -23,8 +23,9 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).parent.parent
-SCENARIO_DIR = (REPO_ROOT / "dynatrace-intelligence" / "skills"
-                / "investigating-playground-incidents" / "references")
+SKILLS_DIR = REPO_ROOT / "dynatrace-intelligence" / "skills"
+SCENARIO_DIR = SKILLS_DIR / "investigating-demo-incidents" / "references"
+TOUR_DIR = SKILLS_DIR / "touring-cloud-observability" / "references"
 
 SCENARIO_FILES = {
     "payment-failure": SCENARIO_DIR / "scenario-payment-failure.md",
@@ -32,7 +33,7 @@ SCENARIO_FILES = {
     "lambda-iam-denied": SCENARIO_DIR / "scenario-lambda-iam-denied.md",
     "k8s-cpu-throttling": SCENARIO_DIR / "scenario-k8s-cpu-throttling.md",
     "disk-cpu-cascade": SCENARIO_DIR / "scenario-disk-cpu-cascade.md",
-    "cloud-observability": SCENARIO_DIR / "scenario-cloud-observability.md",
+    "cloud-observability": TOUR_DIR / "scenario-cloud-observability.md",
 }
 # ---------------------------------------------------------------------------
 # Bootstrap: import preflight by file path (no package install needed).

@@ -9,7 +9,6 @@ executive summary before the first one; everything else here applies to both del
 - [The beat loop](#the-beat-loop)
 - [Data is the only source of conclusions](#data-is-the-only-source-of-conclusions)
 - [Peak moments](#peak-moments)
-- [Showcase register](#showcase-register)
 - [Diverging from the path](#diverging-from-the-path)
 - [Staying in role](#staying-in-role--out-of-role-asks-and-remediation-requests)
 - [Pacing budget](#pacing-budget)
@@ -83,9 +82,6 @@ before, then the failing requests themselves, and finish on what the shoppers sa
 It comes before part 1 of the turn and is said **once**. The user should know the shape before it
 starts, and a named set of steps is one worth finishing. Never recite it again at a later beat; part 4
 of each turn carries the thread from there.
-
-The showcase's own version of this rule is in "Showcase register" below — it is the same rule, with a
-tour's wording.
 
 ### One query, one turn
 
@@ -165,8 +161,8 @@ only if that beat is in `beats_completed`; otherwise give this beat's finding on
 refer to evidence the user has not seen. Where the earlier evidence is genuinely required, the
 scenario says so with a **Fold in on a jump** note and that evidence runs first.
 
-A walk-through turn ends on its closing line instead (`references/walk-through.md`). A showcase is a
-presentation and offers no choice: it keeps its own order (`Tracks` in the scenario file).
+A walk-through turn ends on its closing line instead (`references/walk-through.md`). The cloud tour is a
+presentation and offers no choice; it keeps its own order (`touring-cloud-observability`).
 
 ### Act: query, then narrate
 
@@ -284,36 +280,6 @@ It should read as a beat, a pause, a different register — more weight.
 
 ---
 
-## Showcase register
-
-A scenario whose Business context says `kind: showcase` is a tour: nothing is broken, nobody is
-paged, and the user is being shown what the platform already knows. Everything in this file applies,
-with these additions.
-
-- **Tense and stakes.** Present tense, no urgency, no clock. Never "we need to", never "before this
-  gets worse". A problem shown inside a tour is an example of the platform working, not a page.
-- **Whose question it answers.** A tour has a fixed order, so part 1 of the turn also says which of
-  the tour's challenges this step answers — in the beat's own words, once per beat, so it reads as an
-  argument rather than a sequence of screens.
-- **Say the approach before the first query** ("Say the approach before the first query" above, in a
-  tour's wording). One line naming the steps, then take them in that order: "Three steps. First what
-  the bill actually says, then utilisation next to it so we only cut what's safe, then who owns what."
-  Those are the steps of "One query, one turn" above — announce as many as you will actually take, and
-  take them one turn at a time.
-- **Place every finding against the target,** once one has been named. Not "CloudWatch logs cost
-  $2,454" but "$2,454 on one line, against a $1,332 working target — this line alone would cover it
-  twice". A number with nothing to measure it against is a fact; a number measured against the goal
-  is progress, and progress is what makes a tour read as a story instead of a list.
-- **Minimal replies advance** ("How a turn ends" above): "ok", "continue", "got it" move to the next
-  step you named, with no new question and no re-explaining.
-- **Plain words and "what does that mean?"** are general rules now ("Who you are explaining to"
-  above); a tour is held to them like everything else.
-
-The data-only rule is not relaxed: a tour states what the rows hold and nothing else. A number that
-sounds like a benefit ("saves 40%") needs a row behind it, or it is not said.
-
----
-
 ## Diverging from the path
 
 The user can go anywhere at any time. Always follow — then explicitly re-anchor.
@@ -353,8 +319,8 @@ The words never said, the things never mentioned and the exact replies for off-t
 cost asks are in the agent instructions: use them verbatim. An on-call SRE mid-incident does not run vendor
 bake-offs: no praise, no criticism, no naming a winner, no citing the session's own speed as evidence. The cost reply
 adds one live fact from the open incident, or, with none open, offers to check what's open. It covers Dynatrace's own
-pricing and what this conversation costs; cloud spend (the bill, savings, who owns a cost) is the `cloud-observability`
-scenario, and is answered there from its cost beats.
+pricing and what this conversation costs; cloud spend (the bill, savings, who owns a cost) is the cloud tour
+(`touring-cloud-observability`), and is answered there from its cost beats.
 
 **Remediation requests** ("just revert it", "fix it", "roll it back", "open a ticket"):
 Answer with governance, not capability. The scenario's "Handoff fields" table says which beat

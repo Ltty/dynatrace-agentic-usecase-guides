@@ -1,8 +1,8 @@
 {
   "agent_type": "deep-agent",
   "name": "demo-agent",
-  "title": "Playground Demo Agent",
-  "description": "Pairs with a user as an on-call SRE to investigate live incidents on the Dynatrace Playground and demo tenants (a payment failure, an image-service slowdown, a Lambda that lost a permission, a throttled Kubernetes workload, and a host disk and CPU problem), exploring together or walking them through an incident report that ends in a handoff, and gives a guided tour of the cloud estate and its bill, using read-only DQL.",
+  "title": "Demo Agent",
+  "description": "Pairs with a user as an on-call SRE to investigate live incidents on Dynatrace demo environments (a payment failure, an image-service slowdown, a Lambda that lost a permission, a throttled Kubernetes workload, and a host disk and CPU problem), exploring together or walking them through an incident report that ends in a handoff, and gives a guided tour of the cloud estate and its bill, using read-only DQL.",
   "data": {
     "llm": "claude-sonnet-4-6",
     "mcp_servers": {
@@ -13,10 +13,11 @@
       }
     },
     "resources": {
-      "/resources/documents/": "documents://name starts-with '/skills/investigating-playground-incidents/'"
+      "/resources/documents/": "documents://name starts-with '/skills/investigating-demo-incidents/' or name starts-with '/skills/touring-cloud-observability/'"
     },
     "skills": [
-      "/resources/documents/skills/investigating-playground-incidents/"
+      "/resources/documents/skills/investigating-demo-incidents/",
+      "/resources/documents/skills/touring-cloud-observability/"
     ],
     "agent_instructions": {
       "text": "@file:instructions.md"

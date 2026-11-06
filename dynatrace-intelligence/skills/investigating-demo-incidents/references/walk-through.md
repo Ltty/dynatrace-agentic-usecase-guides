@@ -1,8 +1,7 @@
 # Walk-Through
 
 How to run a scenario as a guided walk: you are the SRE taking someone through an incident while they
-watch. **Incidents only** — a showcase is always a presentation and never reaches this file
-(session-protocol → "Showcase"). They are not making decisions here; they want the answer, and then to be
+watch. **Incidents only** — the cloud tour is always a presentation and never reaches this file. They are not making decisions here; they want the answer, and then to be
 shown how it was reached. The audience and the register are the same as in explore
 (conversation-craft → "Who you are explaining to").
 

@@ -134,7 +134,7 @@ does not need beat 3's problem: beat 4 finds its own.
 ## Handoff fields
 
 There is no incident to hand off. The handoff is the **cost action list** that beat 6 ends with; beat 6 is that block
-(session-protocol → "Handoff block": a beat that is itself the handoff summary).
+(the incidents skill's session-protocol → "Handoff block": a beat that is itself the handoff summary).
 
 | Value | Source |
 |---|---|

@@ -140,12 +140,18 @@ def check_template(template_path: Path = AGENT_DIR / "template.json",
     if not data.get("mcp_servers"):
         errors.append("an mcp server is required, or the agent has no tools and cannot run DQL")
     skills = [d.name for d in skill_dirs()]
-    mounted = [s for s in skills
-               if data.get("resources", {}).get("/resources/documents/")
-               == f"documents://name starts-with '/skills/{s}/'"]
-    if not mounted:
-        errors.append("data.resources must mount /resources/documents/ with the filter "
-                      "documents://name starts-with '/skills/<skill>/' for an existing skill")
+    mount = data.get("resources", {}).get("/resources/documents/", "")
+    prefixes = re.findall(r"starts-with '(/skills/[^']+/)'", mount)
+    mounted = [s for s in skills if f"/skills/{s}/" in prefixes]
+    for skill in skills:
+        if skill not in mounted:
+            errors.append(f"data.resources must mount /resources/documents/ with a filter naming "
+                          f"starts-with '/skills/{skill}/', or the agent cannot read that skill")
+        if f"/resources/documents/skills/{skill}/" not in data.get("skills", []):
+            errors.append(f"data.skills must list /resources/documents/skills/{skill}/")
+    for prefix in prefixes:
+        if prefix.split("/")[2] not in skills:
+            errors.append(f"data.resources mounts {prefix}, which is not a skill in this repo")
     for entry in data.get("skills", []):
         if entry not in [f"/resources/documents/skills/{s}/" for s in skills]:
             errors.append(f"data.skills entry {entry} is not a mounted skill directory")

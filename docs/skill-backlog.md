@@ -1,6 +1,6 @@
 # Skill backlog
 
-Changes to `dynatrace-intelligence/skills/investigating-playground-incidents/` and the demo-agent.
+Changes to `dynatrace-intelligence/skills/investigating-demo-incidents/` and the demo-agent.
 Workflow: `.claude/skills/maintaining-dynatrace-skill/SKILL.md`.
 
 ## Done in the repo, 2026-10-08 (not uploaded yet; dev tenant upload and evals pending approval)

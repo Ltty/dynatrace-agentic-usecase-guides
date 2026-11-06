@@ -1,6 +1,6 @@
 # Dynatrace Agentic Use Case Guide — Skill Edition
 
-The single source of the SRE-persona incident investigation: one skill and one agent prompt, run both
+The single source of the SRE-persona incident investigation: two skills and one agent prompt, run both
 inside Dynatrace (`@demo-agent`) and locally (`/demo` in Claude Code or OpenCode, through
 [`skills/local-runtime`](../skills/local-runtime/SKILL.md)). Same live Playground data, same beat structure.
 
@@ -24,25 +24,30 @@ too; the history is in git and `docs/comparative-analysis.md`.
 ```text
 dynatrace-intelligence/
 └── skills/
-    └── investigating-playground-incidents/   — folder name must equal the frontmatter `name`
-        ├── SKILL.md                          — entry point, principles, scenario registry, workflow, checklist
-        └── references/                       — flat: no subfolders, unique names, linked as references/<name>.md
-            ├── session-protocol.md           — greeting, the survey query + session state, survey, handoff block, close
-            ├── conversation-craft.md         — beat loop, data-only rule, divergence, staying in role, pacing rules
-            ├── walk-through.md               — the guided walk: executive summary, then the steps
-            ├── dql-reference.md              — verified field names, gotchas, chained queries
-            ├── scenario-payment-failure.md   — business context, scope, handoff fields, the 5 beats with DQL, reveals, staging, deep links
-            ├── scenario-broken-images.md     — same shape, for the image-provider slowdown
-            ├── scenario-lambda-iam-denied.md  — same shape, for the Lambda refused its DynamoDB permission
-            ├── scenario-k8s-cpu-throttling.md — same shape, for the workload tuned below its own demand
-            ├── scenario-disk-cpu-cascade.md  — same shape, for the dev-tenant disk and CPU problem
-            └── scenario-cloud-observability.md — the showcase: the cloud estate and the bill, presentation only
+    ├── investigating-demo-incidents/   — folder name must equal the frontmatter `name`
+    │   ├── SKILL.md                          — entry point and router: principles, scenario registry, workflow, checklist
+    │   └── references/                       — flat: no subfolders, unique names, linked as references/<name>.md
+    │       ├── session-protocol.md           — greeting, the survey query + session state, survey, handoff block, close
+    │       ├── conversation-craft.md         — beat loop, data-only rule, divergence, staying in role, pacing rules
+    │       ├── walk-through.md               — the guided walk: executive summary, then the steps
+    │       ├── dql-reference.md              — verified field names, gotchas, chained queries
+    │       ├── scenario-payment-failure.md   — business context, scope, handoff fields, the 5 beats with DQL, reveals, staging, deep links
+    │       ├── scenario-broken-images.md     — same shape, for the image-provider slowdown
+    │       ├── scenario-lambda-iam-denied.md  — same shape, for the Lambda refused its DynamoDB permission
+    │       ├── scenario-k8s-cpu-throttling.md — same shape, for the workload tuned below its own demand
+    │       └── scenario-disk-cpu-cascade.md  — same shape, for the dev-tenant disk and CPU problem
+    └── touring-cloud-observability/    — the showcase; reads the incidents skill's conversation rules by path
+        ├── SKILL.md                          — its own triggers, what to read first, workflow, checklist
+        └── references/
+            ├── scenario-cloud-observability.md — the cloud estate and the bill, presentation only
+            ├── tour-protocol.md              — the probe, setting the target, delivery, the tour's close
+            └── tour-register.md              — how a tour sounds: tense, stakes, findings against the target
 ```
 
 Every scenario runs in two deliveries: the user explores with the SRE as a peer (default), or the SRE
 reports the incident to them as to a manager and ends with a handoff block. The survey offers the second
 once, after the entry angles. `walk-through.md` holds its rules; SKILL.md, session-protocol and the agent
-instructions only route to it. Incidents only: a showcase is a presentation and never reaches it. Scenarios author no walk-through content,
+instructions only route to it. Incidents only: the cloud tour is a presentation and never reaches it. Scenarios author no walk-through content,
 but they supply a `symptom`, a `Goes to` row, and a `pull_line` where they can be walked through, and the handoff block draws on their Handoff fields table, so a scenario with no
 owner or no user count must say so there.
 

@@ -17,7 +17,7 @@ sys.modules["score_transcript"] = st
 spec.loader.exec_module(st)
 ev = st.load_runner()
 
-SKILL = "C:\\repo\\dynatrace-intelligence\\skills\\investigating-playground-incidents\\SKILL.md"
+SKILL = "C:\\repo\\dynatrace-intelligence\\skills\\investigating-demo-incidents\\SKILL.md"
 
 
 def assistant(*blocks):
@@ -53,7 +53,7 @@ def test_turns_split_on_each_handback_and_events_map():
     turns = st.to_turns(transcript())
     assert len(turns) == 2
     s = ev.summarize(turns[0])
-    assert s["reads"] == ["/resources/documents/skills/investigating-playground-incidents/SKILL.md"]
+    assert s["reads"] == ["/resources/documents/skills/investigating-demo-incidents/SKILL.md"]
     assert s["dql_calls"] == 1, "a dtctl query counts once; other Bash commands do not"
     assert s["reply"] == "One open problem: P-1." and s["ends_on_text"]
     assert ev.summarize(turns[1])["dql_calls"] == 0
@@ -71,11 +71,11 @@ def test_a_missing_turn_and_a_forbidden_phrase_fail():
 
 
 def test_shell_reads_of_skill_files_count_as_reads():
-    cmd = ("cd C:/repo/dynatrace-intelligence/skills/investigating-playground-incidents/references && "
+    cmd = ("cd C:/repo/dynatrace-intelligence/skills/investigating-demo-incidents/references && "
            "cat session-protocol.md scenario-payment-failure.md")
     rows = [assistant(use("Bash", command=cmd)), assistant(handback("ok"))]
     s = ev.summarize(st.to_turns(rows)[0])
-    base = "/resources/documents/skills/investigating-playground-incidents/references/"
+    base = "/resources/documents/skills/investigating-demo-incidents/references/"
     assert s["reads"] == [base + "session-protocol.md", base + "scenario-payment-failure.md"]
     assert st.shell_reads("ls dynatrace-intelligence/skills/x/") == []
     assert st.shell_reads("cat README.md") == []

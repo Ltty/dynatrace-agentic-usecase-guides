@@ -16,7 +16,7 @@ data — what the bill says, where it concentrates, what is safe to touch, and w
 
 Locally, the session close also renders an HTML report you can open and forward.
 
-It is the same agent as `@demo-agent` in Dynatrace Assist: one skill and one prompt under
+It is the same agent as `@demo-agent` in Dynatrace Assist: two skills and one prompt under
 [dynatrace-intelligence/](dynatrace-intelligence/), run locally through `dtctl`.
 
 ## Quickstart

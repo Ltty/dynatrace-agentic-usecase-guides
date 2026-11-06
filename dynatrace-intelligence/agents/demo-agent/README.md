@@ -1,8 +1,9 @@
 # demo-agent
 
-A Dynatrace `deep-agent` that runs the skill `investigating-playground-incidents` (payment failure, two
-image-service incidents, a Kubernetes slowdown, a dev-tenant disk problem and the cloud showcase) as an on-call SRE on the Dynatrace Playground, exploring with
-the user or walking them through an incident report.
+A Dynatrace `deep-agent` that pairs with a user as an on-call SRE on whatever demo environment it runs on,
+exploring with them or walking them through an incident report. It runs two skills:
+`investigating-demo-incidents` (payment failure, two image-service incidents, a Kubernetes slowdown, a Lambda
+permission failure and a host disk problem) and `touring-cloud-observability` (the cloud tour).
 
 | File | Purpose |
 |---|---|

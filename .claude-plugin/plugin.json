@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "description": "Interactive Dynatrace troubleshooting demos via guided CLI sessions on the Dynatrace Playground.",
   "skills": [
-    "./dynatrace-intelligence/skills/investigating-playground-incidents",
+    "./dynatrace-intelligence/skills/investigating-demo-incidents",
+    "./dynatrace-intelligence/skills/touring-cloud-observability",
     "./skills/local-runtime"
   ],
   "commands": [

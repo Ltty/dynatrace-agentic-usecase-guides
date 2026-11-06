@@ -15,7 +15,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SESSION_PROTOCOL = (REPO_ROOT / "dynatrace-intelligence" / "skills"
-                    / "investigating-playground-incidents" / "references" / "session-protocol.md")
+                    / "investigating-demo-incidents" / "references" / "session-protocol.md")
 
 
 def load(name):
