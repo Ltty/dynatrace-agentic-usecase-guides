@@ -32,6 +32,7 @@ import sys
 import urllib.error
 import urllib.parse
 import urllib.request
+import importlib.util
 import uuid
 from pathlib import Path
 
@@ -496,13 +497,35 @@ def cmd_invoke(tenant: Tenant, args: argparse.Namespace) -> int:
     return 0
 
 
+def token_var_for(tenant_url: str | None) -> str:
+    """The token variable for this tenant, from the one registry in tools/preflight.py.
+
+    The deploy used to pin DT_DEV_AGENT_TOKEN, so `--tenant <demo-live>` would send a dev token to
+    another tenant and fail on authentication rather than on configuration. The environments and
+    their token variables are already declared once, in preflight; this reads them rather than
+    keeping a second copy.
+    """
+    if not tenant_url:
+        return TOKEN_VAR
+    spec = importlib.util.spec_from_file_location("preflight", Path(__file__).parent / "preflight.py")
+    preflight = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(preflight)
+    host = tenant_url.rstrip("/")
+    for env, cfg in preflight.ENVIRONMENTS.items():
+        if cfg["url"].rstrip("/") == host:
+            return cfg["token_var"]
+    return TOKEN_VAR
+
+
 def main(argv: list[str]) -> int:
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--tenant", help="https://<id>.dev.apps.dynatracelabs.com (docs, status)")
-    parser.add_argument("--token-var", default=TOKEN_VAR,
-                        help=f"environment variable holding the token (default {TOKEN_VAR})")
+    parser.add_argument("--token-var", default=None,
+                        help="environment variable holding the token; by default it is chosen from "
+                             "--tenant through the registry in tools/preflight.py, falling back to "
+                             f"{TOKEN_VAR}")
     sub = parser.add_subparsers(dest="cmd", required=True)
     sub.add_parser("check", help="validate the skill against the app's rules (offline)")
     pack = sub.add_parser("pack", help="copy the checked skill into an app repo (offline)")
@@ -530,7 +553,7 @@ def main(argv: list[str]) -> int:
     if not args.tenant:
         parser.error(f"--tenant is required for {args.cmd}")
     online = {"docs": cmd_docs, "status": cmd_status, "template": cmd_template, "invoke": cmd_invoke}
-    return online[args.cmd](Tenant(args.tenant, args.token_var), args)
+    return online[args.cmd](Tenant(args.tenant, args.token_var or token_var_for(args.tenant)), args)
 
 
 if __name__ == "__main__":
