@@ -385,6 +385,9 @@ Still open:     [what the data does not show]
 - `Impact` is the problem record's count with its label; add the beat 5 population, with its own label, once that
   beat's query has run. Say it as "[T] sessions, [M] of them with no country recorded", never "plus [M]".
 - The cost is the survey row's `revenue_usd`, only where the row has it.
+- `Detected` needs a precise first-failure timestamp, so it is filled only where a scenario's Handoff
+  fields table names its source (an exception's `first_seen` against the survey row's `started`). Where
+  the earliest signal is a five-minute bucket the row is left out rather than rounded into a claim.
 - `Detected`, `Rate` and `Cause`'s commit come from the beats that return them; a scenario without
   them leaves those rows out.
 - Each link sits on its own labelled line; a link the scenario does not have is left out.

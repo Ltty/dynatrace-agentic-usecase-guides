@@ -56,6 +56,7 @@ Two populations coexist — always say which one a number counts.
 | `Goes to` | `owning_team`, with the function's own AWS owner tags beside it when beat 4 returns different ones |
 | Affected users (problem record) | survey row `affected_users` |
 | Failed requests on the Lambda | Beat 2 — `failed`, against `requests` |
+| `Detected` | Beat 3's `first_seen` against the survey row's `started`: how long after the first refusal the problem opened. State it in minutes, from those two values, never estimated |
 | The exception, verbatim | Beat 3 — `exception_type` and `message` |
 | The role and the policy | Beat 4 — `role_arn`, `policy_name`, `document` |
 | What changed it | Beat 5 — `commit`, `git_url` and the gap to the first denial |
