@@ -172,6 +172,9 @@
           }
         }
       }
+    },
+    "investigated_in": {
+      "type": "string"
     }
   }
 }

@@ -98,7 +98,7 @@ It prints the file it wrote.
 - **An incident's payload is the handoff block, row for row**: `display_id`, `headline` from "What
   happened", `incident.when` / `.detected` / `.impact` / `.rate` / `.cause` from their rows, `goes_to`,
   the labelled deep links as `evidence[]`, and `still_open`. Two more the handoff has no row for:
-  `window.duration` is **the incident's** duration, the handoff's `When:` row — it prints beside the problem ID, so the session's own elapsed figure there would read as the outage lasting two minutes. `stats[]` takes the figures the session actually
+  **`investigated_in`** is the session's own elapsed figure, the close's "[X] minutes" — it renders in the footer, labelled as the working-out time, and is the only place that figure belongs. `window.duration` is **the incident's** duration, the handoff's `When:` row — it prints beside the problem ID, so the session's own elapsed figure there would read as the outage lasting two minutes. `stats[]` takes the figures the session actually
   established — the problem record's affected users, the failure rate, the slowest percentile — each
   with the population label it carried in the conversation. Omit either when the session has no such
   number; never add one for the sake of a tile.
@@ -119,6 +119,7 @@ key the session has no source for; send no key you would have to invent:
   "title": "<what broke, in plain words>", "display_id": "P-…",
   "headline": "<the handoff's What happened>",
   "window": { "duration": "<how long the incident lasted, e.g. 31 minutes>" },
+  "investigated_in": "<the close's elapsed figure, e.g. 11 minutes>",
   "stats": [ { "label": "Affected users (problem record)", "value": "…" },
              { "label": "Failure rate at peak", "value": "…" } ],
   "incident": { "when": "…", "detected": "…", "impact": "…", "rate": "…", "cause": "…" },

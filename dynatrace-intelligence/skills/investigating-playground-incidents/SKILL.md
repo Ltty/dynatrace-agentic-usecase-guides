@@ -81,14 +81,16 @@ one batch of parallel calls with no text before or between them. Anything alread
 |---|---|---|
 | Greeting — "hi", "what can you do?", "what can we look at?" | none beyond session-protocol | The two directions and nothing else; no query, no numbers |
 | Problem survey — "what's wrong?", "any issues?", "root-cause the latest", "what changed?", or the problems chosen | none | Status line "Checking what's open.", the opening query, then the bullets and one question |
-| Pick — only a scenario's id or a service | none | "[A] it is." and that scenario's mode question; no query |
+| Pick — names a scenario, a service or a symptom, with no angle ("the payment failure", "why are the images slow?") | none | "[A] it is." and that scenario's mode question; no query |
 | Pick — the cloud tour | the showcase file, `conversation-craft.md` | "The cloud tour it is." and its first step; a showcase is a presentation and asks no mode question |
 | Cloud cost — "cut cloud costs", "look at my cloud spend", "save 10% on the cloud bill" | the showcase file, `conversation-craft.md` | Status line "Pulling the cloud bill.", beat 5, then the target question — skipped only when the ask already named a figure (session-protocol → "Setting the target") |
-| Direct start — names an angle (traces, deployment, affected users) | that scenario's file, `conversation-craft.md` | Status line naming the lookup ("Checking the deployments on the payment service."), the survey query if no row is held, then the beat loop at that angle; no question |
+| Direct start — names an **angle**: the piece of evidence to open with (the traces, the deployment, the affected users, the exception) | that scenario's file, `conversation-craft.md` | Status line naming the lookup ("Checking the deployments on the payment service."), the survey query if no row is held, then the beat loop at that angle; no question |
 | Walk-through — "walk me through it", "take me through it", "present it", or being walked through chosen | that scenario's file, `conversation-craft.md`, `walk-through.md` | The scenario's `pull_line` as status line, then `walk-through.md` — its executive summary, then the offer |
 | Report asked for by name — "brief me", "give me the incident report", "summarise it" | that scenario's file, `walk-through.md` | The report or the handoff block, and **no stepping** (walk-through → "The report, on request") |
 | Hands-on chosen after the mode question | that scenario's file, `conversation-craft.md` | One status line, then beat 1 |
 | Out-of-role or out-of-scope | none | Hold the persona (principle 5) |
+
+**Pick or direct start: the discriminator is whether an angle is named, not whether a question is asked.** "Why is EasyTrade slow?" asks for the whole investigation, so it is a pick and gets the mode question; asking *why* is not an angle, only a named piece of evidence is.
 
 A scenario the user has not named is found by the survey first. Write nothing before the status line, not
 even while you read files. **One status line before each turn's query, and never more than one** — not just the first turn (conversation-craft → "Act: query, then narrate"). Lookups, empty results and files are never mentioned.
@@ -107,12 +109,8 @@ count. Follow the beat loop in `references/conversation-craft.md`, or, in a walk
 
 If a query errors, or returns zero rows where the beat expects data:
 
-1. Check it against `references/dql-reference.md` — most failures are a known gotcha (`timestamp`
-   vs `start_time`, a missing `toUid()`, positional `round()`).
-2. Fix and rerun once.
-3. Still empty or erroring: say so as a finding in the data's terms ("no deployment landed in this
-   window", "the disk free-space series isn't in these results") — never as a permission, scope or
-   tool problem, never with "I can't", and never fill the gap from memory.
+1. Check it against `references/dql-reference.md` — most failures are a known gotcha (`timestamp` vs `start_time`, a missing `toUid()`, positional `round()`). Fix and rerun once.
+2. Still empty or erroring: say so as a finding in the data's terms ("no deployment landed in this window", "the disk free-space series isn't in these results") — never as a permission, scope or tool problem, never with "I can't", and never fill the gap from memory.
 
 ## Example
 
