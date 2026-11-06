@@ -21,6 +21,8 @@ jobs:
       - run: pip install -r requirements.txt
       - name: Skill and agent layout
         run: python tools/dt_agent.py check
+      - name: Agent template mounts every skill
+        run: python tools/tests/test_dt_agent.py
       - name: Read-only guard hook
         run: python tools/tests/test_guard_hook.py
       - name: Eval runner

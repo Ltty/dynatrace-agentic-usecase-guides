@@ -32,6 +32,14 @@ These are the app format's rules. `python tools/dt_agent.py check` enforces them
 - **Working tenant:** `https://fxz0998d.dev.apps.dynatracelabs.com`. The AI API base path is `/platform-reserved/ai/v0.1` (no `/platform` prefix). The Swagger UI rejects tokens, so it only opens in a browser session.
 - **Token:** a personal platform token in the `DT_DEV_AGENT_TOKEN` environment variable, set at user level (restart VS Code afterwards). The helper never prints or stores it. Give it a short expiry and delete it when you are done. Never put it in a repo file; `.claude/settings.local.json` is not git-ignored here.
 - **Scopes:** `ai:operator:execute`, `mcp-gateway:servers:read`, `mcp-gateway:servers:invoke`, `document:documents:read`, and the `storage:*:read` scopes the DQL needs (`events`, `spans`, `user.sessions`, `user.events`, `buckets`, and `metrics` for the disk scenario's `timeseries` beats). `document:documents:write` is only for uploading skill documents on dev. The storage scopes are inferred, not documented; a missing one shows up as a named DQL permission error.
+- **Mounting two skills (verified on dev, 2026-11-06).** One `resources` entry keyed `/resources/documents/` whose filter
+  names every skill prefix joined with `or`: `documents://name starts-with '/skills/a/' or name starts-with '/skills/b/'`,
+  with each skill listed in `data.skills`. An agent mounted that way read a sentinel from both. Do not copy the
+  `dt-tmp-sre-agent` pattern of one `resources` entry per skill, keyed by the skill's own path: the mount strips the key and
+  looks the remainder up as a document name, so `read_file` answers `File not found: /SKILL.md` for a document that
+  exists. `dt_agent.py check` requires every skill directory to be mounted and listed.
+- **The deploy token cannot delete documents.** `document:documents:write` creates and updates; removing a document
+  (a retired skill name, a test probe) needs `document:documents:delete` or the Documents app.
 - **demo-live (`guu84124`) takes documents, not agent templates.** A personal platform token in
   `DT_DEMO_LIVE_AGENT_TOKEN` uploads the skill: no app is installed there, so every document name is
   free and lands user-owned (`app=None`), editable, unlike dev's three ready-made ones. The agent
