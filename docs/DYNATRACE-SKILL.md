@@ -59,7 +59,23 @@ These are the app format's rules. `python tools/dt_agent.py check` enforces them
 
 ## Dev and production routes
 
-- **Dev (current):** `docs --apply` uploads shared (`isPrivate: false`) documents **owned by you**. They are not ready-made: owner is you, `originAppId` is empty, and you can edit and delete them.
+- **Dev (as of 2026-11-06): the document route is half closed.** `status` shows the tenant's eight documents
+  split in two: five still carry `app=None` and are editable (`conversation-craft`, `dql-reference`, and the
+  `broken-images`, `disk-cpu-cascade` and `payment-failure` scenarios, at v4–v11), while **`SKILL.md`,
+  `session-protocol.md` and `walk-through.md` are now ready-made resources of the
+  `dynatrace.use.case.guides` app, at v1, and immutable**:
+
+  ```text
+  HTTP 403: Ready-made documents are immutable and cannot be modified or deleted:
+  dynatrace.use.case.guides.investigating-playground-incidents-sessio-ab70d36d
+  ```
+
+  Those three are the entry point, the survey query and the walk, so a partial upload is worse than none:
+  new scenario files would land beside a `SKILL.md` that does not register them and a `session-protocol`
+  whose survey cannot find them. **Updating the skill on dev now means the app route below**, not
+  `docs --apply`.
+- **Dev, historically:** `docs --apply` uploaded shared (`isPrivate: false`) documents owned by you, with
+  `originAppId` empty, which you could edit and delete. The five `app=None` documents are the remains of that.
 - **Production (planned):** ship the skill in the `dynatrace.use.case.guides` app so the documents become ready-made (system-owned, read-only, available to all users on install or update, up to 5 minutes).
   - `python tools/dt_agent.py pack --out <app-repo>` checks the skill and copies it into `<app-repo>/dynatrace-intelligence/skills/`. It is a dry run by default, never deletes, and `--check` exits 1 if the app's copy drifted.
   - The guide says this feature is limited to Dynatrace-internal apps. Test on dev with `dt-app deploy --dry-run` first.
