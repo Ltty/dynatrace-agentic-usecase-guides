@@ -7,11 +7,10 @@ description: >-
   action and the table it was refused on, and names in plain words what kind of problem this is — a
   permission, not a fault. The forbidden list only holds claims that cannot be said innocently: the
   scenario's own reveal negates "broken, overloaded or unreachable", so those words are expected to
-  appear and are not asserted against.
+  appear and are not asserted against. Turn 1 carries no assertion: naming a symptom is a pick, and a
+  pick may answer with the mode question before any query.
 turns:
 - ask: Why are the product images failing?
-  expect:
-    requires_dql: true
 - ask: What do the failing requests actually return?
   expect:
     requires_dql: true
