@@ -33,21 +33,24 @@ What makes this scenario worth running is the lesson in it. Tuning a Kubernetes 
 
 **Data objects:** `dt.davis.problems`, `spans`, `timeseries` on `dt.kubernetes.container.*`, `events` (deployment spec changes, agent notes)
 
-**Stable IDs** (demo-live entities):
+**Stable IDs** (one row per environment; the beats filter on names, so no query uses these IDs):
 
 | Name | ID |
 |---|---|
-| `[eks-live][easytrade] TradeManagement` | `SERVICE-8491B5DDF5BDAB93` |
-| `[eks-live][easytrade] NotMiningBitcoin` | `SERVICE-DA275964FAFD97CA` |
-| EasyTrade (the application) | `APPLICATION-5DCD0C470BC8680A` |
-| easytrade-broker-service (the throttled workload) | `K8S_DEPLOYMENT-98DBB38AEB111C5B` |
+| `[eks-live][easytrade] TradeManagement`, `demo-live` | `SERVICE-8491B5DDF5BDAB93` |
+| `[eks-live][easytrade] NotMiningBitcoin`, `demo-live` | `SERVICE-DA275964FAFD97CA` |
+| EasyTrade (the application), `demo-live` | `APPLICATION-5DCD0C470BC8680A` |
+| easytrade-broker-service (the throttled workload), `demo-live` | `K8S_DEPLOYMENT-98DBB38AEB111C5B` |
+| `[eks-playground][easytrade] TradeManagement`, `playground` | `SERVICE-BE742741A316B7EE` |
+| `[eks-playground][easytrade] NotMiningBitcoin`, `playground` | `SERVICE-766A1FAD228EB11C` |
+| easytrade-broker-service (the throttled workload), `playground` | `K8S_DEPLOYMENT-6AD992C0EE5B466D` |
 | The container whose limit moves | `k8s.container.name == "broker-service"` |
 | The Kubernetes troubleshooting agent's notes | `events` where `annotation.source == "Dynatrace AI Workflow"` |
 
-**`{{ROOT_CAUSE_ID}}` rotates between the three entities above** — Dynatrace names whichever service or
-application the slowdown surfaced on, and it is not the same one every day. Never build a deep link on it: one of
-the three is an `APPLICATION`, and a service route will not open it. Beat 1 states it as returned and the
-scenario does not depend on which it is.
+**`{{ROOT_CAUSE_ID}}` rotates between the entities above** — Dynatrace names whichever service or
+application the slowdown surfaced on, and it is not the same one every day. Never build a deep link on it: on
+demo-live one of them is an `APPLICATION`, and a service route will not open it. Beat 1 states it as returned and
+the scenario does not depend on which it is.
 
 **The workload that changes is not the root cause entity.** The limit moves on `easytrade-broker-service`,
 while the problem is rooted on a service that got slow because of it. That gap is the scenario, not a mistake
@@ -63,7 +66,7 @@ Several populations coexist — always say which one a number counts.
 | Value | Source |
 |---|---|
 | `owning_team` | Survey row; these problems usually carry none, so say plainly there is no owner on record |
-| `Goes to` | `owning_team`, or the workload when there is none: `easytrade-broker-service` in the `easytrade` namespace on `eks-live` |
+| `Goes to` | `owning_team`, or the workload when there is none: `easytrade-broker-service` in the `easytrade` namespace, on the cluster beat 1 returns (`cluster`) |
 | Affected users (problem record) | survey row `affected_users` |
 | Slowest service and its p95 | Beat 2 |
 | Usage, limit and throttling | Beat 3, as three series over the same window |

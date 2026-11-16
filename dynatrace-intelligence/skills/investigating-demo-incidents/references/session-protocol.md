@@ -62,8 +62,8 @@ column is blank: a segment belongs to one tenant, and carrying another's opens t
 |---|---|---|---|
 | `payment-failure` | yes | | yes |
 | `broken-images` | yes | | |
-| `lambda-iam-denied` | | | yes |
-| `k8s-cpu-throttling` | | | yes |
+| `lambda-iam-denied` | yes | | yes |
+| `k8s-cpu-throttling` | yes | | yes |
 | `disk-cpu-cascade` | | yes | |
 | `cloud-observability` | | | yes |
 
@@ -97,11 +97,14 @@ fetch dt.davis.problems, from: now()-48h, to: now()
     else: if(root_cause_entity_id == "SERVICE-E9CB57C5D00C3626", "demo-live:payment-failure",
     else: if(root_cause_entity_id == "SERVICE-5A0CD2879D2F37BE", "playground:broken-images",
     else: if(root_cause_entity_id == "SERVICE-F4E5246FA8EA27D7", "demo-live:lambda-iam-denied",
+    else: if(root_cause_entity_id == "SERVICE-B9FBF32425820672", "playground:lambda-iam-denied",
     else: if(event.category == "SLOWDOWN" and in(root_cause_entity_id, "SERVICE-8491B5DDF5BDAB93",
         "SERVICE-DA275964FAFD97CA", "APPLICATION-5DCD0C470BC8680A"), "demo-live:k8s-cpu-throttling",
+    else: if(event.category == "SLOWDOWN" and in(root_cause_entity_id, "SERVICE-BE742741A316B7EE",
+        "SERVICE-766A1FAD228EB11C"), "playground:k8s-cpu-throttling",
     else: if(rc == "DISK-2B3DB86FA32F6CE1" or (dt.davis.is_duplicate == false
         and matchesPhrase(event.description, "/data") and matchesPhrase(event.description, "frontend-high-cpu")
-        and contains(toString(smartscape.affected_entities), "HOST-A2BABAD05D401471")), "dev:disk-cpu-cascade", else: null))))))
+        and contains(toString(smartscape.affected_entities), "HOST-A2BABAD05D401471")), "dev:disk-cpu-cascade", else: null))))))))
 | filter isNotNull(key)
 | fieldsAdd env = splitString(key, ":")[0], scenario = splitString(key, ":")[1]
 | fieldsAdd pref = if(dt.davis.is_duplicate == false and (scenario != "disk-cpu-cascade" or rc == "DISK-2B3DB86FA32F6CE1")

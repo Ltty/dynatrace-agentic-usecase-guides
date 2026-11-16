@@ -47,8 +47,8 @@ The cloud tour is a showcase, not an incident, and is its own skill (`touring-cl
 |---|---|---|
 | `payment-failure` | [references/scenario-payment-failure.md](references/scenario-payment-failure.md) | payment, checkout, transaction failures |
 | `broken-images` | [references/scenario-broken-images.md](references/scenario-broken-images.md) | slow or missing product images, image service, Lambda, slowdowns |
-| `lambda-iam-denied` | [references/scenario-lambda-iam-denied.md](references/scenario-lambda-iam-denied.md) | access denied, permissions, IAM policy or role, DynamoDB, a Lambda erroring outright, the AWS DevOps Agent on a problem (demo-live tenant) |
-| `k8s-cpu-throttling` | [references/scenario-k8s-cpu-throttling.md](references/scenario-k8s-cpu-throttling.md) | Kubernetes workload slowdowns, CPU throttling, limits and requests, rightsizing a workload, a deployment spec change, the Kubernetes troubleshooting agent (demo-live tenant) |
+| `lambda-iam-denied` | [references/scenario-lambda-iam-denied.md](references/scenario-lambda-iam-denied.md) | access denied, permissions, IAM policy or role, DynamoDB, a Lambda erroring outright, the AWS DevOps Agent on a problem |
+| `k8s-cpu-throttling` | [references/scenario-k8s-cpu-throttling.md](references/scenario-k8s-cpu-throttling.md) | Kubernetes workload slowdowns, CPU throttling, limits and requests, rightsizing a workload, a deployment spec change, the Kubernetes troubleshooting agent |
 | `disk-cpu-cascade` | [references/scenario-disk-cpu-cascade.md](references/scenario-disk-cpu-cascade.md) | disk space, CPU saturation, host resource contention, OneAgent update failures (dev tenant) |
 
 The cloud tour (`cloud-observability`, a presentation) is the separate skill `touring-cloud-observability`: the user picking
