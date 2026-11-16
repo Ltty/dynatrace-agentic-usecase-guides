@@ -111,7 +111,7 @@ def deep_links(md_path: Path) -> list[tuple[str, str]]:
     return [(m.group(1), m.group(2).strip()) for m in DEEP_LINK_RE.finditer(text)]
 
 
-ENV_ID_RE = re.compile(r"`([a-z-]+)` \| `([^`]+)` — resolves as `\{\{([A-Z_]+)\}\}`")
+ENV_ID_RE = re.compile(r"`([a-z-]+)`\s*\|\s*`([^`]+)` — resolves as `\{\{([A-Z_]+)\}\}`")
 
 
 def environment_ids(md_path: Path, environment: str | None = None) -> dict[str, str]:
