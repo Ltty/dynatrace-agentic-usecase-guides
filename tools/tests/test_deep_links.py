@@ -134,6 +134,42 @@ def test_every_showcase_opens_on_what_it_is():
             assert needed in body, (scenario, f"Opening is missing: {needed}")
 
 
+def queries_and_links(path):
+    """Every DQL block and every link in the file: beat links and the on-request "Other views"."""
+    links = re.findall(r"https://\{\{LINK_HOST\}\}[^\s`]+", path.read_text(encoding="utf-8"))
+    return v.extract_dql_blocks(path) + links
+
+
+TENANT_ID_RE = re.compile(r"\b[A-Z][A-Z_]*-[0-9A-F]{16}\b|\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b")
+
+
+def test_no_literal_tenant_id_in_queries_or_links():
+    """Entity IDs differ per tenant: a beat takes them from a Stable IDs row labelled with the environment."""
+    for scenario, path in v.SCENARIO_FILES.items():
+        for block in queries_and_links(path):
+            literal = TENANT_ID_RE.findall(block)
+            assert not literal, (scenario, literal)
+
+
+def test_tokens_are_upper_snake_without_digits():
+    """The validator and the agent read tokens as {{[A-Z_]+}}; a digit (K8S) leaves the token unfilled."""
+    for scenario, path in v.SCENARIO_FILES.items():
+        bad = [t for t in re.findall(r"\{\{([^}]*)\}\}", path.read_text(encoding="utf-8")) if not re.fullmatch(r"[A-Z_]+", t)]
+        assert not bad, (scenario, bad)
+
+
+def test_every_environment_id_token_has_a_row_per_environment():
+    for scenario, path in v.SCENARIO_FILES.items():
+        text = path.read_text(encoding="utf-8")
+        tokens = set(v.environment_ids(path))
+        for env in v.SCENARIO_ENVIRONMENTS.get(scenario, ()):
+            missing = tokens - set(v.environment_ids(path, env))
+            assert not missing, (scenario, env, missing)
+        used = "\n".join(queries_and_links(path))
+        for token in tokens:
+            assert "{{" + token + "}}" in used, (scenario, token, "declared but never used")
+
+
 def main() -> int:
     failed = 0
     for name, fn in sorted((n, f) for n, f in globals().items() if n.startswith("test_") and callable(f)):

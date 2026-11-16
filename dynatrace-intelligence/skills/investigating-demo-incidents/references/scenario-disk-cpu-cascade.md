@@ -39,8 +39,8 @@ No `avg_order_value_usd` is defined, and the problem record has no affected-user
 
 | Name | ID |
 |---|---|
-| Root cause disk entity | `DISK-2B3DB86FA32F6CE1` |
-| Affected host | `HOST-A2BABAD05D401471` |
+| Root cause disk entity, `dev` | `DISK-2B3DB86FA32F6CE1` — resolves as `{{DISK_ID}}` |
+| Affected host, `dev` | `HOST-A2BABAD05D401471` — resolves as `{{HOST_ID}}` |
 | Host name | `frontend-high-cpu` |
 | Host group | `cloud-alerts-demo` |
 | AWS region | `us-east-1` |
@@ -128,7 +128,7 @@ timeseries
     { free_pct = avg(dt.host.disk.free), avail_bytes = avg(dt.host.disk.avail) },
     by: { dt.entity.disk },
     from: "{{DQL_FROM}}", to: "{{DQL_TO}}",
-    filter: dt.entity.disk == "DISK-2B3DB86FA32F6CE1"
+    filter: dt.entity.disk == "{{DISK_ID}}"
 | fieldsAdd
     buckets      = arraySize(free_pct),
     free_pct_min = round(arrayMin(free_pct), decimals: 2),
@@ -152,7 +152,7 @@ to the disk is not in these metrics.
 **Deep link** (label "Host view"):
 
 ```text
-https://{{LINK_HOST}}/ui/apps/dynatrace.infraops/explorer?entityId=HOST-A2BABAD05D401471&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}
+https://{{LINK_HOST}}/ui/apps/dynatrace.infraops/explorer?entityId={{HOST_ID}}&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}
 ```
 
 ---
@@ -205,7 +205,7 @@ failure.
 **Deep link** (label "Host view"):
 
 ```text
-https://{{LINK_HOST}}/ui/apps/dynatrace.infraops/explorer?entityId=HOST-A2BABAD05D401471&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}
+https://{{LINK_HOST}}/ui/apps/dynatrace.infraops/explorer?entityId={{HOST_ID}}&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}
 ```
 
 ---
@@ -273,7 +273,7 @@ fix it.
 **Deep link** (label "Host view"):
 
 ```text
-https://{{LINK_HOST}}/ui/apps/dynatrace.infraops/explorer?entityId=HOST-A2BABAD05D401471&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}
+https://{{LINK_HOST}}/ui/apps/dynatrace.infraops/explorer?entityId={{HOST_ID}}&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}
 ```
 
 ---

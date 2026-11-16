@@ -32,13 +32,14 @@ The failure rate comes from the service deep dive (beat 3), never from the probl
 
 **Data objects:** `dt.davis.problems`, `spans`, `logs`, `events`, `user.sessions`, `entities`
 
-**Stable IDs** (Playground entities):
+**Stable IDs** (one row per environment where they differ):
 
 | Name | ID |
 |---|---|
 | astroshop-payment (root cause), `playground` | `SERVICE-531CE26849E95EC1` |
 | astroshop-payment (root cause), `demo-live` | `SERVICE-E9CB57C5D00C3626` |
-| astroshop-checkout (listed as affected) | `SERVICE-5ACC60E0079F8E6D` |
+| astroshop-checkout (listed as affected), `playground` | `SERVICE-5ACC60E0079F8E6D` — resolves as `{{CHECKOUT_SERVICE_ID}}` |
+| checkout (listed as affected), `demo-live` | `SERVICE-30DA0092F13B7A85` — resolves as `{{CHECKOUT_SERVICE_ID}}` |
 | Charge endpoint | `endpoint.name == "Charge"` |
 | Segment (problem deep link) | `Apy24Rcu0cO` |
 
@@ -119,7 +120,7 @@ it, and a concise read of the timing naming the commit and who it goes to.
 ```dql
 fetch events, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 | filter event.type == "CUSTOM_DEPLOYMENT"
-| filter in(dt.entity.service, "{{ROOT_CAUSE_ID}}", "SERVICE-5ACC60E0079F8E6D")
+| filter in(dt.entity.service, "{{ROOT_CAUSE_ID}}", "{{CHECKOUT_SERVICE_ID}}")
 | summarize
     first_deploy = min(timestamp),
     deploys      = count(),

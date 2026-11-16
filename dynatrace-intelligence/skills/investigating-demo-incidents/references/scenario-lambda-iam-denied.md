@@ -40,8 +40,8 @@ The root cause entity is the DynamoDB side of the call; the requests that fail r
 |---|---|
 | image-provider-live-products in us-east-1 (root cause, the DynamoDB side) | `SERVICE-F4E5246FA8EA27D7` — resolves as `{{ROOT_CAUSE_ID}}` |
 | image-provider-live in us-east-1 (the Lambda service, where the failing spans are), `demo-live` | `SERVICE-42411741F5F4AC50` — resolves as `{{LAMBDA_SERVICE_ID}}` |
-| image-provider-live (the function, Clouds app) | `AWS_LAMBDA_FUNCTION-9365828D44E6A036` |
-| image-provider-live (its execution role) | `AWS_IAM_ROLE-4EBB0A40DB75D204` |
+| image-provider-live (the function, Clouds app), `demo-live` | `AWS_LAMBDA_FUNCTION-9365828D44E6A036` — resolves as `{{LAMBDA_FUNCTION_ID}}` |
+| image-provider-live (its execution role), `demo-live` | `AWS_IAM_ROLE-4EBB0A40DB75D204` — resolves as `{{IAM_ROLE_ID}}` |
 | The AWS DevOps Agent's notes | `events` where `annotation.source == "aws_devopsagent"` |
 
 `{{ROOT_CAUSE_ID}}` has **no spans of its own**: the DynamoDB client spans belong to the Lambda service. Span queries and any Distributed Tracing filter use `{{LAMBDA_SERVICE_ID}}`, the Lambda service row for the current environment; built on `{{ROOT_CAUSE_ID}}` they return nothing.
@@ -227,7 +227,7 @@ them, and compares the DynamoDB grant against the ARN the exception named — wi
 
 ```dql
 smartscapeNodes "AWS_IAM_ROLE"
-| filter id == toSmartscapeId("AWS_IAM_ROLE-4EBB0A40DB75D204")
+| filter id == toSmartscapeId("{{IAM_ROLE_ID}}")
 | parse aws.object, "JSON:o"
 | fieldsAdd role_name = o[configuration][roleName], role_arn = o[configuration][arn]
 | expand policy = o[configuration][rolePolicyList]
@@ -270,7 +270,7 @@ and those differ from beat 1's `owning_team`, state both as returned; which one 
 **Deep link** (label "The function in the Clouds app"):
 
 ```text
-https://{{LINK_HOST}}/ui/apps/dynatrace.clouds/smartscape/functions?perspective=health&detailsId=AWS_LAMBDA_FUNCTION-9365828D44E6A036&sidebarOpen=false&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}
+https://{{LINK_HOST}}/ui/apps/dynatrace.clouds/smartscape/functions?perspective=health&detailsId={{LAMBDA_FUNCTION_ID}}&sidebarOpen=false&tf={{TF_FROM_MS}}%3B{{TF_TO_MS}}
 ```
 
 ---

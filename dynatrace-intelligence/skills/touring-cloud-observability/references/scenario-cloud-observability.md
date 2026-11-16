@@ -108,25 +108,27 @@ problems, Kubernetes spec changes), `dt.system.events` (workflow executions), `b
 
 | Name | ID |
 |---|---|
-| image-provider-live Lambda (Clouds app node) | `AWS_LAMBDA_FUNCTION-9365828D44E6A036` |
+| image-provider-live Lambda (Clouds app node), `demo-live` | `AWS_LAMBDA_FUNCTION-9365828D44E6A036` — resolves as `{{LAMBDA_FUNCTION_ID}}` |
 | Its ARN (carried by the spans as `cloud.resource_id`) | ends in `:function:image-provider-live` |
-| image-provider-live in us-east-1 (the service on the function) | `SERVICE-42411741F5F4AC50` |
-| image-provider-live-products in us-east-1 (root cause of the daily problem the AWS DevOps Agent annotates) | `SERVICE-F4E5246FA8EA27D7` |
+| image-provider-live in us-east-1 (the service on the function), `demo-live` | `SERVICE-42411741F5F4AC50` — resolves as `{{LAMBDA_SERVICE_ID}}` |
+| image-provider-live-products in us-east-1 (root cause of the daily problem the AWS DevOps Agent annotates), `demo-live` | `SERVICE-F4E5246FA8EA27D7` — resolves as `{{PRODUCTS_SERVICE_ID}}` |
 | EasyTrade Kubernetes namespace (the problems the Kubernetes troubleshooting agent annotates in beat 4) | `easytrade` |
-| Workflow: k8s-troubleshooting-agent | `1e4e7449-b32a-32e3-8bb8-0e2319f23daf` |
-| Workflow: AWS EBS remediate low storage (prevent) | `dd59f7b0-1154-4c06-b677-b3c64a17d475` |
-| Workflow: AWS regional outage failover Lambda (remediate) | `4df6c4b4-407e-4703-95a7-783481a22545` |
-| Workflow: Cost & Carbon Optimization: Calculation (optimize) | `9f1eb5e4-8733-496e-8d76-81d7f2e1e60c` |
+| Workflow: k8s-troubleshooting-agent, `demo-live` | `1e4e7449-b32a-32e3-8bb8-0e2319f23daf` — resolves as `{{KUBERNETES_WORKFLOW_ID}}` |
+| Workflow: AWS EBS remediate low storage (prevent), `demo-live` | `dd59f7b0-1154-4c06-b677-b3c64a17d475` — resolves as `{{PREVENT_WORKFLOW_ID}}` |
+| Workflow: AWS regional outage failover Lambda (remediate), `demo-live` | `4df6c4b4-407e-4703-95a7-783481a22545` — resolves as `{{REMEDIATE_WORKFLOW_ID}}` |
+| Workflow: Cost & Carbon Optimization: Calculation (optimize), `demo-live` | `9f1eb5e4-8733-496e-8d76-81d7f2e1e60c` — resolves as `{{OPTIMIZE_WORKFLOW_ID}}` |
+| Launchpad: AWS Business Resilience, `demo-live` | `b1f1c799-de60-456d-b62c-a1f13256077b` — resolves as `{{LAUNCHPAD_ID}}` |
+| A VMware virtual machine (Other views), `demo-live` | `VMWARE_VIRTUALMACHINE-182F4D63E3FCACFE` — resolves as `{{VMWARE_VM_ID}}` |
 
 **Other views**, offered only when the user asks for them (they are not a beat's link):
 
 | Ask | Label | URL |
 |---|---|---|
-| Kubernetes troubleshooting agent | "k8s troubleshooting workflow" | `https://{{LINK_HOST}}/ui/apps/dynatrace.automations/workflows/1e4e7449-b32a-32e3-8bb8-0e2319f23daf` |
+| Kubernetes troubleshooting agent | "k8s troubleshooting workflow" | `https://{{LINK_HOST}}/ui/apps/dynatrace.automations/workflows/{{KUBERNETES_WORKFLOW_ID}}` |
 | What affected users saw (beat 3) | "Astroshop sessions, last 12 hours" | `https://{{LINK_HOST}}/ui/apps/dynatrace.users.sessions/sessions/finished-sessions?perspective=general&sort=start_time%3Adescending&tf=now-12h%3Bnow#filtering=Frontends+%3D+Astroshop` |
 | Asking Dynatrace Assist about cost | "Clouds services explorer" (open Dynatrace Assist from there) | `https://{{LINK_HOST}}/ui/apps/dynatrace.clouds/smartscape/services?perspective=health&sort=healthIndicators%3Aascending%3BcustomAlerts%3Aascending%3Bname%3Aascending` |
 | On-premise VMware estate | "VMware overview dashboard" | `https://{{LINK_HOST}}/ui/apps/dynatrace.dashboards/dashboard/com-dynatrace-vmware-integration-overview#from=now%28%29-30d&to=now%28%29` |
-| A VMware virtual machine in Infrastructure & Operations | "VMware virtual machines" | `https://{{LINK_HOST}}/ui/apps/dynatrace.infraops/smartscape/virtualization/com.dynatrace.vmware-integration/VMWARE_VIRTUALMACHINE-inventory?perspective=health&tf=now-30d%3Bnow&detailsId=VMWARE_VIRTUALMACHINE-182F4D63E3FCACFE#filtering=hypervisor.type+%3D+VMware` |
+| A VMware virtual machine in Infrastructure & Operations | "VMware virtual machines" | `https://{{LINK_HOST}}/ui/apps/dynatrace.infraops/smartscape/virtualization/com.dynatrace.vmware-integration/VMWARE_VIRTUALMACHINE-inventory?perspective=health&tf=now-30d%3Bnow&detailsId={{VMWARE_VM_ID}}#filtering=hypervisor.type+%3D+VMware` |
 
 ## Tracks
 
@@ -150,7 +152,9 @@ they arrived, and the session close fires when that track's beats have all run (
 
 ## Tokens
 
-There is no survey row. Every token comes from a result in this conversation:
+There is no survey row. The entity, workflow and launchpad IDs come from the "Stable IDs" rows labelled with this
+conversation's environment (`{{LAMBDA_FUNCTION_ID}}` and the rest). Every other token comes from a result in this
+conversation:
 
 | Token | Source |
 |---|---|
@@ -230,7 +234,7 @@ relationships — without opening AWS.
 
 ```dql
 smartscapeNodes "AWS_LAMBDA_FUNCTION"
-| filter id == toSmartscapeId("AWS_LAMBDA_FUNCTION-9365828D44E6A036")
+| filter id == toSmartscapeId("{{LAMBDA_FUNCTION_ID}}")
 | parse aws.object, "JSON:obj"
 | fieldsAdd cfg = obj[configuration][configuration]
 | fields name, region = aws.region, runtime = cfg[runtime], memory_mb = cfg[memorySize], timeout_s = cfg[timeout],
@@ -243,7 +247,7 @@ smartscapeNodes "AWS_LAMBDA_FUNCTION"
 
 ```dql
 smartscapeEdges "*"
-| filter source_id == toSmartscapeId("AWS_LAMBDA_FUNCTION-9365828D44E6A036")
+| filter source_id == toSmartscapeId("{{LAMBDA_FUNCTION_ID}}")
 | summarize related = collectDistinct(target_type), by: { relationship = type }
 ```
 
@@ -258,7 +262,7 @@ is not evidence of anything by itself.
 **Deep link** (label "image-provider-live in the Clouds app"):
 
 ```text
-https://{{LINK_HOST}}/ui/apps/dynatrace.clouds/smartscape/functions?perspective=health&detailsId=AWS_LAMBDA_FUNCTION-9365828D44E6A036&sidebarOpen=false&tf=now-24h%3Bnow
+https://{{LINK_HOST}}/ui/apps/dynatrace.clouds/smartscape/functions?perspective=health&detailsId={{LAMBDA_FUNCTION_ID}}&sidebarOpen=false&tf=now-24h%3Bnow
 ```
 
 ---
@@ -300,7 +304,7 @@ filter alongside the ARN does not prune anything: measured at 6.84 GB, marginall
 ```dql
 fetch dt.davis.problems, from: now()-48h, to: now()
 | filter dt.davis.is_duplicate == false
-| filter in(root_cause_entity_id, "SERVICE-F4E5246FA8EA27D7", "SERVICE-42411741F5F4AC50")
+| filter in(root_cause_entity_id, "{{PRODUCTS_SERVICE_ID}}", "{{LAMBDA_SERVICE_ID}}")
 | lookup [fetch events, from: now()-48h
           | filter annotation.source == "aws_devopsagent"
           | expand pid = annotation.problem_ids
@@ -676,10 +680,10 @@ calculation that tells owners where to act).
 fetch dt.system.events, from: now()-7d
 | filter event.kind == "WORKFLOW_EVENT" and event.type == "WORKFLOW_EXECUTION"
 | filter dt.automation_engine.state.is_final == true
-| filter in(dt.automation_engine.workflow.id, "dd59f7b0-1154-4c06-b677-b3c64a17d475", "4df6c4b4-407e-4703-95a7-783481a22545",
-    "9f1eb5e4-8733-496e-8d76-81d7f2e1e60c")
-| fieldsAdd role = if(dt.automation_engine.workflow.id == "dd59f7b0-1154-4c06-b677-b3c64a17d475", "prevent",
-    else: if(dt.automation_engine.workflow.id == "4df6c4b4-407e-4703-95a7-783481a22545", "remediate", else: "optimize"))
+| filter in(dt.automation_engine.workflow.id, "{{PREVENT_WORKFLOW_ID}}", "{{REMEDIATE_WORKFLOW_ID}}",
+    "{{OPTIMIZE_WORKFLOW_ID}}")
+| fieldsAdd role = if(dt.automation_engine.workflow.id == "{{PREVENT_WORKFLOW_ID}}", "prevent",
+    else: if(dt.automation_engine.workflow.id == "{{REMEDIATE_WORKFLOW_ID}}", "remediate", else: "optimize"))
 | summarize runs = count(), succeeded = countIf(dt.automation_engine.state == "SUCCESS"),
     triggers = collectDistinct(dt.automation_engine.workflow_execution.trigger.type), last_run = max(start_time),
     by: { role, workflow = dt.automation_engine.workflow.title }
@@ -699,5 +703,5 @@ closes the problem. Never tie a run to a problem from beat 3 or 4: the query doe
 **Deep link** (label "AWS Business Resilience launchpad"):
 
 ```text
-https://{{LINK_HOST}}/ui/apps/dynatrace.launcher/launchpad/b1f1c799-de60-456d-b62c-a1f13256077b
+https://{{LINK_HOST}}/ui/apps/dynatrace.launcher/launchpad/{{LAUNCHPAD_ID}}
 ```
