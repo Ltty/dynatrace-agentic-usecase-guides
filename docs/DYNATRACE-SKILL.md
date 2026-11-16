@@ -93,8 +93,11 @@ These are the app format's rules. `python tools/dt_agent.py check` enforces them
   `docs --apply`.
 - **Dev, historically:** `docs --apply` uploaded shared (`isPrivate: false`) documents owned by you, with
   `originAppId` empty, which you could edit and delete. The five `app=None` documents are the remains of that.
-- **Production (planned):** ship the skill in the `dynatrace.use.case.guides` app so the documents become ready-made (system-owned, read-only, available to all users on install or update, up to 5 minutes).
+- **Production:** the skills ship in the `dynatrace.use.case.guides` app (GitHub `dynatrace-apps/dynatrace.use.case.guides`, merged in PR #378), so the documents are ready-made: system-owned, read-only, available to all users on install or update, up to 5 minutes.
   - `python tools/dt_agent.py pack --out <app-repo>` checks the skill and copies it into `<app-repo>/dynatrace-intelligence/skills/`. It is a dry run by default, never deletes, and `--check` exits 1 if the app's copy drifted.
+  - The app repo also holds files that exist nowhere else and that `pack` keeps: a `catalog-info.yaml` beside each `SKILL.md` and beside the agent, and a root `catalog-info.yaml` whose Location lists them (Juno ingests them). A renamed or added skill needs its Location target added there, or the catalog loses it.
+  - The app's CI runs `prettier --check` (3.10.1) on `dynatrace-intelligence/`. After `pack --apply`, run `npx prettier@3.10.1 --write dynatrace-intelligence` in the app repo; it rewrites table padding and emphasis, which is why a packed diff looks larger than the real change.
+  - A GitHub repo is not auto-ingested by Juno (only Bitbucket `rnd`/`prod` are): register the root `catalog-info.yaml` once in the Juno Portal under Catalog → Register existing component.
   - The guide says this feature is limited to Dynatrace-internal apps. Test on dev with `dt-app deploy --dry-run` first.
   - Before shipping on a tenant that has the dev copies, delete them, or the mount filter matches both sets by name. Do not upload user-owned copies to the Playground.
 - **Later:** apps will be able to ship agent templates as ready-made documents. Then `template.json` moves into the app, and `template` and `status` can be retired.
@@ -104,8 +107,8 @@ These are the app format's rules. `python tools/dt_agent.py check` enforces them
 The route is the `dynatrace.use.case.guides` app (see "Dev and production routes"). Steps, in order:
 
 1. **Get three answers first** (ask in `#help-dti-agentic-ai`): is the app eligible to ship AI skills (the guide limits it to Dynatrace-internal apps) and does its ID need to be allowlisted; when does the Playground get the `@`-mention flag; can apps ship agent templates yet?
-2. **Copy the skill into the app repo:** `python tools/dt_agent.py pack --out <app-repo>`, review the dry run, then `--apply`, and commit in the app repo. `pack --check` later flags drift.
-3. **`dt-app deploy --dry-run`** in the app repo must list the 11 skill documents as `ai-agent-resource`. Fix any validation error it names.
+2. **Copy the skill into the app repo:** `python tools/dt_agent.py pack --out <app-repo>`, review the dry run, then `--apply`, run Prettier there (above), and open a PR in the app repo. `pack --check` later flags drift. Git Credential Manager is not SSO-authorized for `dynatrace-apps`; push with `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push`.
+3. **`dt-app deploy --dry-run`** in the app repo must list the 14 skill documents (2 `SKILL.md`, 12 references) as `ai-agent-resource`. Fix any validation error it names.
 4. **Deploy the app to dev first** and look for documents with `originAppId = dynatrace.use.case.guides`. Delete the user-owned dev copies beforehand (needs explicit approval): the mount filter matches by name and would see both sets. Then run `python tools/run_dt_evals.py --tenant dev`.
 5. **Release the app to the Playground** through the app's own pipeline. Documents appear within 5 minutes.
 6. **Create the agent there:** `python tools/dt_agent.py --tenant https://playground.apps.dynatrace.com --token-var DT_PLAYGROUND_AGENT_TOKEN template`, then `--apply` after approval. Needs the token below, write access and the feature flag.
@@ -119,12 +122,13 @@ The Playground token needs `ai:operator:execute`, `mcp-gateway:servers:read` and
 1. Add `scenario-<id>.md` (business context, scope, handoff fields, beats) to `references/`, copying an existing one, and a branch for it in the survey query in `session-protocol.md`.
 2. Add a row to the scenario table in `SKILL.md`, and keep it under 150 lines.
 3. Register the file in `SCENARIO_FILES` in `tools/validate_dt_skill.py`.
-4. Verify every DQL block live, then `check`, then upload.
-5. Verify DQL on live data before writing the reveal. Plugin-era assumptions went stale: a failing-spans story turned out to be pure latency.
+4. Tenant IDs a query or link uses (entities, workflows, launchpads) are never literals: give each a `{{TOKEN}}` and one Stable IDs row per environment the scenario runs on, written as a table row: the name and the environment, then the ID followed by "— resolves as" and the token (see any `Stable IDs` table in `scenario-lambda-iam-denied.md`). `test_deep_links.py` fails on a literal ID, on a token with no row for a listed environment, and on a token name with a digit. A port to another environment adds rows and an opening-query branch, with no DQL edits.
+5. Verify every DQL block live, then `check`, then upload.
+6. Verify DQL on live data before writing the reveal. Plugin-era assumptions went stale: a failing-spans story turned out to be pure latency.
 
 ## Test
 
-- **Checks:** `python tools/dt_agent.py check` (skill and template rules), then `python tools/validate_dt_skill.py` for all three scenarios (live DQL, each on its own tenant).
+- **Checks:** `python tools/dt_agent.py check` (skill and template rules), then `python tools/validate_dt_skill.py` for every scenario (live DQL, each on its own tenant).
 - **Runner tests:** `python tools/tests/test_run_dt_evals.py` (offline) after any change to the runner or the case files.
 - **Behaviour:** `python tools/run_dt_evals.py --tenant dev` runs every ready case on that tenant's agent, **3 runs each** (one run can pass or fail by luck). Cases are one YAML file each in `tests/evals/dt-agent/`: the turns to send, and scripted assertions (skill read first, which files were read, DQL used or not, the exact reply, required and forbidden text, the turn ends on text). The default forbidden list covers "beat", "the demo", "I can't", "I'm read-only", "as an AI" and "I'm Dynatrace Intelligence" (the product name itself is allowed: the skill tells the agent to say it).
 - **Locally, with no agent deployed:** `python tools/run_dt_evals.py --local [--tenant playground] [--case <id>] [--include-draft] [--metadata strip]`
