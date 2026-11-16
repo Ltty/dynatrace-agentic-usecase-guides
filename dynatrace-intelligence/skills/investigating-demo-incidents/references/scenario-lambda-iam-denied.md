@@ -39,12 +39,12 @@ The root cause entity is the DynamoDB side of the call; the requests that fail r
 | Name | ID |
 |---|---|
 | image-provider-live-products in us-east-1 (root cause, the DynamoDB side) | `SERVICE-F4E5246FA8EA27D7` — resolves as `{{ROOT_CAUSE_ID}}` |
-| image-provider-live in us-east-1 (the Lambda service, where the failing spans are) | `SERVICE-42411741F5F4AC50` |
+| image-provider-live in us-east-1 (the Lambda service, where the failing spans are), `demo-live` | `SERVICE-42411741F5F4AC50` — resolves as `{{LAMBDA_SERVICE_ID}}` |
 | image-provider-live (the function, Clouds app) | `AWS_LAMBDA_FUNCTION-9365828D44E6A036` |
 | image-provider-live (its execution role) | `AWS_IAM_ROLE-4EBB0A40DB75D204` |
 | The AWS DevOps Agent's notes | `events` where `annotation.source == "aws_devopsagent"` |
 
-`{{ROOT_CAUSE_ID}}` has **no spans of its own**: the DynamoDB client spans belong to the Lambda service. Span queries and any Distributed Tracing filter use the literal Lambda service ID above; built on `{{ROOT_CAUSE_ID}}` they return nothing.
+`{{ROOT_CAUSE_ID}}` has **no spans of its own**: the DynamoDB client spans belong to the Lambda service. Span queries and any Distributed Tracing filter use `{{LAMBDA_SERVICE_ID}}`, the Lambda service row for the current environment; built on `{{ROOT_CAUSE_ID}}` they return nothing.
 
 ## Handoff fields
 
@@ -123,7 +123,7 @@ traffic either side of it in the same table.
 
 ```dql
 fetch spans, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
-| filter dt.entity.service == "SERVICE-42411741F5F4AC50"
+| filter dt.entity.service == "{{LAMBDA_SERVICE_ID}}"
 | filter request.is_root_span == true
 | summarize requests = count(), failed = countIf(request.is_failed == true), by: { bucket = bin(start_time, 5m) }
 | fieldsAdd failure_rate_pct = round(100.0 * failed / requests, decimals: 1)
@@ -147,7 +147,7 @@ the owning team, since nothing here says whether callers retried, backed off, or
 **Deep link** (label "Requests on the function"):
 
 ```text
-https://{{LINK_HOST}}/ui/apps/dynatrace.distributedtracing/explorer?filter=dt.smartscape.service+%3D+SERVICE-42411741F5F4AC50&tf={{TF_FROM_ISO}}%3B{{TF_TO_ISO}}&v=requests
+https://{{LINK_HOST}}/ui/apps/dynatrace.distributedtracing/explorer?filter=dt.smartscape.service+%3D+{{LAMBDA_SERVICE_ID}}&tf={{TF_FROM_ISO}}%3B{{TF_TO_ISO}}&v=requests
 ```
 
 All requests, not only the failing ones: the step is only visible with the clean traffic beside it.
@@ -169,7 +169,7 @@ the identity, the action and the resource it was refused.
 
 ```dql
 fetch spans, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
-| filter dt.entity.service == "SERVICE-42411741F5F4AC50"
+| filter dt.entity.service == "{{LAMBDA_SERVICE_ID}}"
 | filter request.is_root_span == true and request.is_failed == true
 | expand span.events
 | filter span.events[span_event.name] == "exception"
@@ -209,7 +209,7 @@ permission was always missing or was taken away is not in this result.
 **Deep link** (label "The failed requests"):
 
 ```text
-https://{{LINK_HOST}}/ui/apps/dynatrace.distributedtracing/explorer?filter=dt.smartscape.service+%3D+SERVICE-42411741F5F4AC50+AND+request.is_failed+%3D+true&tf={{TF_FROM_ISO}}%3B{{TF_TO_ISO}}&v=requests
+https://{{LINK_HOST}}/ui/apps/dynatrace.distributedtracing/explorer?filter=dt.smartscape.service+%3D+{{LAMBDA_SERVICE_ID}}+AND+request.is_failed+%3D+true&tf={{TF_FROM_ISO}}%3B{{TF_TO_ISO}}&v=requests
 ```
 
 ---
@@ -289,7 +289,7 @@ first denial, and a second one deployed before the failures stop.
 ```dql
 fetch events, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 | filter event.type == "CUSTOM_DEPLOYMENT"
-| filter dt.entity.service == "SERVICE-42411741F5F4AC50"
+| filter dt.entity.service == "{{LAMBDA_SERVICE_ID}}"
 | parse event.description, "LD \"(\" LD:git_url \")\""
 | parse git_url, "LD \"/commit/\" ALNUM:commit"
 | summarize first_deploy = min(timestamp), last_deploy = max(timestamp), deploys = count(),

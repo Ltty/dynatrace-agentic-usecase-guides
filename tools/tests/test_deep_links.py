@@ -102,7 +102,7 @@ def test_every_discovery_hook_has_a_route():
 def test_links_use_known_tokens_only():
     for scenario, path in v.SCENARIO_FILES.items():
         for label, url in v.deep_links(path):
-            unknown = set(re.findall(r"\{\{([A-Z_]+)\}\}", url)) - KNOWN_TOKENS
+            unknown = set(re.findall(r"\{\{([A-Z_]+)\}\}", url)) - KNOWN_TOKENS - set(v.environment_ids(path))
             assert not unknown, (scenario, label, unknown)
 
 

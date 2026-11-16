@@ -149,6 +149,7 @@ Store the result in conversation context (never a file). This is the single sour
 | `queried_at` | the **first query of the conversation**, whatever it is | `{{SURVEY_AT}}` | Beat DQL `elapsed_min` only; set once and never re-anchored |
 | `elapsed_min` | every beat's first query | — | The close's elapsed time; never shown in a table |
 | runtime values (e.g. `trace_id`) | a prior query's first record | e.g. `{{TRACE_ID}}` | Chained beat DQL |
+| per-environment IDs | the scenario's Stable IDs row labelled with this conversation's `env` | e.g. `{{LAMBDA_SERVICE_ID}}` | Beat DQL and deep links |
 | `problem_state` | derived | — | Tense and framing |
 | `delivery` | conversation | — | `explore` (default) or `walk-through`; see `references/walk-through.md` |
 | `beats_completed`, `current_beat` | conversation | — | Progress; a folded-in beat counts as completed |

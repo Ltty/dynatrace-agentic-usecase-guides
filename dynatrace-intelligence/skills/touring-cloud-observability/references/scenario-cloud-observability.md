@@ -90,8 +90,7 @@ A cost ask is not a pick: the user came for the bill, so it opens on the bill (`
 
 ## Scope
 
-**Tenant:** dtctl context `demo-live` (`https://guu84124.apps.dynatrace.com`, read-only). Its entities and the bill exist
-on that tenant only.
+**Environment:** `demo-live`, the only environment that has these entities and the bill today.
 
 **Data objects:** `smartscapeNodes`, `smartscapeEdges`, `spans`, `dt.davis.problems`, `events` (agent notes on
 problems, Kubernetes spec changes), `dt.system.events` (workflow executions), `bizevents`
@@ -110,7 +109,7 @@ problems, Kubernetes spec changes), `dt.system.events` (workflow executions), `b
 | Name | ID |
 |---|---|
 | image-provider-live Lambda (Clouds app node) | `AWS_LAMBDA_FUNCTION-9365828D44E6A036` |
-| Its ARN (carried by the spans as `cloud.resource_id`) | `arn:aws:lambda:us-east-1:246186168471:function:image-provider-live` |
+| Its ARN (carried by the spans as `cloud.resource_id`) | ends in `:function:image-provider-live` |
 | image-provider-live in us-east-1 (the service on the function) | `SERVICE-42411741F5F4AC50` |
 | image-provider-live-products in us-east-1 (root cause of the daily problem the AWS DevOps Agent annotates) | `SERVICE-F4E5246FA8EA27D7` |
 | EasyTrade Kubernetes namespace (the problems the Kubernetes troubleshooting agent annotates in beat 4) | `easytrade` |
@@ -275,7 +274,7 @@ behaves, and the latest problem on it, with the business context and the AWS Dev
 
 ```dql
 fetch spans, from: now()-6h
-| filter cloud.resource_id == "arn:aws:lambda:us-east-1:246186168471:function:image-provider-live"
+| filter endsWith(cloud.resource_id, ":function:image-provider-live")
 | filter request.is_root_span == true
 | summarize requests = count(), failed = countIf(request.is_failed == true),
     p50_ms = round(percentile(toDouble(duration), 50) / 1000000, decimals: 0),

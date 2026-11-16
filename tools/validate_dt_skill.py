@@ -111,6 +111,15 @@ def deep_links(md_path: Path) -> list[tuple[str, str]]:
     return [(m.group(1), m.group(2).strip()) for m in DEEP_LINK_RE.finditer(text)]
 
 
+ENV_ID_RE = re.compile(r"`([a-z-]+)` \| `([^`]+)` — resolves as `\{\{([A-Z_]+)\}\}`")
+
+
+def environment_ids(md_path: Path, environment: str | None = None) -> dict[str, str]:
+    """Tokens a scenario's Stable IDs table fills per environment: {token: id} for `environment`, or every row's token."""
+    rows = ENV_ID_RE.findall(md_path.read_text(encoding="utf-8"))
+    return {token: id_ for env, id_, token in rows if environment is None or env == environment}
+
+
 def strip_dql_comments(dql: str) -> str:
     """Remove // comment lines and collapse to a single line."""
     lines = [ln for ln in dql.splitlines() if not ln.strip().startswith("//")]
@@ -245,6 +254,7 @@ def print_links(pf, scenario: str, md_path: Path, environment: str) -> int:
         state = extract_state_from_resolver(pf, envelope) if envelope and envelope.get("ok") else {}
     state["LINK_HOST"] = _PF.host_of(environment)
     state["PROBLEM_SEGMENTS"] = ENVIRONMENTS[environment].get("segments", "")
+    state.update(environment_ids(md_path, environment))
     if not state.get("PROBLEM_ID"):
         print(f"No live problem for {scenario}: nothing to substitute.")
         return 1
@@ -305,6 +315,8 @@ def main(argv: list[str]) -> int:
         "LINK_HOST": _PF.host_of(args.environment),
         "PROBLEM_SEGMENTS": ENVIRONMENTS[args.environment].get("segments", ""),
     }
+    for md_path in md_paths:
+        placeholders.update(environment_ids(md_path, args.environment))
     passed = failed = skipped = 0
     last_producer_records: list[dict] = []
 
