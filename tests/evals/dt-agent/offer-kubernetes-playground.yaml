@@ -1,0 +1,35 @@
+id: offer-kubernetes-playground
+tenant: playground
+runs: 3
+status: draft
+open_app: dynatrace.kubernetes
+description: >-
+  DRAFT: a user in the Kubernetes app asks what they can do there. The offering skill is read, the opening
+  query runs once, and because the EasyTrade slowdown is live the answer adds one offer to walk through it.
+  The offer names the problem in plain words and never a scenario id or the environment. A yes is a pick: it
+  gets the mode question, with no query of its own.
+turns:
+- ask: What can I do here?
+  expect:
+    reads_include:
+    - offering-live-demos/SKILL.md
+    - session-protocol.md
+    requires_dql: true
+    max_dql_calls: 1
+    reply_contains:
+    - want me to
+    reply_contains_any:
+    - EasyTrade
+    - trading
+    reply_excludes:
+    - k8s-cpu-throttling
+    - playground
+    - demo-live
+- ask: Yes please.
+  expect:
+    reads_include:
+    - investigating-demo-incidents/SKILL.md
+    no_dql: true
+    reply_contains:
+    - hands-on
+    - walk you through

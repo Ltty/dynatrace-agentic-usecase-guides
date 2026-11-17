@@ -1,0 +1,28 @@
+id: offer-sessions-playground
+tenant: playground
+runs: 3
+status: draft
+open_app: dynatrace.users.sessions
+description: >-
+  DRAFT: Users & Sessions is where the image slowdown and the payment failure both show up (sessions with
+  replay). Both are live on the Playground, so the offer names them together in one line and asks which,
+  without ranking them or recommending one.
+turns:
+- ask: What is this app for?
+  expect:
+    reads_include:
+    - offering-live-demos/SKILL.md
+    requires_dql: true
+    max_dql_calls: 1
+    reply_contains:
+    - which
+    reply_contains_any:
+    - image
+    - checkout
+    - pay
+    reply_excludes:
+    - broken-images
+    - payment-failure
+    - playground
+    - I recommend
+    - I'd start with

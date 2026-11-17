@@ -36,6 +36,9 @@ dynatrace-intelligence/
     │       ├── scenario-lambda-iam-denied.md  — same shape, for the Lambda refused its DynamoDB permission
     │       ├── scenario-k8s-cpu-throttling.md — same shape, for the workload tuned below its own demand
     │       └── scenario-disk-cpu-cascade.md  — same shape, for the dev-tenant disk and CPU problem
+    ├── offering-live-demos/            — the in-app offer: what an open app can show live, and the walk-through hand-over
+    │   ├── SKILL.md                          — when it applies, the steps, the rules
+    │   └── references/app-offers.md          — which scenarios each app offers; a test keeps it in step with the scenarios' links
     └── touring-cloud-observability/    — the showcase; reads the incidents skill's conversation rules by path
         ├── SKILL.md                          — its own triggers, what to read first, workflow, checklist
         └── references/

@@ -1,0 +1,20 @@
+id: offer-none-playground
+tenant: playground
+runs: 3
+status: draft
+open_app: dynatrace.logs
+description: >-
+  DRAFT: an app that has no row in the offer table. The offering skill does not trigger: no query, no skill
+  documents read, and no mention of demos. Assist answers the question as it normally would.
+turns:
+- ask: What can I do here?
+  expect:
+    no_dql: true
+    reads_exclude:
+    - offering-live-demos
+    - session-protocol.md
+    - investigating-demo-incidents
+    reply_excludes:
+    - walk you through
+    - concrete demo
+    - want me to

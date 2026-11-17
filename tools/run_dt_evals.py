@@ -223,11 +223,17 @@ def load_cases() -> list[dict]:
     return cases
 
 
+def with_open_app(ask: str, open_app: str | None) -> str:
+    """A case's open_app, as a context line on the turn: how Assist hears which app the user is in."""
+    return f"(The Dynatrace app open in the browser is `{open_app}`.) {ask}" if open_app else ask
+
+
 def run_case(agent_mod, tenant, case: dict, run_no: int, truth: dict) -> dict:
     conversation, turns = None, []
-    for turn in case["turns"]:
+    for number, turn in enumerate(case["turns"]):
+        sent = with_open_app(turn["ask"], case.get("open_app") if number == 0 else None)
         try:
-            conversation, events = agent_mod.invoke_agent(tenant, AGENT, turn["ask"], conversation)
+            conversation, events = agent_mod.invoke_agent(tenant, AGENT, sent, conversation)
         except Exception as e:  # a failed request is a failed run, not a crash
             turns.append({"ask": turn["ask"], "calls": [], "reply": "", "failures": [f"request failed: {e}"[:300]]})
             break
@@ -266,6 +272,8 @@ def main(argv: list[str]) -> int:
     parser.add_argument("--model", help="with --local: the model (default: the one in template.json)")
     parser.add_argument("--metadata", choices=["keep", "strip"], default="keep",
                         help="with --local: strip the queryId from results, as the Dynatrace runtime often does")
+    parser.add_argument("--assist", action="store_true",
+                        help="with --local: no demo-agent prompt; the model is a neutral assistant that picks skills by their descriptions, as Assist does")
     parser.add_argument("--case", help="comma-separated case ids (default: all for the tenant)")
     parser.add_argument("--runs", type=int, help="override runs per case")
     parser.add_argument("--workers", type=int, default=3)
@@ -296,7 +304,7 @@ def main(argv: list[str]) -> int:
     if args.local:
         local = load_module("local_agent")
         try:
-            backends = {name: local.LocalAgent(name, args.model, metadata=args.metadata)
+            backends = {name: local.LocalAgent(name, args.model, metadata=args.metadata, assist=args.assist)
                         for name in sorted({c["tenant"] for c in selected})}
         except RuntimeError as e:
             print(f"--local: {e}")

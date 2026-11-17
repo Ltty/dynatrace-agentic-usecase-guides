@@ -8,7 +8,7 @@ This file is procedure.
 
 | Piece | Where | What it is |
 |---|---|---|
-| The skills | `dynatrace-intelligence/skills/investigating-demo-incidents/` and `touring-cloud-observability/` | Each is a `SKILL.md` plus a flat `references/` folder. The incidents skill holds five scenarios (payment failure, two image-service incidents, a Kubernetes slowdown, the dev-tenant disk and CPU problem), run as an exploration or a guided walk, and the conversation rules both skills share. The tour skill holds the cloud showcase, a presentation, and reads the incidents skill's rules by path instead of repeating them. Source of truth. |
+| The skills | `dynatrace-intelligence/skills/investigating-demo-incidents/`, `touring-cloud-observability/` and `offering-live-demos/` | Each is a `SKILL.md` plus a flat `references/` folder. The incidents skill holds five scenarios (payment failure, two image-service incidents, a Kubernetes slowdown, the dev-tenant disk and CPU problem), run as an exploration or a guided walk, and the conversation rules both skills share. The tour skill holds the cloud showcase, a presentation, and reads the incidents skill's rules by path instead of repeating them. The offer skill adds one live-demo offer to Assist's answer when the user asks what they can do in an app (see "In-app offers"). Source of truth. |
 | The agent | `dynatrace-intelligence/agents/demo-agent/` | A `deep-agent` template (`template.json`, `instructions.md`) that mounts both skills and may only call `execute-dql`. |
 | The helper | `tools/dt_agent.py` | `check`, `pack`, `docs`, `status`, `render`, `template`, `invoke`. Every write is a dry run unless you pass `--apply`. |
 | The validator | `tools/validate_dt_skill.py` | Runs every DQL block of a scenario live, on that scenario's tenant, named by `--environment`. |
@@ -133,6 +133,15 @@ The Playground token needs `ai:operator:execute`, `mcp-gateway:servers:read` and
 4. Tenant IDs a query or link uses (entities, workflows, launchpads) are never literals: give each a `{{TOKEN}}` and one Stable IDs row per environment the scenario runs on, written as a table row: the name and the environment, then the ID followed by "— resolves as" and the token (see any `Stable IDs` table in `scenario-lambda-iam-denied.md`). `test_deep_links.py` fails on a literal ID, on a token with no row for a listed environment, and on a token name with a digit. A port to another environment adds rows and an opening-query branch, with no DQL edits.
 5. Verify every DQL block live, then `check`, then upload.
 6. Verify DQL on live data before writing the reveal. Plugin-era assumptions went stale: a failing-spans story turned out to be pure latency.
+
+## In-app offers
+
+`offering-live-demos` is for Dynatrace Assist, not the SRE persona: a user opens an app (Kubernetes, Users & Sessions, Clouds, ...) and asks what they can do there. Assist answers as usual, and when a scenario that app can show is live, the answer ends with one offer to walk through it; a yes becomes a pick in the incidents skill, which asks hands-on or walk-through.
+
+- **The table is the contract.** `references/app-offers.md` lists the scenarios each app offers. `tools/tests/test_app_offers.py` fails when a scenario's beat links name an app with no row for it, when a row names an unknown scenario, and when the SKILL.md description and the table name different apps. The description is what triggers the skill, so every app ID is in it.
+- **No live problem, no offer, no mention.** The skill reads the incidents skill's opening query by path and matches its rows to the app's row. The cloud tour has no row: it is offered only where `session-protocol.md` lists it for the environment.
+- **Adding an app:** a row in the table and the ID in the description, then the test.
+- **Testing it.** A case's `open_app` becomes a context line on its first turn (the QuickStart skills key on "the open app is ..." the same way), and `run_dt_evals.py --local --assist` (or the in-session subagent with `tools/local_agent.assist_system()` as its prompt) runs a neutral Assist that picks skills by description alone, so the test covers whether the description triggers, not only what happens after. How Assist really passes the open app is not verified: check it in the UI on dev (Infrastructure & Operations, "What can I do here?").
 
 ## Test
 

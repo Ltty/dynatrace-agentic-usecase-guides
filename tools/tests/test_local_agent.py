@@ -114,6 +114,22 @@ def test_the_conversation_carries_over_between_turns():
     assert seen[1][-1]["content"] == "two"
 
 
+def test_assist_mode_sends_every_skill_description_and_no_demo_agent_prompt():
+    system = la.assist_system()
+    skills = sorted(p.name for p in la.SKILLS_ROOT.iterdir())
+    assert len(skills) >= 3
+    for name in skills:
+        description = la.skill_description(la.SKILLS_ROOT / name / "SKILL.md")
+        assert f"- {name}: {description}" in system, name
+        assert len(description) > 100 and "\n" not in description, name
+    assert "on-call SRE who pairs" not in system, "the demo-agent prompt must not leak into Assist mode"
+    seen = []
+    a = la.LocalAgent("playground", "m", complete=lambda s, m, t: seen.append(s) or {"content": [text("ok")]},
+                      run_query=lambda dql: ENVELOPE, assist=True)
+    a.invoke_agent(None, "demo-agent", "hi")
+    assert seen == [system]
+
+
 def test_parallel_tool_calls_are_all_answered():
     seen = []
     agent([use("1", "execute-dql", query="fetch a"), use("2", "execute-dql", query="fetch b")],

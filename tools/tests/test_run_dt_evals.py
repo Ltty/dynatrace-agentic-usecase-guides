@@ -45,6 +45,21 @@ def fails(events, expect, truth=None, forbid=True):
     return ev.check_turn(ev.summarize(events), expect, truth or {}, forbid)
 
 
+def test_open_app_is_a_context_line_on_the_first_turn_only():
+    sent = []
+
+    class Agent:
+        def invoke_agent(self, tenant, agent, text, conversation=None):
+            sent.append(text)
+            return "c", [{"type": "agent_response", "content": [{"text": "ok"}]}]
+
+    case = {"id": "x", "open_app": "dynatrace.kubernetes", "turns": [{"ask": "What can I do here?"}, {"ask": "yes"}]}
+    ev.run_case(Agent(), None, case, 1, {})
+    assert sent[0] == "(The Dynatrace app open in the browser is `dynatrace.kubernetes`.) What can I do here?"
+    assert sent[1] == "yes"
+    assert ev.with_open_app("hi", None) == "hi"
+
+
 def test_good_run_passes():
     assert fails(GOOD, CLEAN_EXPECT) == []
 

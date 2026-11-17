@@ -1,0 +1,22 @@
+id: offer-tour-demo-live
+tenant: demo-live
+runs: 3
+status: draft
+open_app: dynatrace.biz.carbon
+description: >-
+  DRAFT: in Cost & Carbon Optimization on the environment that has the cloud estate and the bill, the offer is
+  the cloud tour, not an incident. No figure is quoted in the offer: the bill's numbers belong to the tour.
+turns:
+- ask: What can I do here?
+  expect:
+    reads_include:
+    - offering-live-demos/SKILL.md
+    requires_dql: true
+    max_dql_calls: 1
+    reply_contains:
+    - want me to
+    - cloud bill
+    reply_excludes:
+    - cloud-observability
+    - demo-live
+    - "$"

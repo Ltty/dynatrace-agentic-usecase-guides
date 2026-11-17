@@ -156,11 +156,33 @@ class AnthropicClient:
         raise RuntimeError("Anthropic API: retries exhausted")
 
 
+ASSIST_PROMPT = (
+    "You are Dynatrace Assist, helping a user inside the Dynatrace platform. You have skills: documents under "
+    "/resources/documents/skills/<name>/SKILL.md, each with a description of when to use it. When a user's "
+    "message matches a skill's description, use read_file on its SKILL.md and follow it. Otherwise answer "
+    "as you normally would. Your only data tool is execute-dql, read-only.")
+
+
+def skill_description(skill_md: Path) -> str:
+    """The frontmatter description of a SKILL.md, folded onto one line."""
+    text = skill_md.read_bytes().decode("utf-8").replace("\r\n", "\n")
+    front = text.split("---")[1]
+    body = front.split("description:", 1)[1]
+    return " ".join(line.strip() for line in body.splitlines()).lstrip(">").strip()
+
+
+def assist_system() -> str:
+    """Assist's side of the contract: a neutral prompt and every skill's name and description, nothing else."""
+    lines = [ASSIST_PROMPT, "", "Skills:"]
+    lines += [f"- {s.name}: {skill_description(s / 'SKILL.md')}" for s in sorted(SKILLS_ROOT.iterdir())]
+    return "\n".join(lines)
+
+
 class LocalAgent:
     """The demo-agent, run locally. invoke_agent matches dt_agent.invoke_agent for run_dt_evals."""
 
     def __init__(self, context: str, model: str | None = None, complete=None, run_query=None,
-                 metadata: str = "keep", max_rounds: int = 30):
+                 metadata: str = "keep", max_rounds: int = 30, assist: bool = False):
         if context not in CONTEXTS:
             raise ValueError(f"context must be one of {sorted(CONTEXTS)}")
         self.context = context
@@ -169,7 +191,7 @@ class LocalAgent:
         self.model = model or default_model()
         self.complete = complete or AnthropicClient(self.model)
         self.run_query = run_query or (lambda dql: run_dtctl_query(dql, context))
-        self.system = INSTRUCTIONS.read_text(encoding="utf-8").replace("\r\n", "\n")
+        self.system = assist_system() if assist else INSTRUCTIONS.read_text(encoding="utf-8").replace("\r\n", "\n")
         self._conversations: dict[str, list[dict]] = {}
         self._lock = threading.Lock()
 
@@ -224,10 +246,11 @@ def main(argv: list[str]) -> int:
     parser.add_argument("message", help="one user message")
     parser.add_argument("--context", choices=sorted(CONTEXTS), default="playground")
     parser.add_argument("--model", help="default: the model in template.json")
+    parser.add_argument("--assist", action="store_true", help="run as a neutral Assist that picks skills by description")
     parser.add_argument("--metadata", choices=["keep", "strip"], default="keep",
                         help="strip the queryId from results, as the Dynatrace runtime often does")
     args = parser.parse_args(argv[1:])
-    agent = LocalAgent(args.context, args.model, metadata=args.metadata)
+    agent = LocalAgent(args.context, args.model, metadata=args.metadata, assist=args.assist)
     _, events = agent.invoke_agent(None, "demo-agent", args.message)
     for event in events:
         if event["type"] == "tool_invocation":
