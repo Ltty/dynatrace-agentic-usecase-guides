@@ -329,7 +329,41 @@ where the change and its effect sit together.
 checked and ruled out, and a concrete configuration to apply — all written where the on-call engineer is
 already looking.
 
-**Evidence DQL:**
+Two queries, so two turns: first that the agent ran and nobody started it, then what it wrote.
+
+**Evidence DQL — the run (first):**
+
+```dql
+fetch dt.system.events, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
+| filter event.kind == "WORKFLOW_EVENT" and event.type == "WORKFLOW_EXECUTION"
+| filter dt.automation_engine.state.is_final == true
+| filter dt.automation_engine.workflow.title == "k8s-troubleshooting-agent"
+| summarize runs = count(), states = collectDistinct(dt.automation_engine.state),
+    trigger = takeFirst(dt.automation_engine.workflow_execution.trigger.type),
+    first_done = min(timestamp), last_done = max(timestamp)
+| fieldsAdd done_after_problem_min = round(toDouble(first_done - toTimestamp("{{STARTED}}")) / 60000000000, decimals: 1),
+    queried_at = now(), elapsed_min = round(toDouble(now() - toTimestamp("{{SURVEY_AT}}")) / 60000000000, decimals: 0)
+```
+
+`timestamp` is when a run finished; a run writes more than one event, which is why the filter keeps the final one.
+Several runs in the window means the workflow was triggered once per problem in the cluster of near-duplicates.
+
+**Show:** Headline "The agent ran on its own". Table: Runs | Outcome | Triggered by | First finished (UTC) |
+Minutes after the problem (min), 1 row. Finding: The troubleshooting workflow ran {runs} times, triggered by {trigger},
+the first finished {done_after_problem_min} minutes after the problem opened. Bullets: Nobody started it; What it
+gathers before it reasons; Where its conclusion goes.
+
+**Reveal:** Lead with `trigger` and `done_after_problem_min`: a workflow ran on its own, set off by the platform, and
+was done minutes after the problem opened — before anyone on call had opened the record. Say what kind of thing it is
+in plain words: a Dynatrace workflow that gathers the affected workload's spec changes, metrics, logs and YAML, has an
+AI agent reason over them, and writes the conclusion back onto the problem. Say `trigger` as returned and nothing
+more specific: the result says it was an event, not which one, so never claim it fires "when a problem opens".
+`states` is the outcome; any value other than `SUCCESS` is said as returned. No rows means no run finished in this
+window: say so, and that the notes below may still exist from a run outside it.
+
+Never promise that it opens a pull request or applies the change: nothing in the result says it does.
+
+**Evidence DQL — what it wrote:**
 
 ```dql
 fetch events, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"

@@ -241,8 +241,10 @@ verdicts.
 
 ## Showcase scenarios
 
-A showcase shows a capability instead of resolving an incident, and lives in its own skill:
-`touring-demo-showcases/references/scenario-cloud-observability.md` is the example. It
+A showcase shows a capability instead of resolving an incident, and lives in the touring skill, one scenario file per
+tour, with a row in that skill's Tours table: `touring-demo-showcases/references/scenario-cloud-observability.md` is the
+example, and `scenario-kubernetes-complexity.md` shows a tour whose track hands into an incident. Rules every tour
+shares go in `tour-protocol.md`; what one tour does differently stays in its own file. It
 uses the same file layout, beats, reveals, deep links and data-only rule, with these differences:
 
 - **No survey branch.** The user asks for it; the survey never finds or names it. Add the opening phrases to the showcase skill's

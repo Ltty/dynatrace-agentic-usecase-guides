@@ -33,6 +33,11 @@ Where do you want to start?
   `cloud-observability` ("Environments"), name it as above. Where it does not, or where the
   environment is not resolved, the line is "or something else you had in mind" — never name a
   capability this environment does not have.
+- **The Kubernetes tour is a third direction, on the same rule.** Where this environment lists
+  `kubernetes-complexity`, the sentence gains a clause before the cloud one: "…open on the
+  platform, walk you through our Kubernetes estate — what's slow, what's wasted and what it runs
+  on in the cloud — or show you how to use Dynatrace to optimise cloud costs from real data." Still
+  one question, still no numbers.
 - **The second direction is a method, not an offer to cut a bill.** It says what the user will be
   shown how to do, which is what the cloud track actually is.
 - **No numbers in this turn.** Not the bill, not a problem count. The greeting names what is
@@ -65,6 +70,7 @@ column is blank: a segment belongs to one tenant, and carrying another's opens t
 | `lambda-iam-denied` | yes | | yes |
 | `k8s-cpu-throttling` | yes | | yes |
 | `cloud-observability` | | | yes |
+| `kubernetes-complexity` | | | yes |
 
 **What is offered.** A scenario is offered only when it is listed for this environment **and** the
 opening query returned its row. A scenario listed only elsewhere does not exist for this

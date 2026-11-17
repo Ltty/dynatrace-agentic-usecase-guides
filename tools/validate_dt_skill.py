@@ -33,6 +33,7 @@ SCENARIO_FILES = {
     "lambda-iam-denied": SCENARIO_DIR / "scenario-lambda-iam-denied.md",
     "k8s-cpu-throttling": SCENARIO_DIR / "scenario-k8s-cpu-throttling.md",
     "cloud-observability": TOUR_DIR / "scenario-cloud-observability.md",
+    "kubernetes-complexity": TOUR_DIR / "scenario-kubernetes-complexity.md",
 }
 # ---------------------------------------------------------------------------
 # Bootstrap: import preflight by file path (no package install needed).
@@ -63,7 +64,7 @@ def environments_for(scenario):
     return sorted(envs, key=lambda e: e != DEFAULT_ENVIRONMENT)
 
 # Showcases have no survey row: their beats supply the tokens (see harvest_showcase_state).
-SHOWCASES = {"cloud-observability"}
+SHOWCASES = {"cloud-observability", "kubernetes-complexity"}
 
 # Runtime-only tokens: present in DQL until a live query result supplies the value.
 RUNTIME_ONLY = {"TRACE_ID"}

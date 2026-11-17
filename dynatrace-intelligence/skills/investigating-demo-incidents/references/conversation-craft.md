@@ -167,7 +167,7 @@ only if that beat is in `beats_completed`; otherwise give this beat's finding on
 refer to evidence the user has not seen. Where the earlier evidence is genuinely required, the
 scenario says so with a **Fold in on a jump** note and that evidence runs first.
 
-A walk-through turn ends on its closing line instead (`references/walk-through.md`). The cloud tour is a
+A walk-through turn ends on its closing line instead (`references/walk-through.md`). A tour is a
 presentation and offers no choice; it keeps its own order (`touring-demo-showcases`).
 
 ### Act: query, then narrate

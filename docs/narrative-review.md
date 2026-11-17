@@ -213,3 +213,44 @@ found that the scenario assumed its own vocabulary, so this one was written with
 - **Off-cycle occurrences have no spec change**, so beat 4 can return nothing even though `pref` makes
   the resolver avoid them. The beat says so honestly; the arc is weaker on those runs.
 
+
+## `kubernetes-complexity`, reviewed on arrival 2026-11-17
+
+A showcase with three tracks, built from the KubeCon booth script. The `troubleshoot` track is
+`k8s-cpu-throttling` (reviewed above); this review covers the opening, `resources` and `cloud`.
+
+### Satisfied
+
+- **Feedforward.** The Opening states the job, the three moments, the route and how it goes before
+  the first table, and a track asked for by name gets one line naming its steps.
+- **Curiosity Gap.** The opening question ("which hurts most") names three gaps and closes none; the
+  estate table that precedes it carries counts, not findings.
+- **Anchoring.** Beat 2's second query leads with the memory limit and the hours near it, not the
+  problem count; beat 3 leads with the top row's requested-against-used, not the row count.
+- **Framing.** Beat 2 gives the absolute limit and the share of hours near it; beat 3 gives the
+  millicores and the ratio, because "30m" alone does not say "sixteen times".
+- **Storytelling Effect.** Beat 3's staging ties back to beat 2 ("the same app, wrong in both
+  directions"), and beat 5 is beat 4 walked backwards from an alert. Each track's last beat ends on the
+  tour's one idea: the answer was one number among hundreds.
+- **Reactance.** The opening question is asked once; between tracks the next one is proposed once,
+  and the other gets no second attempt.
+- **Peak-End Rule.** Each track has its peak on its last beat (3 and 5), so the track ends on it.
+
+### Deliberate deviations, recorded so they are not "fixed" later
+
+- **Beat 1 ends on a question, not a Next: line.** It belongs to no track; its job is to let the user
+  pick one. A **Next:** pair there would be a recommendation the Opening has already declined to make.
+- **Beat 2 reads 30 days, not the script's 6 hours.** On the day of writing the 6-hour average was
+  66% of the limit and would have contradicted "no headroom"; the 30-day hourly maxima show where the
+  workload actually lives. The window matches the problems query above it.
+- **No dollars anywhere in the resources track.** "Capacity you're paying for" is said as a mechanism,
+  never priced: no row carries a price, and the cloud tour owns the bill.
+- **Beat 5 runs on whatever the alert's status is.** The VM's alert is usually active for days at a
+  time; the reveal takes its tense from `status` rather than asserting "right now".
+
+### Open
+
+- **Goal Gradient does not apply.** The tour has no target the way the cloud tour has its 10%, so a
+  finding is placed against the previous one (starved, then bloated) rather than against a goal.
+- **The cloud track is EKS only.** Beat 5's check walks every cluster, but beat 4 shows one; a user
+  asking about AKS learns from the data that its nodes carry no cloud link, which is true but abrupt.

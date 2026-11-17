@@ -6,17 +6,22 @@ the opening query returned a row for it on this environment (SKILL.md, step 2).
 
 | Open app | Scenarios offered |
 |---|---|
-| `dynatrace.kubernetes` | `k8s-cpu-throttling` |
-| `dynatrace.infraops` | `k8s-cpu-throttling` |
+| `dynatrace.kubernetes` | `k8s-cpu-throttling`, `kubernetes-complexity` |
+| `dynatrace.infraops` | `k8s-cpu-throttling`, `kubernetes-complexity` |
 | `dynatrace.users.sessions`, `dynatrace.experience.vitals`, `dynatrace.classic.session.replay` | `broken-images`, `payment-failure` |
 | `dynatrace.services`, `dynatrace.error.inspector` | `payment-failure`, `broken-images` |
 | `dynatrace.distributedtracing` | `payment-failure`, `broken-images`, `lambda-iam-denied`, `k8s-cpu-throttling` |
-| `dynatrace.clouds` | `lambda-iam-denied`, `cloud-observability` |
-| `dynatrace.biz.carbon`, `community.cloudsreagents`, `dynatrace.launcher` | `cloud-observability` |
-| `dynatrace.davis.problems` | `payment-failure`, `broken-images`, `lambda-iam-denied`, `k8s-cpu-throttling`, `cloud-observability` |
+| `dynatrace.clouds` | `lambda-iam-denied`, `cloud-observability`, `kubernetes-complexity` |
+| `dynatrace.biz.carbon`, `community.cloudsreagents` | `cloud-observability` |
+| `dynatrace.launcher` | `cloud-observability`, `kubernetes-complexity` |
+| `dynatrace.davis.problems` | `payment-failure`, `broken-images`, `lambda-iam-denied`, `k8s-cpu-throttling`, `cloud-observability`, `kubernetes-complexity` |
 
-`cloud-observability` is the cloud tour, a showcase with no problem row of its own: it is offered where
-`session-protocol.md` lists it for the environment, not by a row.
+`cloud-observability` and `kubernetes-complexity` are tours, showcases with no problem row of their own: each is
+offered where `session-protocol.md` lists it for the environment, not by a row.
+
+**A tour replaces the incident it contains.** `kubernetes-complexity`'s troubleshoot track *is* `k8s-cpu-throttling`.
+Where a row lists both and the tour is available, offer the tour and not the incident: offering both makes the user
+choose between the same story twice. Where the tour is not listed (playground), the incident is offered as before.
 
 Adding an app or a scenario: add the row here and the app ID to the SKILL.md description, then run
 `python tools/tests/test_app_offers.py`. It fails when a scenario's beat links name an app with no row for that

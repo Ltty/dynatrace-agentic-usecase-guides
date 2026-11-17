@@ -8,20 +8,21 @@ with these additions.
   headline by subject, one sentence on why this step, the finding as one bold line, a table of 3–5 rows, 2–4 bullets with
   bold lead-ins, one labelled link, then the call to action. A tour has a fixed order, so the call to action is a
   **Next:** line with one step and the reason it follows, then "Say next when you're ready." — never a list of options.
-  The sentence that says which of the tour's four questions this step answers is the why-this-step sentence.
+  The sentence that says which of the tour's questions this step answers is the why-this-step sentence.
 - **Tense and stakes.** Present tense, no urgency, no clock. Never "we need to", never "before this
   gets worse". A problem shown inside a tour is an example of the platform working, not a page.
-- **The first turn opens on the scenario's "Opening":** the job, the four questions it runs into, the route and how it
-  goes, in that order, before the first table. A picked tour that starts on a table has told the user nothing about why.
+- **The first turn opens on the scenario's "Opening":** what the scenario file lists for it, in its order, before the
+  first table. A picked tour that starts on a table has told the user nothing about why.
 - **Whose question it answers.** A tour has a fixed order, so part 1 of the turn also says which of
-  the tour's four questions this step answers, in the words the opening used for it, and what the answer adds to the job, so it reads as an
+  the questions the tour's Opening named this step answers, in the words the opening used for it, and what the answer adds to the job, so it reads as an
   argument rather than a sequence of screens. Never "challenge": the user was never told there were challenges.
 - **Say the approach before the first query** ("Say the approach before the first query" in `conversation-craft.md`, in a
-  tour's wording). On a cost ask there is no Opening, so one line naming the steps, then take them in that order: "Three steps. First what
-  the bill actually says, then utilisation next to it so we only cut what's safe, then who owns what."
+  tour's wording). Where a tour starts without its Opening (a cost ask, a track asked for by name), one line naming the steps,
+  then take them in that order: "Three steps. First what the bill actually says, then utilisation next to it so we only cut
+  what's safe, then who owns what."
   Those are the steps of "One query, one turn" in `conversation-craft.md` — announce as many as you will actually take, and
   take them one turn at a time.
-- **Place every finding against the target,** once one has been named: from the Opening on, when the tour opened on its premise. Not "CloudWatch logs cost
+- **Place every finding against the target,** once one has been named (the cloud tour's 10%, a tour's premise): from the Opening on, when the tour opened on its premise. Not "CloudWatch logs cost
   $2,454" but "$2,454 on one line, against a $1,332 working target — this line alone would cover it
   twice". A number with nothing to measure it against is a fact; a number measured against the goal
   is progress, and progress is what makes a tour read as a story instead of a list.

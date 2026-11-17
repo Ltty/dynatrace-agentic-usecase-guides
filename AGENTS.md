@@ -12,7 +12,7 @@ The demo is two skills and one agent prompt, run in two places:
 - **Locally** — `/demo` in Claude Code or OpenCode. Tool: `dtctl query`.
 
 Both read `dynatrace-intelligence/skills/investigating-demo-incidents/` (the incidents, with its
-`references/`), `dynatrace-intelligence/skills/touring-demo-showcases/` (the cloud tour, which reads the
+`references/`), `dynatrace-intelligence/skills/touring-demo-showcases/` (the tours: cloud and Kubernetes, which read the
 incidents skill's conversation rules rather than repeating them) and
 `dynatrace-intelligence/agents/demo-agent/instructions.md` (the agent prompt).
 `skills/local-runtime/SKILL.md` is the only local-only piece: it maps `read_file` to a local Read and
@@ -139,5 +139,8 @@ Adding a scenario: `docs/AUTHORING.md`.
   on playground it would cost 3.77 GB scanned for a row that cannot exist there. Cloud spend is in scope in that
   scenario; Dynatrace's own pricing is not. Each contributor sets the context up themselves
   (`docs/scenarios/cloud-observability.md`).
+- `kubernetes-complexity` (the KubeCon booth demo) is the second showcase in the same skill, `demo-live` only. Its
+  troubleshoot track **is** the `k8s-cpu-throttling` incident, so the in-app offer shows the tour instead of that
+  incident where the tour is listed. Source, stable IDs and what moved since the script: `docs/scenarios/kubernetes-complexity.md`.
 - The **report** (`tools/render_report.py`) is local-only: the Dynatrace runtime cannot write files.
   It lives in `skills/local-runtime/SKILL.md`, which `dt_agent.py` never packs.

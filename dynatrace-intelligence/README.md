@@ -38,11 +38,12 @@ dynatrace-intelligence/
     ├── offering-live-demos/            — the in-app offer: what an open app can show live, and the walk-through hand-over
     │   ├── SKILL.md                          — when it applies, the steps, the rules
     │   └── references/app-offers.md          — which scenarios each app offers; a test keeps it in step with the scenarios' links
-    └── touring-demo-showcases/    — the showcase; reads the incidents skill's conversation rules by path
-        ├── SKILL.md                          — its own triggers, what to read first, workflow, checklist
+    └── touring-demo-showcases/         — the tours; reads the incidents skill's conversation rules by path
+        ├── SKILL.md                          — its triggers, the Tours table, workflow, checklist
         └── references/
-            ├── scenario-cloud-observability.md — the cloud estate and the bill, presentation only
-            ├── tour-protocol.md              — the probe, setting the target, delivery, the tour's close
+            ├── scenario-cloud-observability.md — the cloud estate and the bill, with its cost track
+            ├── scenario-kubernetes-complexity.md — the KubeCon tour: estate, starved and bloated workloads, EKS to EC2
+            ├── tour-protocol.md              — what every tour shares: delivery, tokens, the close
             └── tour-register.md              — how a tour sounds: tense, stakes, findings against the target
 ```
 

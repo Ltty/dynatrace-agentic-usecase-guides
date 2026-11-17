@@ -1,0 +1,32 @@
+id: k8s-tour-opening-demo-live
+tenant: demo-live
+runs: 3
+status: draft
+description: >-
+  DRAFT. Picking the Kubernetes tour starts it: the complexity wall (alerts are easy, knowing where to look is
+  hard), the three moments, then the estate step on live data — every cluster with its distribution — and the
+  turn ends on the one question that picks a track. No mode question, no incident list, no figure before the query.
+turns:
+- ask: Show me the Kubernetes tour.
+  expect:
+    first_read_contains: /SKILL.md
+    reads_include:
+    - touring-demo-showcases/SKILL.md
+    - scenario-kubernetes-complexity.md
+    requires_dql: true
+    max_dql_calls: 1
+    reply_contains:
+    - where to start
+    - hurts most
+    - EKS
+    - AKS
+    - GKE
+    reply_excludes:
+    - challenge
+    - Which should we take first
+    - "Next:"
+    - davis
+    - copilot
+    reply_excludes_quoted:
+    - investigate this hands-on
+    - should I walk you through it

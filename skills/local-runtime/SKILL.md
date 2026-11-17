@@ -35,8 +35,8 @@ host against the skill's "Environments" table to get the environment name, and u
 every `{{LINK_HOST}}`. The skill's availability rules then apply to that environment.
 
 This is the one place the environment is known before any data comes back, so it is what lets the
-greeting name the cloud direction only where that environment lists `cloud-observability` — without
-running anything.
+greeting name the cloud and Kubernetes directions only where that environment lists `cloud-observability` and
+`kubernetes-complexity` — without running anything.
 
 **Safety.** If that row's `SafetyLevel` is not `readonly`, do not run the demo. Step out of
 character once, as for expired authentication, say that this context allows writes and give the

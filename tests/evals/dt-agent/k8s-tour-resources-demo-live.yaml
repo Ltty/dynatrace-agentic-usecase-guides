@@ -1,0 +1,37 @@
+id: k8s-tour-resources-demo-live
+tenant: demo-live
+runs: 3
+status: draft
+description: >-
+  DRAFT. The resources track, entered by name. The starved step reads memory against its limit per container and
+  names memory, not CPU, as the constraint; the bloated step names the database as reserving many times the CPU it
+  uses, in millicores and never dollars, scoped to the app so Dynatrace's own webhook does not take over. The second
+  step ties back to the first: the same app, wrong in both directions.
+turns:
+- ask: Why does easytrade-calculationservice keep getting infrastructure problems? Check CPU and memory against its limits.
+  expect:
+    reads_include:
+    - scenario-kubernetes-complexity.md
+    requires_dql: true
+    reply_contains:
+    - memory
+    - limit
+    reply_contains_any:
+    - MiB
+    - megabyte
+    reply_excludes:
+    - "$"
+    - davis
+    - copilot
+- ask: next
+  expect:
+    requires_dql: true
+    reply_contains:
+    - easytrade-db
+    reply_contains_any:
+    - millicore
+    - "m of CPU"
+    reply_excludes:
+    - "$"
+    - dynatrace-webhook
+    - davis

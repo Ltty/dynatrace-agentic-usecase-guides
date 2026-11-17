@@ -4,8 +4,9 @@ runs: 3
 status: draft
 open_app: dynatrace.kubernetes
 description: >-
-  DRAFT: the same Kubernetes-app opening on the other environment that runs the EasyTrade slowdown. The offer
-  is the same, and nothing in it says which environment this is.
+  DRAFT: in the Kubernetes app on the environment that lists the Kubernetes tour, the offer is the tour, not the
+  EasyTrade slowdown on its own: the tour's troubleshoot track is that incident, so offering both would ask the user
+  to choose the same story twice. No figure in the offer; a yes starts the tour's Opening, which ends on its question.
 turns:
 - ask: What can I do here?
   expect:
@@ -16,18 +17,33 @@ turns:
     max_progress_lines: 0
     reply_contains:
     - Try a live demo
-    - demonstration based on an actual problem
-    - We'd look at Kubernetes resource limits
-    - troubleshooting agent
+    - real Kubernetes data
+    - wasted or starved
     - want me to
-    reply_contains_any:
-    - EasyTrade
-    - trading
     reply_excludes:
     - opening query
     - has a row
     - maps to
     - the skill
     - k8s-cpu-throttling
+    - kubernetes-complexity
+    - resource limits, and what the troubleshooting agent
     - playground
     - demo-live
+    - "$"
+- ask: Yes, show me.
+  expect:
+    reads_include:
+    - touring-demo-showcases/SKILL.md
+    - scenario-kubernetes-complexity.md
+    requires_dql: true
+    reply_contains:
+    - hurts most
+    reply_contains_any:
+    - EKS
+    - eks-live
+    reply_excludes:
+    - davis
+    - copilot
+    reply_excludes_quoted:
+    - investigate this hands-on

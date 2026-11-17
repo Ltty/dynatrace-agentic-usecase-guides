@@ -154,6 +154,13 @@ looks like a result. Check that the by-field comes back as a column. On the host
 - Filter inside the command (`timeseries ..., filter: host.name == "x"`) rather than after it.
 - Summarise a long series in DQL instead of reading it: `fieldsAdd lo = arrayMin(v), avg = arrayAvg(v), hi = arrayMax(v)`
   gives one row for a window of any length. The `interval` field says how long each bucket is.
+- **`sum()` in a timeseries adds up the samples inside each bucket, not only the series.** With a 5-minute interval on
+  1-minute Kubernetes data, `sum(dt.kubernetes.container.requests_cpu)` reports five times the request (2,493m for a
+  500m database). To total across pods and containers, split by `k8s.pod.name` and `k8s.container.name` with `avg()`,
+  then `summarize sum(arrayAvg(v)), by: { k8s.workload.name }`. Kubernetes CPU is in millicores; memory in bytes.
+- **Kubernetes memory against its limit is per container.** A limit applies to one container, so a ratio taken on a
+  workload-level series runs past 100% wherever a workload has several pods or containers. Filter on
+  `k8s.container.name`, or split by it.
 
 ---
 
@@ -241,6 +248,11 @@ record**, substitute the token, then run the consumer. Never run the consumer fi
   'resources/limits' … changed from '600m' to '300m'". A problem's `k8s.namespace.name` is an array: `in("easytrade",
   k8s.namespace.name)`. To put a change next to a problem, `join` on a constant key and filter the time, since `lookup`
   takes one row per key.
+- **From a Kubernetes node to its cloud instance is two hops.** There is no `K8S_NODE` → `AWS_EC2_INSTANCE` edge:
+  `smartscapeEdges` has `K8S_NODE runs_on HOST` and `HOST runs_on AWS_EC2_INSTANCE`, so chain two `lookup`s. Edge and
+  node IDs are smartscape IDs: compare and look them up as `toString(id)`, and `startsWith()` on one needs `toString()`.
+  The EC2 node carries the AWS id as `aws.resource.id` (`i-…`), `aws.state` and `aws.availability_zone`. A problem
+  names cloud entities in `smartscape.affected_entity.ids`, an array: `expand` it, then `toString()` before a lookup.
 - **Cloud cost** is `fetch bizevents`, `event.type == "cost.real.spend"`, FOCUS fields (`focus.EffectiveCost`,
   `focus.ServiceCategory`, `focus.ServiceName`, `focus.ResourceId`, `focus.SkuMeter`, `aws.x_Operation`).
   - `timestamp` is the **import** time: a whole billing period is imported in one go. Window on the charge instead:

@@ -1,0 +1,28 @@
+id: k8s-tour-handoff-demo-live
+tenant: demo-live
+runs: 3
+status: draft
+description: >-
+  DRAFT. Answering the tour's question with "finding the cause" walks the troubleshoot track, which is the incidents
+  skill's EasyTrade slowdown investigation: its scenario file is read and its first step runs as a presentation,
+  with no mode question in between.
+turns:
+- ask: Show me the Kubernetes tour.
+  expect:
+    reads_include:
+    - scenario-kubernetes-complexity.md
+    requires_dql: true
+- ask: Finding the cause of a problem.
+  expect:
+    reads_include:
+    - scenario-k8s-cpu-throttling.md
+    requires_dql: true
+    reply_contains_any:
+    - EasyTrade
+    - trading
+    reply_excludes:
+    - davis
+    - copilot
+    reply_excludes_quoted:
+    - investigate this hands-on
+    - should I walk you through it
