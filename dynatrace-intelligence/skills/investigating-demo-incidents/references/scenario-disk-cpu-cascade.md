@@ -98,6 +98,8 @@ fetch dt.davis.problems, from: now()-48h, to: now()
     queried_at = now(), elapsed_min = round(toDouble(now() - toTimestamp("{{SURVEY_AT}}")) / 60000000000, decimals: 0)
 ```
 
+**Show:** Headline "What the problem record says". Table: Status | Started (UTC) | Root cause | Affected entities | Impact level, 1 row. Finding: the root cause is the {root_cause} disk, with the {affected} entities listed as affected and the {impact_level} impact level. Bullets: root cause versus affected host; disk and CPU thresholds from {description}; OneAgent update failure listed in the record; what the record shows, not why.
+
 **Reveal:** Dynatrace Intelligence named the `/data` disk as the root cause — not the host and not the CPU. The
 host `frontend-high-cpu` is listed as affected. Quote the disk threshold and the CPU threshold from
 `description`, and say how many entities the problem covers. The description also lists an OneAgent update
@@ -141,6 +143,11 @@ timeseries
 ```
 
 One row: the series is summarised in DQL (min and max across all buckets, and the bucket size in `interval`).
+
+**Show:** Headline "How full the data disk is". Table: Measure | Lowest | Highest, 2 rows (free space in %, available
+space in MB). Finding: {free_pct_min} percent free against the threshold from the problem record, flat across the
+whole window. Bullets: floor, not a spike; megabytes available; how many buckets of what size the window covers; where
+the data stops (what wrote to the disk).
 
 **Reveal:** If `free_pct_min` and `free_pct_max` are equal or nearly so, the free space has not moved across the
 whole window: a floor, not a spike. State the percentage against the threshold beat 1 quoted — that is what makes
@@ -187,6 +194,11 @@ timeseries
 ```
 
 One row, summarised in DQL. Both metrics are in percent.
+
+**Show:** Headline "CPU and storage wait on the host". Table: Measure | Average (%) | Highest (%), 2 rows (CPU, I/O
+wait). Finding: CPU averages {cpu_avg} percent and never drops below {cpu_min} percent, while I/O wait stays near
+{iowait_avg} percent. Bullets: CPU saturated against the threshold, not a spike; I/O wait explained in plain words;
+two conditions on one host, no shown mechanism; what uses the CPU is not in these metrics.
 
 **Reveal:** Report what the two series show, from the row: CPU usage is saturated across the window (state the
 min, average and max, against the threshold beat 1 quoted), and I/O wait — the share of time the processor spends
@@ -242,6 +254,8 @@ One row per distinct failure message (each carries a from-version and a target v
 the totals below are sums over every row. The target version moves as newer releases appear, so the problem
 `description` can quote an older target than the newest event: the newest row here is the one to state, and if it
 differs from beat 1, say the target moved.
+
+**Show:** Headline "The monitoring agent cannot update". Table: Failure message | Failures | First seen (UTC) | Last seen (UTC), 1-3 rows. Finding: the staged line "OneAgent update blocked - NotEnoughDiskSpace ({from_version} to {to_version})" alone on its own line, versions from the newest row. Bullets: same /data disk, not a separate incident; total failed attempts since the earliest first seen; number of distinct target versions; free space and CPU facts on the same host, no causal chain.
 
 **Reveal:** OneAgent has tried to update repeatedly and each attempt failed with `NotEnoughDiskSpace`. The total
 is the sum of `failures` over all rows, from the earliest `first_seen` to the latest `last_seen`; quote the
@@ -307,6 +321,8 @@ fetch dt.davis.problems, from: now()-48h, to: now()
 ```
 
 `elapsed_min` is for the session close, not for the table.
+
+**Show:** Headline "What to hand to the host owner". Table: Status | Started (UTC) | Root cause | Affected entities, 1 row. Finding: free space on /data is the one action the data supports, for the host {host.name} with {affected_count} entities in the problem. Bullets: root cause, host and how long the problem has been open; blocked OneAgent version; data does not show whether freeing space resolves the CPU; hand off by host and host group, no team.
 
 **Reveal:** Summarise from the live data and the earlier beats: the root cause entity, the host, how long the
 problem has been open (the survey row's `duration_days` and `duration_hours`; still open if the status says so), `affected_count`, and

@@ -90,6 +90,11 @@ fetch dt.davis.problems, from: now()-48h, to: now()
     queried_at = now(), elapsed_min = round(toDouble(now() - toTimestamp("{{SURVEY_AT}}")) / 60000000000, decimals: 0)
 ```
 
+**Show:** Headline "Who is hit and who owns it". Table: Field | Value, 5 rows (one fact per row: affected users with
+its population label, root cause, owning team, started in UTC, status). Finding: {affected_users} users affected, root
+cause {root_cause}, owned by {owning_team}. Bullets: Root cause service and that checkout is only listed as affected;
+Onset time and status; Who to page first.
+
 **Reveal:** The problem record names the payment service as root cause and counts a large
 number of affected users; quote the failing endpoint from `description` only if it names one for the
 payment service (it may name only the frontend's); the `Charge` endpoint comes in beat 3.
@@ -136,6 +141,11 @@ One row per commit. ArgoCD syncs one commit many times, once per resource; `depl
 those syncs and `first_deploy` is when the change actually landed. A sync event is recorded when
 the sync completes, so the first failures can appear seconds before `first_deploy`. Onset within
 a minute of it is the same change: say so plainly, without hedging over the seconds.
+
+**Show:** Headline "What shipped just before it started". Table: Commit | First deployed (UTC) | Owner | Deploys |
+Minutes before the problem (min), 2 rows. Finding: {deploy_before_problem_min} minutes between the culprit commit
+{commit} landing and the problem starting, shipped by {owner}. Bullets: Culprit commit and its link; Who shipped it
+and who to call first; The second deploy near the end is not a second regression.
 
 **Reveal:** Typically two rows. The first commit's `first_deploy` falls at or just before the
 problem `started` (beat 1) — the change that lines up with the start. The second lands shortly before the
@@ -199,6 +209,8 @@ fetch events, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 
 Skip this query when beat 2 has run in this conversation: its rows already give each commit's
 first deploy.
+
+**Show:** Headline "How often payments failed over time". Table: Bucket (UTC) | Requests | Failures | Failure rate (%), 5-8 rows. Finding: {failure_rate_pct} percent failure rate after the deploy against {failure_rate_pct} before it, in the bucket at {bucket}. Bullets: Before and after rates with failures and totals; Where the rise lines up with the deploy; The later deploy after which the rate falls back.
 
 **Reveal:** A rise from near-zero to an elevated failure rate that stays elevated until the
 later deploy. It can ramp over several buckets rather than step. The first failures fall in or
@@ -275,6 +287,8 @@ One row per service in call order. Failure propagates: the ingress, frontend, an
 also show `failed > 0` because they return the error payment raised — checkout's own exception
 wraps payment's message. Payment is the origin; the rows with `failed == 0` are the clean calls.
 
+**Show:** Headline "The exact error and its request". Table: Service | Spans | Failed | First start (UTC) | Slowest call (ms), 5-8 rows. Finding: Exception: {exception_msg}, verbatim, alone on its own line. Bullets: Where the exception is raised, {exception_file} and {exception_line}; How the failure relays upstream while sibling calls stay clean; When the first failure happened against when the problem opened, {detected_after_min} minutes.
+
 **Reveal:** The failing payment spans carry a specific exception — quote it verbatim. Say what
 the data shows: the service itself raises it, at the file and line returned, with a message that
 names the rejected input — not an infrastructure error. Whether the rejection was intended is
@@ -341,6 +355,8 @@ fetch user.sessions, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 The query sums in DQL: `total_sessions` is the whole population, `no_country` the part of it with no country, `countries` the
 distinct countries, `rows_returned` the rows before the top five. Never present `top_rows` as the full population, and never
 call it "affected users" (that's the problem record's count). `elapsed_min` is for the close, not for the table.
+
+**Show:** Headline "Which customers hit server errors". Table: Country | Sessions (sessions) | With replay (sessions), 5 rows. Finding: {total_sessions} sessions hit a server error (5xx) across {countries} countries, a different population from the problem's affected users. Bullets: Sessions with no country reported as exactly that; The data cannot tie these sessions to the payment service; Replay shows what one customer actually saw.
 
 **Reveal:** Sessions with 5xx errors span many countries, and nearly all have replay. State
 `total_sessions` (sessions that hit a server error, a 5xx — say it in those words, not as the code alone),

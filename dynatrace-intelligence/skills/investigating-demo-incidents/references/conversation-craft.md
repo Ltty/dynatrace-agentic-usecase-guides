@@ -37,22 +37,29 @@ done" is `beats_completed` against the track's beats, never "did beat 6 just run
 
 ### The shape of a beat turn
 
-Every turn answers "so what?" before the user has to ask it. **Four parts of narration, then the tail.**
-Leave none of them out; the one most often missed is the fourth.
+Every turn answers "so what?" before the user has to ask it, in a fixed layout that can be skimmed top to
+bottom. The status line was already written; the reply is these parts, in this order, and **each step's `Show` line
+in its scenario file says what goes in them**:
 
-1. **Why this step** — the beat's `Why this step` line, said before the query, in terms of what we are
-   trying to settle. "To know whether the deploy caused this, we need the failure rate either side of it."
-2. **The evidence** — all queries first, then a table of 3–5 fields (below). Every table has a header
-   row naming its columns, and a column name says what the number is and its unit: "95th percentile
-   (ms)", not "p95". A table whose header is blank makes the reader guess.
-3. **What it means** — your read, and what it changes about the question we are answering. Not just
-   "the rate jumped to 61%" but what that settles and what it leaves open.
-4. **What that makes next** — the next step *and why it follows from what we just saw*. "The rate moves
-   at the deploy, so the deploy is now the thing to read — what shipped in it is the next question."
-   Naming the next step without the reason is the gap that leaves a user asking "so what?".
-Then the tail, and **the narration stops here**: the proof stamp, the deep link and the ending follow in
-that order ("How a turn ends"). Part 4 names the next step; it does not cue and it does not list the
-options, because those are the tail's last element and nothing goes after them.
+1. **Headline** — `### ` and the step's subject in 3–7 words ("What shipped just before it started"). Never
+   "beat", a number or a scenario id.
+2. **Why this step** — one plain sentence under the headline, in terms of what we are trying to settle: "To know
+   whether the deploy caused this, we need the failure rate either side of it."
+3. **The finding** — one bold line with the number that matters first (below).
+4. **The evidence** — all queries first, then a table of 3–5 rows (below).
+5. **What it means** — 2–4 bullets, each opening on a bold lead-in of two to four words and holding at most two
+   sentences: your read, what it settles and what it leaves open. Not "the rate jumped to 61%" but what that settles.
+6. **The tail** — the link, then **one** ending block that names what comes next and why it follows ("How a turn ends").
+   The next step is named there and nowhere else: a "what that makes next" paragraph before it is the second ending.
+
+On a scenario's first step the one-line approach comes before the headline ("Say the approach before the first query").
+
+**Skimmable sentences.** One idea per sentence; at most two sentences in a bullet and three in a paragraph; one figure
+per sentence; the consequence before the mechanism. No sentence restates the table or the one before it, and none is a
+stem that opens every reply the same way ("Two things stand on their own now:", "That settles where it starts. What it
+doesn't settle is…"). A commit is its 7-character SHA, with the link carrying the full one; an entity name containing
+brackets goes in backticks (`[eks-live][easytrade] TradeManagement`), or markdown reads it as a link. Never leave a
+placeholder in a reply ("… (see below)").
 
 Beat 1 starts the moment the user chooses hands-on: no menu of angles before it.
 
@@ -108,24 +115,23 @@ steps are ordinary steps with ordinary endings; the finding lands when the last 
 scenario, never by wanting to sound interactive: offer every beat whose `Requires:` are already in
 `beats_completed`, and nothing else.
 
-**Several beats unlocked** — name up to three, one short line each saying what that step would settle,
-then recommend one with the reason, then the cue:
+**Several beats unlocked** — one block: the bold word **Next:**, up to three options as a list, each saying in a
+few words what that step would settle, then one line that recommends one with the reason and gives the cue. The
+recommendation and the cue are the same line, said once:
 
 ```text
-Two things are worth doing next, and they stand on their own:
-  a) the container's own CPU numbers — why it was slow, not just that it was
-  b) what changed on the workload just before
-I'd take (a): (b) only means something once we know what to look for.
-Which one — or say next and I'll take (a).
+**Next:** two steps stand on their own.
+- **a)** the container's own CPU numbers: why it was slow, not just that it was
+- **b)** what changed on the workload just before
+I'd take (a): (b) only means something once we know what to look for. Say a, b or next.
 ```
 
-**One beat unlocked** — say what it is, why it follows, and **why it is the only way forward**: "the
-exception has to come before the permission, or the permission tells us nothing." Then the readiness
-cue. This is not a lesser ending. A forced order, explained, is worth more than a choice invented to
-seem interactive — and some scenarios are a single chain by their nature.
+**One beat unlocked** — the same block with no list: say what it is, why it follows, and **why it is the only way
+forward**: "the exception has to come before the permission, or the permission tells us nothing." Then the readiness
+cue. This is not a lesser ending. A forced order, explained, is worth more than a choice invented to seem
+interactive — and some scenarios are a single chain by their nature.
 
-Right: "Next I'd put utilisation next to the bill, so we only cut what's safe to touch. Say when
-you're ready."
+Right: "**Next:** utilisation beside the bill, so we only cut what's safe to touch. Say when you're ready."
 Wrong: "Want me to look at the traces?" — a yes/no with nothing behind it.
 Wrong: offering a beat whose `Requires:` have not run, or inventing a step the scenario has no query
 for. **A choice that is not real is worse than no choice**; it is the one thing a viewer who notices
@@ -176,12 +182,15 @@ substitute and run — and still write nothing in between. A chained pair is one
 The walk-through's executive summary is the exception: it runs every beat's first query in one turn
 (`references/walk-through.md`), and it applies to incidents only.
 
-Once the step's query is done, present:
-- A table of 3–5 key fields
-- Your interpretation — confident, concrete, not hedged
+Once the step's query is done, write the reply in the layout above, with your interpretation confident,
+concrete and not hedged.
 
-The first number in the turn is the one that sticks, so make it the one that matters — the impact,
-the cost, the finding — never a row count or a scan figure.
+**The finding line** is the first number in the turn, and the one that sticks, so make it the one that matters — the
+impact, the cost, the finding — never a row count or a scan figure.
+
+**The table** has 3–5 rows and a header row naming its columns. A column name says what the number is and its unit:
+"95th percentile (ms)", not "p95"; a table whose header is blank makes the reader guess. One fact per cell: a value
+and its time are two columns, not "272.1, at 03:00 UTC". The table holds the numbers; the bullets never repeat them.
 
 ### Narrate your own read
 
@@ -196,19 +205,21 @@ whether the failures start with it", not "the failures follow it closely".
 
 ### Link and close
 
-In the same response, not a separate turn: the label from the beat's **Deep link** line, a colon, then the URL with
-its `{{TOKENS}}` substituted from session state. The label says what the link opens: never "same view" for a link
-that is not the view the answer shows.
+In the same response, not a separate turn: **one markdown link**, `[label](url)`, with the label from the beat's
+**Deep link** line and the URL's `{{TOKENS}}` substituted from session state. Never a bare URL: a 200-character query
+string is noise. The label says what the link opens: never "same view" for a link that is not the view the answer
+shows. A link already given in an earlier turn is not given again, and a commit link belongs in the table or the
+bullet that names the commit, not in a second link line. (The handoff block's links stay on their own labelled
+lines, in its text block.)
 
 **The tail of every turn runs in this order, and nothing else goes after it:**
 
 1. the deep link — on the beat's **last** step only; earlier steps have none;
 2. the ending — the option block or the readiness cue — as the final thing in the turn.
 
-**Say the ending once.** Part 4 of the turn ("what that makes next") names what follows and why; it does
-**not** cue, and it does not list the options. Those belong to the tail, after the link. A turn that
-names the next step, then stamps and links, then asks again has ended twice, and the second ending
-reads as a stammer.
+**Say the ending once.** The **Next:** block is the only place the next step is named, with its reason and its cue;
+the bullets above it say what the evidence means, never what to do next. A turn that names the next step, then
+links, then asks again has ended twice, and the second ending reads as a stammer.
 
 A runtime that shows a proof stamp puts it immediately before the deep link, or before the readiness
 cue on a step that has no link (`skills/local-runtime/SKILL.md`). Never after the cue: the cue is what
@@ -371,12 +382,12 @@ Never escalate in length or get coy.
 
 | Context | Limit |
 |---|---|
-| A step (explore) | ≤12 lines: why this step, 3–5 fields, the read, what follows and why, the deep link on the beat's last step, readiness cue; a peak moment's staging may run longer |
+| A step (explore) | About 180 words outside the table and the link: headline, why this step, the finding, 3–5 table rows, 2–4 bullets, the link on the beat's last step, the **Next:** block; a peak moment's staging may run longer |
 | Side quest | ≤6 lines, then re-anchor |
-| Executive summary (walk-through) | Up to 14 lines, prose |
-| Step (walk-through) | 8–12 lines: the link back, table, what it adds, deep link, closing line and cue |
+| Opening report (walk-through) | Up to 14 lines: headline, summary line, four bullets, the offer (`references/walk-through.md`) |
+| Step (walk-through) | About 150 words outside the table and the link: headline, the link back, finding, table, bullets, link, closing line and cue |
 | Session close | Per `references/session-protocol.md` → "Session close"; the handoff block is its own length |
 
-Never use bullet points for narration. Use prose. The one exception is the opening listing,
-which is one bullet per available scenario (session-protocol -> "Problem survey").
-Never use prose for evidence — use a table or tight bullets.
+Evidence is a table. What it means is 2–4 bullets with bold lead-ins, never a paragraph over three sentences, and
+never a bullet that repeats a number from the table. The opening listing is one bullet per available scenario
+(session-protocol → "Problem survey").

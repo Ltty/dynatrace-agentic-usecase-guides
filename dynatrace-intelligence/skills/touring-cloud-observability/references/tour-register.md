@@ -4,6 +4,11 @@ A scenario whose Business context says `kind: showcase` is a tour: nothing is br
 paged, and the user is being shown what the platform already knows. Everything in `conversation-craft.md` applies,
 with these additions.
 
+- **The layout of a step is the incidents skill's** (`conversation-craft.md` → "The shape of a beat turn"): a `###`
+  headline by subject, one sentence on why this step, the finding as one bold line, a table of 3–5 rows, 2–4 bullets with
+  bold lead-ins, one labelled link, then the call to action. A tour has a fixed order, so the call to action is a
+  **Next:** line with one step and the reason it follows, then "Say next when you're ready." — never a list of options.
+  The sentence that says which of the tour's four questions this step answers is the why-this-step sentence.
 - **Tense and stakes.** Present tense, no urgency, no clock. Never "we need to", never "before this
   gets worse". A problem shown inside a tour is an example of the platform working, not a page.
 - **The first turn opens on the scenario's "Opening":** the job, the four questions it runs into, the route and how it

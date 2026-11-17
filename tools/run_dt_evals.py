@@ -44,7 +44,7 @@ FORBIDDEN = [
     r"\bbeats?\b", r"step \d+ of \d+", r"\bthe demo\b", r"\bas an ai\b", r"\bI can['’]?t\b",
     r"\bI'?m read-only\b", r"\bI am read-only\b",
     r"\b(?:I'?m|I am|as) (?:the )?dynatrace intelligence\b",
-    r"\bsame view in dynatrace\b", r"\breplays?:",
+    r"\bsame view in dynatrace\b", r"\breplays?:", r"\.\.\. \(see below\)",
 ]
 # Narration of the agent's own working: never shown to the user, in progress lines or in the answer.
 NARRATION = [
@@ -94,6 +94,68 @@ def summarize(events: list[dict]) -> dict:
 
 def norm(text: str) -> str:
     return " ".join(text.split())
+
+
+# The layout of a step reply (conversation-craft.md -> "The shape of a beat turn"): checked only where a case asks.
+STEP_LAYOUT = {"headline": True, "max_words": 220, "max_paragraph_sentences": 3, "max_bullet_sentences": 2,
+               "bullets": [2, 4], "labelled_links": True}
+LINK_RE = re.compile(r"\[[^\]]*\]\([^)]*\)")
+SENTENCE_END_RE = re.compile(r"[.!?](?=\s|$)")
+OPTION_BULLET_RE = re.compile(r"^\s*[-*]\s+\*\*[a-c]\)")
+
+
+def prose_lines(reply: str) -> list[str]:
+    """The reply without tables, code blocks and link-only lines: what a reader reads as text."""
+    lines, in_code = [], False
+    for line in reply.splitlines():
+        if line.strip().startswith("```"):
+            in_code = not in_code
+            continue
+        stripped = line.strip()
+        if in_code or stripped.startswith("|") or not stripped:
+            continue
+        if LINK_RE.fullmatch(stripped):
+            continue
+        lines.append(line)
+    return lines
+
+
+def count_sentences(text: str) -> int:
+    return len(SENTENCE_END_RE.findall(text)) or (1 if text.strip() else 0)
+
+
+def check_layout(reply: str, expect: dict) -> list[str]:
+    """The step layout assertions: headline, word budget, sentence limits, bullets, and labelled links."""
+    fails: list[str] = []
+    spec = {**STEP_LAYOUT, **{k: v for k, v in expect.items() if k in STEP_LAYOUT}} if expect.get("layout") == "step" \
+        else {k: expect[k] for k in STEP_LAYOUT if k in expect}
+    lines = prose_lines(reply)
+    if spec.get("headline"):
+        first = [l.strip() for l in reply.splitlines() if l.strip()][:3]
+        if not any(l.startswith("### ") for l in first):
+            fails.append(f"no ### headline in the first lines: {first[:1]}")
+    if "max_words" in spec:
+        words = sum(len(LINK_RE.sub("", l).split()) for l in lines)
+        if words > spec["max_words"]:
+            fails.append(f"{words} words outside the table and link, allowed {spec['max_words']}")
+    bullets = [l for l in lines if re.match(r"^\s*[-*]\s+", l) and not OPTION_BULLET_RE.match(l)]
+    if "max_paragraph_sentences" in spec:
+        for l in lines:
+            if re.match(r"^\s*([-*]|\d+\.|#)", l):
+                continue
+            if count_sentences(l) > spec["max_paragraph_sentences"]:
+                fails.append(f"a paragraph has more than {spec['max_paragraph_sentences']} sentences: {l.strip()[:70]!r}")
+    if "max_bullet_sentences" in spec:
+        for l in bullets:
+            if count_sentences(l) > spec["max_bullet_sentences"]:
+                fails.append(f"a bullet has more than {spec['max_bullet_sentences']} sentences: {l.strip()[:70]!r}")
+    if "bullets" in spec:
+        low, high = spec["bullets"]
+        if not low <= len(bullets) <= high:
+            fails.append(f"{len(bullets)} bullets, expected {low}-{high}")
+    if spec.get("labelled_links") and re.search(r"https?://", LINK_RE.sub("", reply)):
+        fails.append("a bare URL: every link must be a [label](url) markdown link")
+    return fails
 
 
 def expand(items: list[str], truth: dict) -> list[str]:
@@ -152,6 +214,7 @@ def check_turn(summary: dict, expect: dict, truth: dict, forbid: bool = True) ->
         for needle in values(key):
             if needle.lower() in low:
                 fails.append(f"reply contains forbidden {needle!r}")
+    fails.extend(check_layout(reply, expect))
     progress = summary.get("progress", [])
     if "max_progress_lines" in expect and len(progress) > expect["max_progress_lines"]:
         fails.append(f"{len(progress)} progress lines before the answer, allowed {expect['max_progress_lines']}: {progress[:3]}")

@@ -100,6 +100,12 @@ fetch dt.davis.problems, from: now()-48h, to: now()
     queried_at = now(), elapsed_min = round(toDouble(now() - toTimestamp("{{SURVEY_AT}}")) / 60000000000, decimals: 0)
 ```
 
+**Show:** Headline "Who is hit and how badly". Table: Field | Value, 5 rows (one fact per row: affected users with its
+population label, root cause, owning team, started in UTC, status). Finding: the failure rate from {description} comes
+first, at or near total, then the endpoint and {affected_users} from the problem record. Bullets: the rate and the
+endpoint that failed; the problem record's affected users; the chain from {root_cause} out to the storefront; the
+owning team.
+
 **Reveal:** Three values carry this beat — the rate, the users and the team. The query returns more than that;
 don't put the whole row on screen. `description` names the endpoint that failed and the rate it reached —
 quote both; a rate at or near 100% is the finding, because it means every call, not a share of them. Say which
@@ -143,6 +149,8 @@ fetch spans, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 
 The window is the problem's, padded 15 minutes each side, so the clean buckets either side come back in the
 same result.
+
+**Show:** Headline "Failures arrive as a switch". Table: Bucket (UTC) | Requests | Failed | Failure rate (%), 8-14 rows. Finding: the peak {failure_rate_pct} comes first, then how many 5-minute buckets it holds, with the clock times of the first and last failing bucket. Bullets: clean traffic before; the jump to the ceiling within one or two buckets; clean traffic after; throughput in the failing buckets as returned.
 
 **Reveal:** Give the shape, not every row: clean before, the rate it climbs to and how many buckets it holds
 there, clean after, with the clock times of the first and last failing bucket. A rate that goes from zero to
@@ -190,6 +198,8 @@ fetch spans, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 ```
 
 `expand span.events` first, then bracket access — `span.events[exception.type]` on an unexpanded array returns nothing.
+
+**Show:** Headline "What the failures say". Table: Exception type | Message | Failures | First seen (UTC) | Last seen (UTC), 1 row. Finding: the staged line, {failures} first: {exception_type} on {failures} failed requests, the {action} on the {resource}, refused. Bullets: a permission problem, not a fault; the full message quoted verbatim; the identity, action and resource it names, in plain words.
 
 **Reveal:** Quote `message` verbatim; it is the whole finding and paraphrasing it loses the three things that
 matter. Say how many distinct exceptions came back: **one** row means a single cause, not a flaky dependency
@@ -253,6 +263,8 @@ series: a grant that is wrong for half an hour and then put back is not captured
 read correct even while the problem is open. Polled every minute through a full incident window on
 2026-11-04, it never read otherwise.
 
+**Show:** Headline "What the role allows today". Table: Role | Role ARN | Policy | DynamoDB grant, 3-6 rows. Finding: whether the {Resource} in the DynamoDB policy matches the ARN the exception named, stated first, then the {Action} it allows. Bullets: the role matches the identity in the exception; the inline policies, one per thing the function touches; the grant against the refused ARN and what that implies about timing.
+
 **Reveal:** The role in the result is the one the exception named — say so by matching `role_arn` to the
 identity in beat 3's message. List the policy names so the shape is visible: an inline policy is a grant
 attached to this role and nothing else, and there is one per thing the function touches, each scoped to its
@@ -310,6 +322,11 @@ fetch events, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 
 These GitHub Actions events leave `commit` and `gitUrl` null; both are parsed out of the markdown link in
 `event.description`, and the summarize collapses one commit's repeated re-deploys into a row.
+
+**Show:** Headline "What shipped just before it started". Table: Commit | First deploy (UTC) | Last deploy (UTC) |
+Deploys | Minutes before the problem (min), 2 rows. Finding: the {deploy_before_problem_min} gap between the first
+deploy and the problem start comes first, then the first {commit}. Bullets: the first commit and its repository link;
+the second commit landing before the failures stop; what the commit contains is not in the telemetry.
 
 **Reveal:** Lead with the gap, not the row count: `deploy_before_problem_min` between the first deploy and
 the problem start, held against beat 3's `first_seen`, which is the minute the denials actually began.
@@ -372,6 +389,8 @@ fetch events, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 
 The notes attach to several records of the same cluster, which is why `on_problems` can exceed one and why
 the lookup matches on the root cause rather than on `{{PROBLEM_ID}}` alone.
+
+**Show:** Headline "What the AWS agent found". Table: Kind | Summary available | Notes | Last note (UTC) | Task, 1-2 rows. Finding: the {notes} count of notes the agent wrote onto this problem comes first, then how many minutes after the start the last one landed. Bullets: the hand-off chain from Dynatrace to the agent and back; the agent's own summary, or the task id when none reached Dynatrace; a recommendation for the owning team, not a change made.
 
 **Reveal:** The agent wrote `notes` notes in two kinds — an investigation and a mitigation — onto this
 incident's records, `last_at` minutes after it started. State what that chain is: Dynatrace saw it, named the

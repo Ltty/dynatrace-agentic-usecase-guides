@@ -131,8 +131,12 @@ The Playground token needs `ai:operator:execute`, `mcp-gateway:servers:read` and
 2. Add a row to the scenario table in `SKILL.md`, and keep it under 150 lines.
 3. Register the file in `SCENARIO_FILES` in `tools/validate_dt_skill.py`.
 4. Tenant IDs a query or link uses (entities, workflows, launchpads) are never literals: give each a `{{TOKEN}}` and one Stable IDs row per environment the scenario runs on, written as a table row: the name and the environment, then the ID followed by "— resolves as" and the token (see any `Stable IDs` table in `scenario-lambda-iam-denied.md`). `test_deep_links.py` fails on a literal ID, on a token with no row for a listed environment, and on a token name with a digit. A port to another environment adds rows and an opening-query branch, with no DQL edits.
-5. Verify every DQL block live, then `check`, then upload.
-6. Verify DQL on live data before writing the reveal. Plugin-era assumptions went stale: a failing-spans story turned out to be pure latency.
+5. Give every step a `**Show:**` line above its Reveal: the headline (3-7 words, by subject), the table's columns with
+   units (2-5 columns, taken from the step's own DQL), the finding line, and 2-4 bullet topics. It is what makes a
+   reply skimmable instead of improvised; `tools/tests/test_step_layout.py` fails without it. The shape of a reply is
+   in `conversation-craft.md` ("The shape of a beat turn"), and `layout: step` in an eval case checks it.
+6. Verify every DQL block live, then `check`, then upload.
+7. Verify DQL on live data before writing the reveal. Plugin-era assumptions went stale: a failing-spans story turned out to be pure latency.
 
 ## In-app offers
 

@@ -85,6 +85,11 @@ fetch dt.davis.problems, from: now()-48h, to: now()
     queried_at = now(), elapsed_min = round(toDouble(now() - toTimestamp("{{SURVEY_AT}}")) / 60000000000, decimals: 0)
 ```
 
+**Show:** Headline "Who is hit and who owns it". Table: Field | Value, 5 rows (one fact per row: affected users with
+its population label, root cause, owning team, started in UTC, status). Finding: the current response time against the
+learned baseline, current value first, both labelled ({description} figures). Bullets: what is affected and the impact
+levels; the owning team and why it is the only owner on record; slowdown not outage.
+
 **Reveal:** Dynatrace Intelligence classifies it as a slowdown — `description` states the current response time
 against the baseline it learned from this service's own normal behaviour; quote both numbers, and say which is
 which, since the comparison is the finding. The frontend,
@@ -130,6 +135,8 @@ fetch events, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 
 These GitHub Actions events leave `commit` and `gitUrl` null; the query parses both from the
 markdown link in `event.description` and collapses the repeated re-deploys of one commit.
+
+**Show:** Headline "What shipped just before it started". Table: Commit | First deploy (UTC) | Last deploy (UTC) | Deploys | Minutes before problem (min), 2 rows. Finding: the gap in minutes between the first commit's deploy and the problem start comes first ({deploy_before_problem_min}), then the commit. Bullets: the lead suspect and its repeated re-deploys; the later commit and why it is not a second regression; how to tell the two apart (timing, not text).
 
 **Reveal:** Lead with the gap between the deploy and the problem start — that is the finding; the row count is
 not. Typically two rows. The first commit lands a few minutes before the problem
@@ -181,6 +188,8 @@ fetch spans, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 | sort bucket asc
 | fieldsAdd queried_at = now(), elapsed_min = round(toDouble(now() - toTimestamp("{{SURVEY_AT}}")) / 60000000000, decimals: 0)
 ```
+
+**Show:** Headline "What the image service changed". Table: Time bucket (UTC) | Requests | Resizes | Median latency (ms), 6-12 rows. Finding: the median latency before and after the flip, after value first ({p50_ms} in the flip bucket against the earlier buckets). Bullets: resizes are zero before the deploy; resizes equal requests from the deploy on; recovery after the later deploy.
 
 **Reveal:** Before the regression deploy, `resizes` is zero. From the deploy's bucket on, `resizes` equals `requests`: every single image request runs
 the full resize pipeline, and `p50_ms` jumps from tens of milliseconds to seconds. After the later
@@ -236,6 +245,8 @@ fetch spans, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 
 One row per operation in call order; sub-50 ms noise is dropped except DynamoDB, which shows
 it is fast.
+
+**Show:** Headline "Where one slow request spends time". Table: Service | Operation | Duration (ms), 4-8 rows. Finding: the staged line, the resize step's {duration_ms} first, then the whole request's {duration_ms}. Bullets: latency from work that should not happen, not an error; the fast steps (database lookup, storage check); the cache check runs and the resize runs anyway.
 
 **Reveal:** The Lambda invocations themselves are not marked failed — this is latency, not an error. Inside the
 Lambda, the DynamoDB lookup and the S3 "check if image for screen size exists" take
@@ -318,6 +329,8 @@ excluded). Don't use `error.http_5xx_count` here: the images return 200, so a 5x
 almost nobody. The query sums in DQL: `total_sessions` is the whole population, a different population from the
 problem's affected users (label each), `no_country` the part of it with no country, `countries` the distinct countries,
 `rows_returned` the rows before the top five. `elapsed_min` is for the close, not for the table.
+
+**Show:** Headline "Shoppers who waited for images". Table: Country | Sessions (sessions) | With replay (sessions), 5 rows. Finding: {total_sessions} real-user sessions with a slow image load comes first, labelled as a different population from the problem's affected users. Bullets: countries covered and the sessions with no country; the slowest load ({worst_ms}); replay availability; the caveat that sessions are not tied to this service.
 
 **Reveal:** Real-user sessions across many countries hit image loads of several seconds, and
 nearly all have replay. State `total_sessions`, `countries` and

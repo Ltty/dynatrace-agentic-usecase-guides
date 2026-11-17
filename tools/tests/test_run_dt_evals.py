@@ -60,6 +60,81 @@ def test_open_app_is_a_context_line_on_the_first_turn_only():
     assert ev.with_open_app("hi", None) == "hi"
 
 
+STEP = """### What shipped just before it started
+
+To know whether the deploy caused this, we need the failure rate either side of it.
+
+**Two deploys landed within minutes of the first slow request.**
+
+| Commit | First deployed (UTC) | Gap (min) |
+|---|---|---|
+| 56e23b6 | 04:01 | 2.3 |
+
+- **Lead suspect:** commit `56e23b6` reached the service 2.3 minutes before the problem and was redeployed six times.
+- **Timing only:** a short gap suggests a cause; it does not prove one.
+
+[The deploys on the problem record](https://playground.apps.dynatrace.com/ui/apps/x?from=1&to=2)
+
+**Next:**
+- **a)** what the service did request by request
+- **b)** the shoppers who sat through it
+I'd take (a): it ties the deploy to the slowdown. Say a, b or next.
+"""
+
+
+def layout_fails(reply, **expect):
+    return ev.check_layout(reply, {"layout": "step", **expect})
+
+
+def test_a_well_formed_step_passes_the_layout_checks():
+    assert layout_fails(STEP) == []
+
+
+def test_layout_needs_a_headline():
+    body = STEP.split("\n", 1)[1]
+    assert any("headline" in f for f in layout_fails(body))
+    # the approach line may come first on a scenario's first step
+    assert layout_fails("Here's how I'd work it: who, then what.\n\n" + STEP) == []
+
+
+def test_layout_rejects_a_bare_url_and_accepts_a_labelled_one():
+    bare = STEP.replace("[The deploys on the problem record](https://playground.apps.dynatrace.com/ui/apps/x?from=1&to=2)",
+                        "The deploys: https://playground.apps.dynatrace.com/ui/apps/x?from=1&to=2")
+    assert any("bare URL" in f for f in layout_fails(bare))
+
+
+def test_layout_caps_words_outside_the_table_and_link():
+    padded = STEP + "\n" + "word " * 260
+    assert any("words outside" in f for f in layout_fails(padded))
+    assert layout_fails(padded, max_words=400) == [] or not any("words outside" in f for f in layout_fails(padded, max_words=400))
+
+
+def test_layout_caps_sentences_in_a_paragraph_and_a_bullet():
+    wall = STEP.replace("**Two deploys landed within minutes of the first slow request.**",
+                        "One. Two. Three. Four sentences here.")
+    assert any("paragraph has more" in f for f in layout_fails(wall))
+    fat = STEP.replace("- **Timing only:** a short gap suggests a cause; it does not prove one.",
+                       "- **Timing only:** one. Two. Three.")
+    assert any("bullet has more" in f for f in layout_fails(fat))
+
+
+def test_layout_counts_what_it_means_bullets_but_not_the_options():
+    one = STEP.replace("- **Timing only:** a short gap suggests a cause; it does not prove one.\n", "")
+    assert any("1 bullets" in f for f in layout_fails(one))
+    five = STEP.replace("- **Timing only:** a short gap suggests a cause; it does not prove one.\n",
+                        "".join(f"- **Point {i}:** text.\n" for i in range(5)))
+    assert any("bullets, expected" in f for f in layout_fails(five))
+
+
+def test_layout_checks_are_opt_in():
+    assert ev.check_layout("no headline and a bare http://x.y link, " + "w " * 500, {}) == []
+    assert ev.check_layout("no headline", {"headline": True}) != []
+
+
+def test_a_placeholder_is_forbidden():
+    assert any("forbidden" in f for f in fails(stream(reply="Latency is 370 ms ago... (see below)"), {}))
+
+
 def test_good_run_passes():
     assert fails(GOOD, CLEAN_EXPECT) == []
 
@@ -211,7 +286,9 @@ def test_case_files_are_well_formed():
     known = {"first_read_contains", "reads_include", "reads_exclude", "no_dql", "requires_dql", "ends_on_text",
              "reply_equals", "reply_contains", "reply_contains_any", "reply_excludes",
              "reply_excludes_quoted",
-             "max_progress_lines", "progress_equals", "max_dql_calls"}
+             "max_progress_lines", "progress_equals", "max_dql_calls",
+             "layout", "headline", "max_words", "max_paragraph_sentences", "max_bullet_sentences", "bullets",
+             "labelled_links"}
     ids = [c["id"] for c in cases]
     assert len(ids) == len(set(ids)), "duplicate case ids"
     for case in cases:

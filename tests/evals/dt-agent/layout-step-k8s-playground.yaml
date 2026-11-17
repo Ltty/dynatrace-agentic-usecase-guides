@@ -1,0 +1,24 @@
+id: layout-step-k8s-playground
+tenant: playground
+runs: 3
+status: draft
+description: >-
+  DRAFT: the first two steps of the Kubernetes CPU throttling slowdown, hands-on, have the step layout. Entity
+  names that contain brackets, such as [eks-playground][easytrade] TradeManagement, sit in backticks so markdown
+  does not read them as links.
+turns:
+- ask: Why is EasyTrade slow?
+- ask: Hands-on, I'll drive.
+  expect:
+    layout: step
+    requires_dql: true
+    reply_excludes:
+    - beat
+    - k8s-cpu-throttling
+- ask: next
+  expect:
+    layout: step
+    requires_dql: true
+    reply_excludes:
+    - beat
+    - k8s-cpu-throttling

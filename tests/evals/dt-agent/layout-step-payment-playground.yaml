@@ -1,0 +1,24 @@
+id: layout-step-payment-playground
+tenant: playground
+runs: 3
+status: draft
+description: >-
+  DRAFT: the first and second steps of the payment failure, hands-on, have the step layout (a ### headline, the
+  finding, a table, 2-4 bullets with bold lead-ins, one labelled link, one Next block) and stay within the word
+  budget. A bare URL, a wall-of-text paragraph or a missing headline fails.
+turns:
+- ask: Why are card payments failing?
+- ask: Hands-on, I'll drive.
+  expect:
+    layout: step
+    requires_dql: true
+    reply_excludes:
+    - beat
+    - payment-failure
+- ask: next
+  expect:
+    layout: step
+    requires_dql: true
+    reply_excludes:
+    - beat
+    - payment-failure

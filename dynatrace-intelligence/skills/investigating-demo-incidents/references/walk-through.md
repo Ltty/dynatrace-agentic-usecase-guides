@@ -74,21 +74,23 @@ two queries per beat.
 no source for. Each part carries at most one number, rounded for the ear ("about 4 minutes", "about 60%
 at the peak"): "about" is only for rounding a value you read, never for one you did not.
 
-1. **The story,** three or four sentences in time order, plain words. First what was affected and for how
-   long (UTC as returned), for how many (one population, labelled) and at what cost (the survey row's
-   `revenue_usd`, only when the row has it). Then what happened, in order: the change shipped (commit,
-   short SHA, 7 characters), the errors began, Dynatrace opened the problem, a later deploy after which
-   the problem stops (an inference, labelled as the data-only rule says), resolved. A scenario that is a
-   state, not a change, tells its state, what it does and what it blocks, in the order of the beats'
-   Objectives.
-2. **The timeline,** one line in a text block, built only from events the results hold:
+1. **The headline:** `### The incident in brief`.
+2. **The summary,** one bold line in plain words: what was affected, for how many (one population, labelled) and at
+   what cost (the survey row's `revenue_usd`, only when the row has it).
+3. **Four bullets,** each opening on its bold lead-in, one or two sentences:
+   - **Who felt it:** the affected population and for how long (UTC as returned).
+   - **What broke:** what the failing call does, in plain words. A scenario that is a state, not a change, tells
+     its state, what it does and what it blocks.
+   - **What happened, in order:** the change shipped (commit, short SHA, 7 characters), the errors began,
+     Dynatrace opened the problem, a later deploy after which the problem stops (an inference, labelled as the
+     data-only rule says), resolved.
+   - **Who owns it:** who owns the service, and who shipped the change when that is someone else.
+4. **The timeline,** one line in a text block, built only from events the results hold:
 
    ```text
    09:07 change c590ec ─ 09:07 first failure ─ 09:11 problem opened ─ 09:37 second change ─ 09:46 closed
    ```
 
-3. **Owner:** who owns the service, and who shipped the change when that is someone else.
-4. **What broke:** what the failing call does, in plain words.
 5. **The offer, exactly:** "I can show you how we know each of these, starting with [the first beat's
    subject, in plain words]."
 
@@ -104,31 +106,33 @@ stands in for no beat: it says the conclusion, and the steps are where it is est
 The first step opens on the scenario's `approach` (conversation-craft → "Say the approach before the
 first query"), so they know the shape, then takes beat 1.
 
-A turn has five parts, in this order:
+A turn has the same layout as an explore step (conversation-craft → "The shape of a beat turn"), with a closing
+line where explore has a choice. In this order:
 
-1. **The link back** — one clause tying this step to the last finding, so the walk reads as one
+1. **The headline** — `### ` and the step's subject, from its `Show` line.
+2. **The link back** — one sentence tying this step to the last finding, so the walk reads as one
    argument rather than a sequence of screens: "The median held while the tail ran away, so the
    question is what that container was waiting on." On the first turn this is the approach line
-   instead.
-2. **The evidence** — the beat's table. A time series is condensed to before, peak and after, plus the
-   onset row when it differs from "before", with the span said in words; the full series is one deep
-   link away.
-3. **What it means** — the beat's Reveal, and where the data stops.
-4. **The deep link.**
-5. **The closing line** (below).
+   instead, before the headline.
+3. **The finding and the evidence** — the finding as one bold line, then the beat's table. A time series is
+   condensed to before, peak and after, plus the onset row when it differs from "before", with the span said in
+   words; the full series is one deep link away.
+4. **What it means** — the beat's Reveal as 2–4 bullets with bold lead-ins, and where the data stops.
+5. **The deep link** — one markdown link, `[label](url)`.
+6. **The closing line** (below).
 
 **Never state a finding before the step that establishes it.** The temptation in this mode is to say
 where it ends up and then show the working; that is the shape this delivery used to have and it is
 what makes a walk feel like a recital. Each step knows only what the steps before it found.
 
 A peak moment keeps its Staging: the finding alone on its own line first, then the pause, then the
-explanation, then parts 2 to 5. A peak turn may run past 12 lines. A question or invitation at the end
-of the Staging is replaced by the closing line.
+explanation, then the rest of the layout. A peak turn may run past the word budget. A question or invitation at
+the end of the Staging is replaced by the closing line.
 
 Sessions with no country recorded are part of the count: "[T] sessions, [M] of them with no country
 recorded and the rest across [N] countries", never "plus [M]".
 
-Budget: 8–12 lines per turn, the deep link included.
+Budget: about 150 words per turn outside the table and the link.
 
 ## Closing lines
 

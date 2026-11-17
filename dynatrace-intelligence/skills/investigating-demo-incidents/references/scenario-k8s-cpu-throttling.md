@@ -106,6 +106,12 @@ fetch dt.davis.problems, from: now()-48h, to: now()
     queried_at = now(), elapsed_min = round(toDouble(now() - toTimestamp("{{SURVEY_AT}}")) / 60000000000, decimals: 0)
 ```
 
+**Show:** Headline "Who felt the slowdown and how far". Table: Field | Value, 5 rows (one fact per row: affected users
+with its population label, root cause, owning team, cluster, namespace). Finding: {affected_users} users hit for
+{duration}, response time {response} against a learned baseline of {baseline}. Bullets: Root cause service inside the
+namespace and cluster; Spread from the root cause out to the application; No owning team on record so it goes to the
+workload; A version change landed with it.
+
 **Reveal:** Lead with the users and the duration, not the row. Dynatrace classifies this as a slowdown —
 `description` carries the response time against the baseline it learned from this application's own normal
 behaviour; quote both and say which is which, because the comparison is the finding. Name `root_cause` as
@@ -149,6 +155,8 @@ fetch spans, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 | fields service, requests, p50_ms, p95_ms,
     queried_at = now(), elapsed_min = round(toDouble(now() - toTimestamp("{{SURVEY_AT}}")) / 60000000000, decimals: 0)
 ```
+
+**Show:** Headline "Which service is holding the time". Table: Service | Requests | Median (ms) | p95 (ms), 6 rows. Finding: {slowest service} p95 is {ratio} times the next service down, {p95_ms} against {next p95_ms}. Bullets: Slow rows far above an ordinary rest of the namespace; Median stays reasonable while p95 runs away; Identical figures on two names are the same requests.
 
 **Reveal:** Lead with the gap between the slowest service's `p95_ms` and the next one down — that ratio is the
 finding, not the row count. The slow rows sit far above the rest of the namespace, and the rest look ordinary,
@@ -194,6 +202,8 @@ timeseries { usage = avg(dt.kubernetes.container.cpu_usage),
 Four series on one window. `limit` and `requests` are the configured ceiling and the configured reservation;
 `usage` is what the container actually consumed; `throttled` is how much it was held back. Read each series'
 `min`, `max` and the time of each from the result, and say what the unit is only if the result names it.
+
+**Show:** Headline "Throttled while barely busy". Table: Series | Lowest | Highest | Highest at (UTC), 4 rows. Finding: {usage max} used against a {limit min} ceiling, and throttled {throttled max} anyway. Bullets: Limit drops then returns inside the window; Throttling rises and falls with the limit; Bursty demand exceeds each slice while the average stays low; Requests never moved so only the limit is in play.
 
 **Reveal:** Three things, in this order, and the third is the one that matters.
 
@@ -264,6 +274,11 @@ fetch events, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 
 One row per distinct change text; a single edit is recorded several times as the rollout replaces pods, which
 is what `events` counts.
+
+**Show:** Headline "What changed just before it started". Table: Workload | Change detail | Events | First seen (UTC) | Minutes before the problem (min), 2 rows. Finding: {change_before_problem_min} minutes before the problem started,
+{workload} had its limit changed as {detail}. Bullets: The change quoted verbatim with field container and values;
+Limits not requests so it throttles whatever the node load; Reduction then restore tell apart by value and timing;
+Version change rode along and why is the owning team's to say.
 
 **Reveal:** Lead with `change_before_problem_min`, the gap between the first change and the problem start.
 Quote `detail` verbatim — it names the field, the container and both values, and it is the platform's record
@@ -344,6 +359,8 @@ been working, say so rather than implying the notes are on it — the link opens
 annotated one — and put that in `Still open`. A label is a promise about what opens. The note's own section
 headings are `## Root Cause`, `## What Was Checked (No Issues Found)` and `## Solution`; each extract is the
 start of that section, so the text may run into the next heading — quote only as far as the sentence ends.
+
+**Show:** Headline "What the troubleshooting agent wrote". Table: Notes | Problems annotated | First note (UTC) | Last note (UTC), 1 row. Finding: The agent wrote {notes} notes on {on_problems} problems, the first {first_note} minutes after the problem opened. Bullets: Agent root cause quoted and checked against our own; What it ruled out; Its recommended configuration for the owning team to review; Which record the notes sit on.
 
 **Reveal:** The chain first: Dynatrace correlated the signals into these problems, triggered the agent with
 them, and the agent wrote back onto the same records `first_note` minutes after the problem opened. One place,

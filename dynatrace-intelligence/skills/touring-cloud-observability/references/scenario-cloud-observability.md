@@ -210,6 +210,8 @@ smartscapeNodes "*"
 
 `queried_at` is `{{SURVEY_AT}}` only when this is the first query of the conversation (see "Tokens").
 
+**Show:** Headline "Everything we run in the cloud". Table: Cloud | Resources | Resource types, 3 rows. Finding: {resources} resources across {cloud} and the other two clouds, the largest cloud's count first. Bullets: one query instead of three consoles; discovered through each provider's native integration; counts only, no health rating.
+
 **Reveal:** One row per cloud: AWS, Azure and Google Cloud, each with its resource count and the number of distinct
 resource types. State all three. These are discovered through each provider's native integration and kept current in
 Smartscape; this one query replaces opening three consoles. Say nothing about health here: this query counts resources,
@@ -252,6 +254,8 @@ smartscapeEdges "*"
 | filter source_id == toSmartscapeId("{{LAMBDA_FUNCTION_ID}}")
 | summarize related = collectDistinct(target_type), by: { relationship = type }
 ```
+
+**Show:** Headline "One function in full detail". Table: Setting | Value, 8-10 rows (name, region, runtime, memory (MB), timeout (s), last modified (UTC), stage, application, team, owner team tag, cost center). Finding: {name} runs {runtime} with {memory_mb} MB, last modified {last_modified} UTC. Bullets: live configuration read from the AWS API; ownership tags, stating both {team} and {owner_team_tag} when they differ; cloud relationships (IAM role, security group, VPC, subnet).
 
 **Reveal:** The function's live configuration (runtime, memory, timeout, when it was last modified) and its tags (stage,
 application, cost center), read from the AWS API. Two ownership tags are set: `team` and `owner_team_tag`. When they
@@ -324,6 +328,12 @@ fetch dt.davis.problems, from: now()-48h, to: now()
 
 The problem the AWS DevOps Agent annotated comes first; without one, the newest. `problem_id`, `tf_from_ms` and
 `tf_to_ms` fill the deep link.
+
+**Show:** Headline "What depends on this function". Table: Service | Requests (last 6 hours) | Failure rate (%) |
+Median (ms) | 95th percentile (ms), 1 row. Finding: {affected_users} affected users on the problem record
+{display_id}, root cause {root_cause} (with no problem in 48 hours, the finding is that the function had none).
+Bullets: service behaviour from its own traces, a window without failures read as clean; business impact through the
+{affected} list; root cause and {owning_team}; the AWS DevOps Agent's {agent_notes} on the same record.
 
 **Reveal:** The service's requests, failure rate and p50/p95 over 6 hours come straight from its traces — label them
 "requests in the last 6 hours". A window that holds no failures is a clean window, said as that, not as an absence of data: the incident has its own step. Every signal is correlated into one problem, not a pile of alerts: the problem card
@@ -420,6 +430,8 @@ EasyTrade problem. `change` is the Kubernetes spec-change event's own text; `age
 rarely "Recommended Fix", so the query prefers the first and falls back to the second; `agent_root_cause` is the start of the
 agent's note at its root-cause heading.
 
+**Show:** Headline "AI agents working the problem". Table: Agent | Problems (7 days) | Notes | Note types | Last note (UTC), 3 rows. Finding: the Staging line 1 text: {changed_workload}: {change in plain words}, {change_lead_min} minutes before {title} (with no change: {agent_problems} problems in 7 days with an agent's notes on them). Bullets: why full problem context lets an agent go from alert to cause; the agent's root cause, quoted and attributed; the proposed fix as a recommendation for {owning_team} to review; the three agents and what each writes.
+
 **Reveal:** First the agents: one row each, with the problems they wrote on in 7 days and their note types — the AWS
 DevOps Agent (investigation and mitigation, the one annotating the problem earlier in the tour if that step has run), the SRE Agent from Cloud SRE Agents (investigation, then a root
 cause with a verdict) and the Kubernetes troubleshooting agent ("Dynatrace AI Analysis"). They are triggered from the
@@ -514,6 +526,8 @@ go, so a 7-day fetch already holds every row of the last 30 days of charges and 
 fetch does. If the import ever stops for more than a week the query returns nothing and the showcase reads as
 unavailable — check the import first when that happens, rather than widening the window.
 
+**Show:** Headline "What the cloud bill says". Table: Category | Cost (USD), 4 rows (the top categories). Finding: {untagged_pct}% of the {total_usd} dollar bill (last 30 days of charges) has no owner, against a target of {target_usd} dollars (10% of the bill, labelled as the premise or working assumption). Bullets: the top categories with their dollars; the unowned share, {untagged_usd}, and what no team tag means; the largest line, its dollars and how much of it is untagged; that the bill shows size, not waste.
+
 **Reveal:** `total_usd` over the last 30 days of charges, and `target_usd` as the 10% the session started from, the Opening's
 premise or your assumption where none was stated, never a figure anyone set. The `top_categories`, with
 their dollars. `untagged_usd` and `untagged_pct`: that share of the bill carries no team tag, so nobody is asked to
@@ -600,6 +614,8 @@ fetch bizevents, from: now()-7d
 | summarize usd = round(sum(toDouble(focus.EffectiveCost)), decimals: 0), by: { team = coalesce(tags[dt_owner_team], "UNTAGGED") }
 | sort usd desc
 ```
+
+**Show:** Headline "Cost next to how busy". Table: Verdict | Databases | Cost, 30 days (USD) | Top databases shown, 3-4 rows. Finding: the Staging line 1 text: {db} - {cpu_avg_pct}% CPU, {free_mem_min_mb} MB free memory: idle on the bill, full in memory (with no such row: {dbs} databases, {usd_30d} dollars - no utilization data at all). Bullets: do not shrink the databases that are idle on CPU but short of memory; databases with no utilization data are monitored first, not cut; staging-named databases as a candidate for the owners to judge; the team split with the untagged line as spend with no owner.
 
 **Reveal:** The databases fall into verdicts. "low CPU, no memory headroom": live databases idle on CPU but with almost
 no free memory — a bill-only report would call them oversized, and shrinking them would take memory they do not have.
@@ -695,6 +711,11 @@ fetch dt.system.events, from: now()-7d
 ```
 
 Each execution writes more than one event; `state.is_final` keeps one per run.
+
+**Show:** Headline "Workflows that act on their own". Table: Workflow | Kind | Triggers | Runs (7 days) | Succeeded, 3
+rows. Finding: {runs} runs across the three workflows in 7 days, {succeeded} of them succeeded. Bullets: prevent, a
+volume resized before it fills; remediate, a Lambda failed over to a healthy region; optimize, a regular cost
+calculation that tells owners where to act; what the trigger types {triggers} mean.
 
 **Reveal:** One row per kind, over 7 days: runs, how many succeeded, what triggered them, the last run (UTC). State the
 totals and trigger types as returned: `Event` means the run started from an event, not a person; `Schedule` means it

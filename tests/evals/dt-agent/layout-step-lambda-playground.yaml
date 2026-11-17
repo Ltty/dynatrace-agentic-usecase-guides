@@ -1,0 +1,22 @@
+id: layout-step-lambda-playground
+tenant: playground
+runs: 3
+status: draft
+description: >-
+  DRAFT: the first two steps of the image permission denial, hands-on, have the step layout.
+turns:
+- ask: Why aren't the product images loading in the shop?
+- ask: Hands-on, I'll drive.
+  expect:
+    layout: step
+    requires_dql: true
+    reply_excludes:
+    - beat
+    - lambda-iam-denied
+- ask: next
+  expect:
+    layout: step
+    requires_dql: true
+    reply_excludes:
+    - beat
+    - lambda-iam-denied

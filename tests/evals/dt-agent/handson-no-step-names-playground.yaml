@@ -3,15 +3,17 @@ tenant: playground
 runs: 3
 status: draft
 description: >-
-  DRAFT: a hands-on walk never prints the scenario file's internal step labels. The image slowdown's second
-  step is headed "Beat 2 — The Deploy" in its file, and a user saw that heading in the reply. Each turn is
-  checked against the forbidden patterns (the word "beat", "step N of M") and for any numbered step label; the
-  step is named by its subject. Run it with --assist to cover the Assist path, where the agent prompt that
-  also forbids these words is not loaded.
+  DRAFT: a hands-on walk never prints the scenario file's internal step labels, and every step reply has the step
+  layout: a ### headline, a bounded length, short paragraphs and bullets, and labelled links. The image slowdown's
+  second step is headed "Beat 2 - The Deploy" in its file, and a user saw that heading in the reply. Each turn is
+  checked against the forbidden patterns (the word "beat", "step N of M") and for a numbered step label; the step
+  is named by its subject. Run it with --assist to cover the Assist path, where the agent prompt that also forbids
+  these words is not loaded.
 turns:
 - ask: Why are the product images slow?
 - ask: Hands-on, I'll drive.
   expect:
+    layout: step
     requires_dql: true
     reply_excludes:
     - beat
@@ -20,6 +22,7 @@ turns:
     - broken-images
 - ask: next
   expect:
+    layout: step
     requires_dql: true
     reply_excludes:
     - beat

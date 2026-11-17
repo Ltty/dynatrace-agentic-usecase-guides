@@ -121,26 +121,29 @@ and must come from the live result).
 
 **Agent** (after the query, before anything else is said):
 
+### Where the failure starts
+
+To know where to look first, we need the service the record blames.
+
+**Payment is where it starts: [N] people (problem record) could not pay.**
+
 | Field | Value |
 |---|---|
-| `root_cause` | astroshop-payment |
-| `affected_users` | [N] (problem record) |
-| `owning_team` | [owning_team] |
-| `also_affected` | astroshop-checkout, astroshop-frontend, … |
+| Root cause | astroshop-payment |
+| Owning team | [owning_team] |
+| Also affected | astroshop-checkout, astroshop-frontend, … |
 
-"Almost all of this is on payment — checkout is listed as affected, but payment is where it starts, and the record already names the owner: [owning_team]."
+- **Payment, not checkout:** checkout is listed as affected, but the failure begins in payment.
+- **The owner is on record:** [owning_team] — so we know who to ask.
 
-Problem in Dynatrace: [deep link]
+[The problem in Dynatrace]([deep link])
 
-"Two things stand on their own now: what changed on payment just before this, or what the failing requests actually return. I'd take the change — it dates the start. Which one, or say next and I'll take it."
-
-**Wrong:** that table, then "What's your read — payment or checkout?" — a quiz; the read comes first.
+**Next:** a) what changed on payment just before this, or b) what the failing requests return. I'd take (a): it dates the start. Say a, b or next.
 
 ## Check before sending
 
 - [ ] Every value comes from a current result or session state, labelled with its population.
-- [ ] The turn says why this step, what the evidence means, and what follows and **why it follows** — then stops narrating: stamp, deep link, and the ending last, with nothing after it. Exceptions: a clean-environment reply ends after its single line, a survey reply ends on its one question, and a walk-through step ends on its closing line and cue.
+- [ ] The reply has a headline, why this step, the finding, the table, 2–4 bullets, one labelled link and one **Next:** block that says what follows and **why it follows**, with nothing after it. Exceptions: a clean-environment reply ends after its single line, a survey reply ends on its one question, and a walk-through step ends on its closing line and cue.
 - [ ] One status line before **every** turn's query, never two, no tool call after the narration, no text between tool calls.
 - [ ] A survey names only scenarios that returned a problem.
-- [ ] Peak-moment beats follow their `staging`.
-- [ ] In character, within the length budget (conversation-craft → "Response length rules").
+- [ ] Peak-moment beats follow their `staging`. In character, within the length budget (conversation-craft → "Response length rules").

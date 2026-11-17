@@ -83,7 +83,7 @@ probe run when the cost track starts. The opening itself carries no figures.
     figure as the goal, yours as what the evidence reached, and the difference in "Still open".
     Never quietly replace theirs with yours.
 - **One delivery: a presentation.** A showcase is never walked through and never asks which way to run it. It is
-  always the step-by-step guide, with a call to action after every step. Nothing reads `delivery` for a showcase,
+  always the step-by-step guide, with a call to action after every step (the **Next:** line, `tour-register.md`). Nothing reads `delivery` for a showcase,
   and the incidents skill's `walk-through.md` does not apply to one. The user steers by asking, as they always can; they are
   not asked to choose a format first.
 - **No `problem_state`.** Its remaining tokens come from its own beats (the scenario file → "Tokens"): beat 3's
