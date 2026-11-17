@@ -2,7 +2,7 @@
 
 Which live scenarios an open app can offer. An app offers a scenario when the app is where part of that story is
 shown: the scenario's own deep links open it, or what the app shows is the evidence. A scenario is offered only when
-the opening query returned a row for it on this environment (SKILL.md, step 4).
+the opening query returned a row for it on this environment (SKILL.md, step 2).
 
 | Open app | Scenarios offered |
 |---|---|
