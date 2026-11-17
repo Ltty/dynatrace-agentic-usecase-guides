@@ -24,6 +24,7 @@ turns:
     - pay
     reply_excludes:
     - broken-images
+    - We'd look at
     - payment-failure
     - playground
     - I recommend

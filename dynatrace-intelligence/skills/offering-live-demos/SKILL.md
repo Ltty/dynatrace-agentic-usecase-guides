@@ -43,18 +43,22 @@ Example questions this skill handles:
    ```text
    ### Try a live demo
 
-   I can give you a demonstration based on an actual problem in this environment. <the problem>
+   I can give you a demonstration based on an actual problem in this environment. <the problem> We'd look at <the route>.
 
    Want me to walk you through it?
    ```
 
    - `<the problem>` is the scenario's discovery hook from `session-protocol.md` ("Discovery hooks"), its first
-     sentence only: the facts and framing, the tense from the row's `problem_state`. Never the hook's route (the
-     closing clause the survey adds), never a cost, and never a figure the hook does not carry.
+     sentence only: the facts and framing, the tense from the row's `problem_state`. Never a cost, and never a
+     figure the hook does not carry.
+   - `<the route>` is that scenario's Route column, in its own words, as its own sentence: what the demo is about, so
+     the user sees what they are agreeing to. Never fold it into the hook's sentence with a dash. It names the subject,
+     never a finding or a cause.
    - The cloud tour has no hook, so its block is the same headline, then "I can give you a demonstration based on this
      environment's real cloud data: how to bring the cloud bill down." and the question "Want me to show you?" No figures.
 6. **Several matches:** the same block, with the introduction followed by "There are N to choose from:" and each
-   named in plain words from its hook, then the question "Which one would you like me to walk you through?" Rank
+   named in plain words from its hook, with no route (the hooks tell the options apart), then the question
+   "Which one would you like me to walk you through?" Rank
    nothing and recommend nothing: which one to look at is the user's choice.
 7. **On a yes, or on naming one of them:** hand over, with no query of your own. An incident: read
    `/resources/documents/skills/investigating-demo-incidents/SKILL.md` and continue from its "Classify the opening" as a
