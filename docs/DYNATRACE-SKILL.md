@@ -48,7 +48,7 @@ These are the app format's rules. `python tools/dt_agent.py check` enforces them
   missing, not a scope or a document problem — the documents upload fine beside it, and `status`
   reports the closed API as a line rather than failing. Deploying the skill and deploying the agent
   are therefore independent on prod, and the skill half needs no `ai:` scope at all.
-  **State (2026-11-17):** the 16 documents of the three skills are deployed there, user-owned, and match the repo
+  **State (2026-11-17, disk scenario removed):** the 15 documents of the three skills are deployed there, user-owned, and match the repo
   (`docs` reports 14 unchanged); the old `/skills/investigating-playground-incidents/` set was deleted. To
   redeploy after a skill change: `python tools/dt_agent.py --tenant https://guu84124.apps.dynatrace.com docs`,
   then `--apply` after approval. The token is a user-level variable like the dev one, and it also carries
@@ -116,7 +116,7 @@ The route is the `dynatrace.use.case.guides` app (see "Dev and production routes
 
 1. **Get three answers first** (ask in `#help-dti-agentic-ai`): is the app eligible to ship AI skills (the guide limits it to Dynatrace-internal apps) and does its ID need to be allowlisted; when does the Playground get the `@`-mention flag; can apps ship agent templates yet?
 2. **Copy the skill into the app repo:** `python tools/dt_agent.py pack --out <app-repo>`, review the dry run, then `--apply`, run Prettier there (above), and open a PR in the app repo. `pack --check` later flags drift. Git Credential Manager is not SSO-authorized for `dynatrace-apps`; push with `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push`.
-3. **`dt-app deploy --dry-run`** in the app repo must list the 16 skill documents (3 `SKILL.md`, 13 references) as `ai-agent-resource`. Fix any validation error it names.
+3. **`dt-app deploy --dry-run`** in the app repo must list the 15 skill documents (3 `SKILL.md`, 12 references) as `ai-agent-resource`. Fix any validation error it names.
 4. **Deploy the app to dev first** and look for documents with `originAppId = dynatrace.use.case.guides`. Delete the user-owned dev copies beforehand (needs explicit approval): the mount filter matches by name and would see both sets. Then run `python tools/run_dt_evals.py --tenant dev`.
 5. **Release the app to the Playground** through the app's own pipeline. Documents appear within 5 minutes.
 6. **Create the agent there:** `python tools/dt_agent.py --tenant https://playground.apps.dynatrace.com --token-var DT_PLAYGROUND_AGENT_TOKEN template`, then `--apply` after approval. Needs the token below, write access and the feature flag.
