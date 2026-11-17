@@ -269,26 +269,24 @@ read correct even while the problem is open. Polled every minute through a full 
 
 **Show:** Headline "What the role allows today". Table: Role | Role ARN | Policy | DynamoDB grant, 3-6 rows. Finding: whether the {Resource} in the DynamoDB policy matches the ARN the exception named, stated first, then the {Action} it allows. Bullets: the role matches the identity in the exception; the inline policies, one per thing the function touches; the grant against the refused ARN and what that implies about timing.
 
-**Reveal:** The role in the result is the one the exception named — say so by matching `role_arn` to the
-identity in beat 3's message. List the policy names so the shape is visible: an inline policy is a grant
-attached to this role and nothing else, and there is one per thing the function touches, each scoped to its
-own resources. Then the DynamoDB one: read its `Action` and its `Resource` out of `document`, and hold the
-`Resource` next to the ARN the exception quoted.
+**Reveal:** The role in the result is the one the exception named: say so by matching `role_arn` to the identity in the
+exception's message. Then:
 
-Normally **they match**, and that is the finding rather than a disappointment. The grant allows exactly the
-action on exactly the table the exception says was refused — so the configuration that is running now is not
-the configuration that was running then. Taken with beat 3 that settles something a single query could not:
-the permission was changed and changed back, which is why the failures start and stop instead of persisting.
-It also says where the rest of the answer is not — not in the current configuration — which is what beats 5
-and 6 go after.
-
-If `Resource` and the exception's ARN ever **do** differ, state both strings exactly as returned and let the
-difference be the finding; an ARN ending `/*` addresses the things *under* a table rather than the table, so
-a grant written that way allows nothing on the table itself. Do not expect this, and never describe a `/*`,
-or any other difference, that the returned `document` does not contain.
-
-`primary_tags` and `tags:aws` on the function carry owner tags of their own. When the user asks who owns it
-and those differ from beat 1's `owning_team`, state both as returned; which one is right is the owners' call.
+- **The policies:** list their names so the shape is visible. An inline policy is a grant attached to this role and
+  nothing else, one per thing the function touches, each scoped to its own resources.
+- **The DynamoDB grant:** read its `Action` and `Resource` out of `document`, and hold the `Resource` next to the ARN
+  the exception quoted.
+- **When they match** (the normal case, and the finding rather than a disappointment): the grant allows exactly the
+  action on exactly the table the exception says was refused, so the configuration running now is not the one that
+  was running then. With the exception that settles what one query could not: the permission was changed and changed
+  back, which is why the failures start and stop instead of persisting. The rest of the answer is not in the current
+  configuration, which is what the deploy and the agent's notes go after.
+- **If they ever differ:** state both strings exactly as returned and let the difference be the finding. An ARN
+  ending `/*` addresses the things under a table rather than the table, so a grant written that way allows nothing
+  on the table itself. Never describe a `/*`, or any difference, that the returned `document` does not contain.
+- **Owner tags:** `primary_tags` and `tags:aws` on the function carry owner tags of their own. When the user asks who
+  owns it and those differ from the problem record's `owning_team`, state both as returned; which one is right is
+  the owners' call.
 
 **Success signal:** User asks what changed the policy, or when it changed.
 
@@ -394,33 +392,32 @@ fetch events, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 The notes attach to several records of the same cluster, which is why `on_problems` can exceed one and why
 the lookup matches on the root cause rather than on `{{PROBLEM_ID}}` alone.
 
-**Show:** Headline "What the AWS agent found". Table: Kind | Summary available | Notes | Last note (UTC) | Task, 1-2 rows. Finding: the {notes} count of notes the agent wrote onto this problem comes first, then how many minutes after the start the last one landed. Bullets: the hand-off chain from Dynatrace to the agent and back; the agent's own summary, or the task id when none reached Dynatrace; a recommendation for the owning team, not a change made.
+**Show:** Headline "What the AWS agent found". Table: Kind | Summary available | Notes | Last note (UTC) | Task, 1-2
+rows. Finding: the {notes} count of notes the agent wrote onto this problem comes first, then how many minutes after
+the start the last one landed. Bullets: the hand-off chain from Dynatrace to the agent and back; the agent's own
+summary, or the task id when none reached Dynatrace; a recommendation for the owning team, not a change made. Quote
+one sentence at a time, give the proposed value, and show the YAML only when asked.
 
-**Reveal:** The agent wrote `notes` notes in two kinds — an investigation and a mitigation — onto this
-incident's records, `last_at` minutes after it started. State what that chain is: Dynatrace saw it, named the
-root cause, and handed the agent the context; the agent worked the AWS side, where CloudTrail and the deploy
-history are, and wrote back here. One problem record, every investigation on it, and from here it can go on to
-a ticket or a coding agent with the evidence attached.
+**Reveal:** The agent wrote `notes` notes in two kinds (an investigation and a mitigation) onto this incident's
+records, `last_at` minutes after it started. Say which of these applies:
 
-- **`has_summary` is true** — quote `summary` as the agent's own words, attributed to it, and say plainly it
-  is a recommendation for the owning team to review, not a change anyone has made. If it names a deploy, a
-  repository or a time, those are the agent's findings from AWS, not Dynatrace's: attribute them that way.
-- **`has_summary` is false** — the agent finished, but the summary never reached Dynatrace. The event says so
-  itself in `aws_devopsagent.response_type` (`investigation_summary_unavailable` /
-  `mitigation_summary_unavailable`) and its description is a placeholder, so there is no wording to quote and
-  no other field holds it. Say exactly that, say how many notes there are and when, and **name the task**:
-  `task_id` in the agent space `agent_space` is where the findings are. A task id the user can paste is worth
-  more than "open the task in the AWS DevOps Agent space". Never infer what the note said from beats 3, 4
-  and 5, and **do not say it recommended anything** — "it investigated and recommended" claims a
-  recommendation whose text no result returned. It finished; what it concluded is in the task.
-
-  This is an upstream integration fault on the tenant, not a gap in the scenario: readable and unavailable
-  notes alternate in runs of days (`docs/scenarios/lambda-iam-denied.md`). Never apologise for it or explain
-  the integration to the user — report what the record holds and hand over the task.
-- **No rows at all** — nothing has been written on this record yet. On a problem that is still open that is
-  what it sounds like: the agent is triggered by the problem and takes minutes, so early in an incident there
-  is nothing to read. Say that, and say the beats before this one already name the root cause and the
-  deploy without it.
+- **The chain:** Dynatrace saw it, named the root cause and handed the agent the context; the agent worked the AWS
+  side, where CloudTrail and the deploy history are, and wrote back here. One problem record carries every
+  investigation on it, and from here it can go to a ticket or a coding agent with the evidence attached.
+- **If `has_summary` is true:** quote `summary` as the agent's own words, attributed to it, as a recommendation for
+  the owning team to review and not a change anyone has made. A deploy, repository or time it names is the agent's
+  finding from AWS, not Dynatrace's: attribute it that way.
+- **If `has_summary` is false:** the agent finished but the summary never reached Dynatrace (`response_type` in
+  `aws_devopsagent` says `investigation_summary_unavailable` or `mitigation_summary_unavailable`, and the
+  description is a placeholder). Say exactly that, how many notes there are and when, and **name the task**:
+  `task_id` in the agent space `agent_space` is where the findings are, and an id the user can paste is worth more
+  than "open the task in the AWS DevOps Agent space". Never infer what the note said from the earlier steps, and do
+  not say it recommended anything: no result returned that text.
+- **Why that happens:** an upstream integration fault on the tenant, not a gap in the scenario (readable and
+  unavailable notes alternate in runs of days; `docs/scenarios/lambda-iam-denied.md`). Never apologise for it or
+  explain the integration: report what the record holds and hand over the task.
+- **If there are no rows:** nothing has been written yet. On a problem still open that is what it sounds like, since
+  the agent takes minutes. Say so, and that the steps before this one already name the root cause and the deploy.
 
 **Objection** — "so it fixed it?": no. The agent investigated and recommended; the role is still whatever
 the grant reads as now, and the commits the platform recorded, are not anything the agent did — name either only where that step has run. Everything an agent does here is written down and attributed, with a human deciding whether

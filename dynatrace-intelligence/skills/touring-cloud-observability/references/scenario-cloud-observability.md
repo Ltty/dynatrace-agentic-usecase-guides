@@ -666,11 +666,11 @@ over what that track gave. This block is also what the local report's `evidence`
 produced reports with one link where the incidents carried three to five.
 
    **These are findings, not a forecast.** The block says where the money is and where the evidence is
-   thinnest — the best places to look first. It never says what any of them would save. Say that in the
-   line after the block, in your own words.
+   thinnest — the best places to look first. It never says what any of them would save. Say that as the first bullet
+   under `### Where that leaves us` (`tour-protocol.md` → the close), in your own words.
 
    A row without a source is left out. These come from an analysis, so each owner reviews an item before
-   applying it: say that once, in the line after the block.
+   applying it: say that once, in that bullet.
 
    **No per-item saving exists, and none is to be estimated.** Users ask for one — twice in testrun 16 —
    and no result holds it: a saving is what happens after an owner acts and the next bill arrives. Say

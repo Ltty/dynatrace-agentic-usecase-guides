@@ -102,3 +102,11 @@ probe run when the cost track starts. The opening itself carries no figures.
     far, and here is what stands between us and the rest" is a complete answer, and the honest one when the lines are small.
   The way out offers what is left *inside the scenario*: the other track, the "Extra" (the workflows that prevent,
   remediate and optimize), a beat the user skipped, or a view from its "Other views" table.
+
+  **The layout of the close** is the incidents skill's (`session-protocol.md` → "Session close"): the last step's own
+  reply, then `### What we hand over` with the findings block, then `### Where that leaves us` with two or three
+  bullets and nothing else, then the way out as one line. After `cost` the bullets are **Findings, not a forecast**
+  (where the money is and where the evidence is thinnest; no saving per item; each owner reviews an item before
+  applying it), **How far the data gets** (the answer to what you opened with, both halves when the tour opened on its
+  premise) and, if it is not the way-out line itself, **What is left**. After `estate` it is one bullet, **What we
+  saw**, holding the payoff sentence. No paragraph over three sentences.

@@ -139,6 +139,40 @@ def test_layout_counts_what_it_means_bullets_but_not_the_options():
     assert any("bullets, expected" in f for f in layout_fails(five))
 
 
+CLOSE = STEP + """
+### What we hand over
+
+```text
+Incident handoff - P-1
+Goes to:  the owning team
+```
+
+### How it came together
+
+- **04:01 UTC:** the commit landed.
+- **04:04 UTC:** the problem opened.
+
+From the first look to the full picture in 6 minutes: the change, the exact error and the sessions.
+
+Which would you rather dig into next: the sessions or the cloud bill?
+"""
+
+
+def test_a_close_layout_needs_both_headlines_and_counts_the_handoff_block_as_code():
+    with_step = {"layout": "close", "min_headlines": 3}
+    assert ev.check_layout(CLOSE, with_step) == []
+    one = CLOSE.replace("### What we hand over", "What we hand over")
+    assert any("headlines" in f for f in ev.check_layout(one, with_step))
+    padded = CLOSE + chr(10) + "word " * 400
+    assert any("words from the headline" in f for f in ev.check_layout(padded, {"layout": "close"}))
+
+
+def test_the_handoff_block_keeps_raw_links_inside_its_code_block():
+    block = chr(10) + "```text" + chr(10) + "Evidence: https://example.com/a?b=1" + chr(10) + "```" + chr(10)
+    assert not any("bare URL" in f for f in layout_fails(STEP + block))
+    assert any("bare URL" in f for f in layout_fails(STEP + chr(10) + "See https://example.com/a"))
+
+
 def test_layout_checks_are_opt_in():
     assert ev.check_layout("no headline and a bare http://x.y link, " + "w " * 500, {}) == []
     assert ev.check_layout("no headline", {"headline": True}) != []
@@ -301,7 +335,7 @@ def test_case_files_are_well_formed():
              "reply_excludes_quoted",
              "max_progress_lines", "progress_equals", "max_dql_calls",
              "layout", "headline", "max_words", "max_paragraph_sentences", "max_bullet_sentences", "bullets",
-             "labelled_links"}
+             "labelled_links", "min_headlines"}
     ids = [c["id"] for c in cases]
     assert len(ids) == len(set(ids)), "duplicate case ids"
     for case in cases:

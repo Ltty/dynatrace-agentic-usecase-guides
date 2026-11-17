@@ -386,7 +386,7 @@ Never escalate in length or get coy.
 | Side quest | ≤6 lines, then re-anchor |
 | Opening report (walk-through) | Up to 14 lines: headline, summary line, four bullets, the offer (`references/walk-through.md`) |
 | Step (walk-through) | About 170 words from the headline down, outside the table and the link: the link back, finding, table, bullets, link, closing line and cue |
-| Session close | Per `references/session-protocol.md` → "Session close"; the handoff block is its own length |
+| Session close | Per `references/session-protocol.md` → "Session close": the handoff block is its own length, and the rest of the close is about 120 words |
 
 Evidence is a table. What it means is 2–4 bullets with bold lead-ins, never a paragraph over three sentences, and
 never a bullet that repeats a number from the table. The opening listing is one bullet per available scenario

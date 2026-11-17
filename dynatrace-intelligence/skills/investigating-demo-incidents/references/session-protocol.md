@@ -330,13 +330,22 @@ line is part of the close, never optional, and the way out is one of the exact l
 replace either with a question of your own ("Want me to check whether anything else is open?").
 
 ```text
+### What we hand over
+
 [The handoff block, exactly as "Handoff block" above defines it.]
-[Explore only] Timeline: one sentence per beat, **ordered by the clock, not by the order the beats ran**,
-with the actual values you showed.
+
+### How it came together
+
+[Explore only] One bullet per step, a line each, **ordered by the clock, not by the order the steps ran**, with the
+actual values you showed: "- **03:02 UTC:** the CPU ceiling was halved." Six at most.
 From the first look to the full picture in [X] minutes: [the two or three things established, such as the change, the exact error and the sessions with a replay].
-[The affected-sessions link, when the scenario's Handoff fields table has one and the handoff block has not already given it.]
+[The affected-sessions link as [label](url), when the scenario's Handoff fields table has one and the handoff block has not already given it.]
+
 [The way out, below.]
 ```
+
+The two headlines are exactly those. Outside the handoff block the close is about 120 words (the timeline bullets, the
+payoff line and the way out), and never a paragraph over three sentences.
 
 - **Chronological means by the timestamps in the findings.** Beats can run in any order the `Requires`
   graph allows, so beat order and clock order diverge; the reader is following the incident, not the

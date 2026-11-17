@@ -99,6 +99,11 @@ def norm(text: str) -> str:
 # The layout of a step reply (conversation-craft.md -> "The shape of a beat turn"): checked only where a case asks.
 STEP_LAYOUT = {"headline": True, "max_words": 220, "max_paragraph_sentences": 3, "max_bullet_sentences": 3,
                "bullets": [2, 4], "max_table_rows": 6, "labelled_links": True}
+# The last reply of a session: the step, then "What we hand over" and "How it came together" (session-protocol.md ->
+# "Session close"). The handoff block is a code block, so it is not counted; the recap is about 120 words.
+CLOSE_LAYOUT = {**STEP_LAYOUT, "max_words": 340, "bullets": [0, 10], "min_headlines": 2}
+LAYOUTS = {"step": STEP_LAYOUT, "close": CLOSE_LAYOUT}
+LAYOUT_KEYS = set(CLOSE_LAYOUT)
 LINK_RE = re.compile(r"\[[^\]]*\]\([^)]*\)")
 SENTENCE_END_RE = re.compile(r"[.!?](?=\s|$)")
 OPTION_BULLET_RE = re.compile(r"^\s*[-*]\s+\*\*[a-c]\)")
@@ -120,6 +125,17 @@ def prose_lines(reply: str) -> list[str]:
     return lines
 
 
+def strip_code(reply: str) -> str:
+    """The reply without fenced code blocks: the handoff block keeps its links raw, on their own labelled lines."""
+    out, in_code = [], False
+    for line in reply.splitlines():
+        if line.strip().startswith("```"):
+            in_code = not in_code
+        elif not in_code:
+            out.append(line)
+    return chr(10).join(out)
+
+
 def count_sentences(text: str) -> int:
     return len(SENTENCE_END_RE.findall(text)) or (1 if text.strip() else 0)
 
@@ -127,11 +143,15 @@ def count_sentences(text: str) -> int:
 def check_layout(reply: str, expect: dict) -> list[str]:
     """The step layout assertions: headline, word budget, sentence limits, bullets, and labelled links."""
     fails: list[str] = []
-    spec = {**STEP_LAYOUT, **{k: v for k, v in expect.items() if k in STEP_LAYOUT}} if expect.get("layout") == "step" \
-        else {k: expect[k] for k in STEP_LAYOUT if k in expect}
+    base = LAYOUTS.get(expect.get("layout"), {})
+    spec = {**base, **{k: v for k, v in expect.items() if k in LAYOUT_KEYS}}
     lines = prose_lines(reply)
+    if "min_headlines" in spec:
+        headlines = sum(1 for l in reply.splitlines() if l.startswith("### "))
+        if headlines < spec["min_headlines"]:
+            fails.append(f"{headlines} headlines, expected at least {spec['min_headlines']}")
     if spec.get("headline"):
-        first = [l.strip() for l in reply.splitlines() if l.strip()][:3]
+        first = [l.strip() for l in reply.splitlines() if l.strip()][:5]
         if not any(l.startswith("### ") for l in first):
             fails.append(f"no ### headline in the first lines: {first[:1]}")
     if "max_words" in spec:
@@ -166,7 +186,7 @@ def check_layout(reply: str, expect: dict) -> list[str]:
         low, high = spec["bullets"]
         if not low <= len(bullets) <= high:
             fails.append(f"{len(bullets)} bullets, expected {low}-{high}")
-    if spec.get("labelled_links") and re.search(r"https?://", LINK_RE.sub("", reply)):
+    if spec.get("labelled_links") and re.search(r"https?://", LINK_RE.sub("", strip_code(reply))):
         fails.append("a bare URL: every link must be a [label](url) markdown link")
     return fails
 

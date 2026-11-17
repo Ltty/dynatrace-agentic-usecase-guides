@@ -1,0 +1,26 @@
+id: layout-close-k8s-playground
+tenant: playground
+runs: 3
+status: draft
+description: >-
+  DRAFT: an incident's close, asked for after the first step with "package it up". The reply is the handoff under
+  "What we hand over" and the recap under "How it came together": the timeline as short bullets in clock order, the
+  one-line payoff, and the way out. No paragraph over three sentences, no bare URL, no machinery words.
+turns:
+- ask: Why is EasyTrade slow?
+- ask: Hands-on, I'll drive.
+  expect:
+    layout: step
+    requires_dql: true
+- ask: Package it up for the owning team.
+  expect:
+    layout: close
+    reply_contains:
+    - What we hand over
+    - How it came together
+    reply_contains_any:
+    - From the first look to the full picture
+    - The full picture
+    reply_excludes:
+    - beat
+    - k8s-cpu-throttling

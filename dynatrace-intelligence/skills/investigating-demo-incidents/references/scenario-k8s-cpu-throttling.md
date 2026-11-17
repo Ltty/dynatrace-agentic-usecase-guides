@@ -360,31 +360,31 @@ annotated one — and put that in `Still open`. A label is a promise about what 
 headings are `## Root Cause`, `## What Was Checked (No Issues Found)` and `## Solution`; each extract is the
 start of that section, so the text may run into the next heading — quote only as far as the sentence ends.
 
-**Show:** Headline "What the troubleshooting agent wrote". Table: Notes | Problems annotated | First note (UTC) | Last note (UTC), 1 row. Finding: The agent wrote {notes} notes on {on_problems} problems, the first {first_note} minutes after the problem opened. Bullets: Agent root cause quoted and checked against our own; What it ruled out; Its recommended configuration for the owning team to review; Which record the notes sit on.
+**Show:** Headline "What the troubleshooting agent wrote". Table: Notes | Problems annotated | First note (UTC) | Last
+note (UTC), 1 row. Finding: The agent wrote {notes} notes on {on_problems} problems, the first {first_note} minutes
+after the problem opened. Bullets: Agent root cause quoted and checked against our own; What it ruled out; Its
+recommended configuration for the owning team to review; Which record the notes sit on. Quote one sentence at a time,
+give the proposed value, and show the YAML only when asked.
 
-**Reveal:** The chain first: Dynatrace correlated the signals into these problems, triggered the agent with
-them, and the agent wrote back onto the same records `first_note` minutes after the problem opened. One place,
-every investigation on it, and from there it can go to a ticket or a coding agent with the evidence attached.
+**Reveal:** One sentence on the chain, then the agent's own words, attributed to it and quoted, never paraphrased
+into our own read:
 
-Then the agent's own words, attributed to it and quoted, never paraphrased into our own read:
-
-- `agent_root_cause` — compare it against what beats 3 and 4 already established. When it agrees, say so
-  plainly: the agent reached the same conclusion from the same platform data, which is what makes it
+- **The chain:** Dynatrace correlated the signals into these problems, triggered the agent with them, and the agent
+  wrote back onto the same records `first_note` minutes after the problem opened. Every investigation is in one
+  place, and from there it can go to a ticket or a coding agent with the evidence attached.
+- **`agent_root_cause`:** compare it with what the CPU numbers and the spec change already established. When it
+  agrees, say so plainly: the agent reached the same conclusion from the same platform data, which makes it
   checkable rather than something to take on trust.
-- `agent_ruled_out` — the negative findings, and they are worth as much as the positive one. An engineer at
-  three in the morning would have spent that time themselves.
-- `agent_solution` — a concrete configuration, often with the YAML. State it as the agent's recommendation
-  for the owning team to review, never as something applied. Where it proposes a value, say the value and that
-  the right ceiling is set from usage over time, not from one incident.
-
-Where the agent's figures differ from ours — a different average, a different baseline — state both and say
-they are different measurements of the same window, not a contradiction to resolve. Our numbers came from
-beats 2 and 3; never replace one with the other.
-
-An empty `agent_root_cause`, `agent_solution` or `agent_ruled_out` means the note carried no such section: say
-that, and never fill it from the beats. No rows at all means nothing has been written on this record yet —
-on a problem that is still open that is what it sounds like, since the agent is triggered by the problem and
-takes minutes.
+- **`agent_ruled_out`:** the negative findings are worth as much as the positive one: an engineer at three in the
+  morning would have spent that time themselves.
+- **`agent_solution`:** a concrete configuration, often with the YAML. State it as the agent's recommendation for the
+  owning team to review, never as applied. Where it proposes a value, say the value and that the right ceiling is
+  set from usage over time, not from one incident.
+- **Different figures:** where the agent's differ from ours (another average, another baseline), state both and say
+  they are different measurements of the same window, not a contradiction to resolve. Never replace ours with its.
+- **Gaps:** an empty `agent_root_cause`, `agent_solution` or `agent_ruled_out` means the note carried no such
+  section: say that, and never fill it from the earlier steps. No rows at all means nothing is written yet; on a
+  problem still open that is what it sounds like, since the agent takes minutes.
 
 **Objection** — "so it fixed it?": no. The agent investigated and recommended; the restored ceiling, where that step has run, is what was changed
 back is the platform's record of a deployment, not the agent acting. Every step it took is written down and
