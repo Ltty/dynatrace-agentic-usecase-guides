@@ -318,7 +318,10 @@ Still open:     [what the data does not show]
   new turn, and not only when asked. Check the set, not the number: a session that ran 5, 6, 1, 2, 3, 4
   is complete at the end of 4, and the close belongs in that turn.
 - *Walk-through:* in the same response as the last step.
-- *Either delivery, on request:* the handoff block, then the rest of the template below (without the timeline line, unless it is an explore session).
+- *Either delivery, on request, with steps still to run:* `### What we hand over` and the handoff block, then one
+  **Next:** line naming the step that would fill the block's most important "Still open" row, and why, or that this
+  is enough if they want it as it stands. Never the recap or the "full picture" line: the picture is not full yet.
+- *Either delivery, on request after the last step:* the full close below.
 
 **Both deliveries close with the handoff block, always.** It is the point of the whole session — the
 owning team, and what we hand them — so it is printed in the console whether or not anyone asked, and it

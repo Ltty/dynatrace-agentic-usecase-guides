@@ -1,0 +1,30 @@
+id: layout-walk-steps-playground
+tenant: playground
+runs: 3
+status: draft
+description: >-
+  DRAFT: a walk-through, past its opening report. The first two steps have the step layout, end on a closing line
+  that gives a reason plus a short statement cue (never a question and never a list of options), and say nothing
+  about beats or step numbers. The steps show results the opening report already pulled, so they run no query.
+turns:
+- ask: Walk me through the card payment failure.
+  expect:
+    headline: true
+    requires_dql: true
+    reply_excludes:
+    - beat
+    - payment-failure
+- ask: yes
+  expect:
+    layout: step
+    reply_excludes:
+    - beat
+    - 'a) '
+    - Shall I continue
+- ask: next
+  expect:
+    layout: step
+    reply_excludes:
+    - beat
+    - 'a) '
+    - Shall I continue

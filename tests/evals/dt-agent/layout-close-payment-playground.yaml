@@ -1,0 +1,26 @@
+id: layout-close-payment-playground
+tenant: playground
+runs: 3
+status: draft
+description: >-
+  DRAFT: an incident's handoff, asked for after the first step with "package it up". The reply is `### What we hand
+  over` with the handoff block, then one Next line naming the step that would fill its most important "Still open"
+  row. No recap and no "full picture" line: the picture is not full until the last step has run. The full close
+  (with "How it came together") is covered by the cloud tour case.
+turns:
+- ask: Why are card payments failing?
+- ask: Hands-on, I'll drive.
+  expect:
+    layout: step
+    requires_dql: true
+- ask: Package it up for the owning team.
+  expect:
+    layout: close
+    min_headlines: 1
+    reply_contains:
+    - What we hand over
+    - 'Next:'
+    reply_excludes:
+    - How it came together
+    - full picture
+    - beat
