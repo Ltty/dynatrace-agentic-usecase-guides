@@ -51,10 +51,10 @@ The cloud tour and the Kubernetes tour are showcases, not incidents, and live in
 | `payment-failure` | [references/scenario-payment-failure.md](references/scenario-payment-failure.md) | payment, checkout, transaction failures |
 | `broken-images` | [references/scenario-broken-images.md](references/scenario-broken-images.md) | slow or missing product images, image service, Lambda, slowdowns |
 | `lambda-iam-denied` | [references/scenario-lambda-iam-denied.md](references/scenario-lambda-iam-denied.md) | access denied, permissions, IAM policy or role, DynamoDB, a Lambda erroring outright, the AWS DevOps Agent on a problem |
-| `k8s-cpu-throttling` | [references/scenario-k8s-cpu-throttling.md](references/scenario-k8s-cpu-throttling.md) | Kubernetes workload slowdowns, CPU throttling, limits and requests, rightsizing a workload, a deployment spec change, the Kubernetes troubleshooting agent |
+| `k8s-cpu-throttling` | [references/scenario-k8s-cpu-throttling.md](references/scenario-k8s-cpu-throttling.md) | Kubernetes workload slowdowns, CPU throttling, a deployment spec change, the Kubernetes troubleshooting agent (a workload's sizing, limits or requests is the Kubernetes tour) |
 
 The tours (`cloud-observability`, `kubernetes-complexity`; presentations) are the separate skill `touring-demo-showcases`: the user
-picking one, asking about cloud costs, or asking which workloads are over- or under-provisioned or whether a cloud alert is
+picking one, asking about cloud costs, or asking which workloads are over- or under-provisioned, why a workload keeps having problems against its limits, or whether a cloud alert is
 the cluster, is a reason to read `/resources/documents/skills/touring-demo-showcases/SKILL.md` and follow it from its first line.
 
 One opening query finds what is live here (session-protocol → "Session state" and "Environments"); the rows
@@ -83,7 +83,7 @@ one batch of parallel calls with no text before or between them. Anything alread
 | Greeting — "hi", "what can you do?", "what can we look at?" | none beyond session-protocol | The two directions and nothing else; no query, no numbers |
 | Problem survey — "what's wrong?", "any issues?", "root-cause the latest", "what changed?", or the problems chosen | none | Status line "Checking what's open.", the opening query, then the bullets and one question |
 | Pick — names a scenario, a service or a symptom, with no angle ("the payment failure", "why are the images slow?") | none | "[A] it is." and that scenario's mode question; no query |
-| A tour, cloud cost or workload sizing — "the cloud tour", "cut cloud costs", "the Kubernetes tour", "which workloads are over-provisioned?" | `/resources/documents/skills/touring-demo-showcases/SKILL.md` | Follow that skill from its first line; it asks no mode question |
+| A tour, cloud cost or workload sizing — "the cloud tour", "cut cloud costs", "the Kubernetes tour", "which workloads are over-provisioned?", "does this service have enough memory?" | `/resources/documents/skills/touring-demo-showcases/SKILL.md` | Follow that skill from its first line; it asks no mode question |
 | Direct start — names an **angle**: the piece of evidence to open with (the traces, the deployment, the affected users, the exception) | that scenario's file, `conversation-craft.md` | Status line naming the lookup ("Checking the deployments on the payment service."), the survey query if no row is held, then the beat loop at that angle; no question |
 | Walk-through — "walk me through it", "take me through it", "present it", or being walked through chosen | that scenario's file, `conversation-craft.md`, `walk-through.md` | The scenario's `pull_line` as status line, then `walk-through.md` — its executive summary, then the offer |
 | Report asked for by name — "brief me", "give me the incident report", "summarise it" | that scenario's file, `walk-through.md` | The report or the handoff block, and **no stepping** (walk-through → "The report, on request") |

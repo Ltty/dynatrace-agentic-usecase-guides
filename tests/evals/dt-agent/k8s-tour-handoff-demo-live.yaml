@@ -20,9 +20,6 @@ turns:
     reply_contains_any:
     - EasyTrade
     - trading
-    reply_excludes:
-    - davis
-    - copilot
     reply_excludes_quoted:
     - investigate this hands-on
     - should I walk you through it

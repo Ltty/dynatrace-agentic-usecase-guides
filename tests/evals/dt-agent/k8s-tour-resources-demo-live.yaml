@@ -3,15 +3,20 @@ tenant: demo-live
 runs: 3
 status: draft
 description: >-
-  DRAFT. The resources track, entered by name. The starved step reads memory against its limit per container and
-  names memory, not CPU, as the constraint; the bloated step names the database as reserving many times the CPU it
-  uses, in millicores and never dollars, scoped to the app so Dynatrace's own webhook does not take over. The second
-  step ties back to the first: the same app, wrong in both directions.
+  DRAFT. The resources track, entered by name. The starved step has two queries, so two turns: the problems on the
+  service first, then memory against its limit per container, naming memory (not CPU) as the constraint. The bloated
+  step is the third turn: the database reserving many times the CPU it uses, in millicores and never dollars, scoped to
+  the app so Dynatrace's own webhook does not take over.
 turns:
 - ask: Why does easytrade-calculationservice keep getting infrastructure problems? Check CPU and memory against its limits.
   expect:
     reads_include:
     - scenario-kubernetes-complexity.md
+    requires_dql: true
+    reply_contains:
+    - Problems on the calculation service
+- ask: next
+  expect:
     requires_dql: true
     reply_contains:
     - memory
@@ -21,8 +26,6 @@ turns:
     - megabyte
     reply_excludes:
     - "$"
-    - davis
-    - copilot
 - ask: next
   expect:
     requires_dql: true
@@ -34,4 +37,5 @@ turns:
     reply_excludes:
     - "$"
     - dynatrace-webhook
-    - davis
+    - What we hand over
+    - Where that leaves us

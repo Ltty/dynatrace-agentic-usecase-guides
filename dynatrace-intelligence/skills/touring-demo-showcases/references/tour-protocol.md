@@ -19,8 +19,10 @@ close on — is in that tour's own scenario file.
 - **Tense:** present, no urgency. A problem shown inside a tour is part of the tour, not a page.
 - **Handoff block:** a tour's last beat of a track is its handoff, so the handoff block in the incidents skill's
   `session-protocol.md` is not used.
-- **Session close:** as in the incidents skill's `session-protocol.md` ("Session close"), and it fires when the
-  **track** the user walked is complete (the scenario file → "Tracks"), not when a particular beat runs. The payoff
+- **Session close:** as in the incidents skill's `session-protocol.md` ("Session close"), and **when it fires is each tour's own
+  rule** (its scenario file → "Tracks" and "Moving between tracks"): the cloud tour closes when the track the user walked
+  is complete, a tour of several tracks may close only when the visitor is done. Never close a track the tour says should
+  bridge onward. The payoff
   line is the tour's own, in its scenario file. The way out offers what is left *inside the tour*: another track, an
   "Extra", a beat the user skipped, or a view from its "Other views" table.
 

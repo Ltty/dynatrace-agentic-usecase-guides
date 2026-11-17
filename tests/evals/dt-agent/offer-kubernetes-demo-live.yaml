@@ -20,7 +20,6 @@ turns:
     - real Kubernetes data
     - wasted or starved
     - want me to
-    reply_excludes:
     - opening query
     - has a row
     - maps to
@@ -42,8 +41,5 @@ turns:
     reply_contains_any:
     - EKS
     - eks-live
-    reply_excludes:
-    - davis
-    - copilot
     reply_excludes_quoted:
     - investigate this hands-on

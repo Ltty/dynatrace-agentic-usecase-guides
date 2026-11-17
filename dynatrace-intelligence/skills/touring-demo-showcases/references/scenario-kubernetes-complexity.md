@@ -113,12 +113,15 @@ Beat 1 belongs to no track: it is the estate every track starts from, and it end
   a **Next:** line after each. Its first beat says the scenario's `approach` line as usual. If the opening query
   returns no row for it, the nightly slowdown has not fired in the window: say that in one line and offer the other
   two tracks.
-- The session close fires when the visitor has seen enough, or when all three tracks have run.
+- **A finished track is not the close.** The last step of a track ends on its bridge to a track not yet walked
+  ("Moving between tracks"): no `### What we hand over`, no `### Where that leaves us`. The close fires only when all three
+  tracks have run, or when the visitor says they have seen enough.
 
 ## Moving between tracks
 
 When a track's last beat has run, its **Next:** line offers the other tracks the visitor has not walked, with the
-bridge below, and proposes one of them once (`conversation-craft.md` → Reactance). The bridges carry no figure:
+bridge below, in the usual **Next:** line: one track, the reason it follows, "Say next when you're ready." The track proposed
+once (`conversation-craft.md` → Reactance), never a question offering both. The bridges carry no figure:
 the figure is in the finding before it.
 
 | From | To | Bridge |
