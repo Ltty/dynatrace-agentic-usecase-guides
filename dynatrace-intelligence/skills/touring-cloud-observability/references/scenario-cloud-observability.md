@@ -1,5 +1,7 @@
 # Scenario: Cloud Observability (Showcase) — Context and Beats
 
+**The "Beat N" headings below number the steps for authors only. Never print a heading, a number or the word "beat" to the user: name a step by its subject ("the deploy"). Steps can come in any order.**
+
 Read once the user has picked a scenario. This is a **showcase**, not an incident: there is no page to answer and no
 root cause to find. We show the cloud estate we run, from all three clouds down to one function, what runs on it, the
 agents that work its problems, and what it costs. The survey query does not cover it; its beats supply their own tokens

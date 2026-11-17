@@ -1,5 +1,7 @@
 # Scenario: Lambda Denied by IAM (Outage) — Context and Beats
 
+**The "Beat N" headings below number the steps for authors only. Never print a heading, a number or the word "beat" to the user: name a step by its subject ("the deploy"). Steps can come in any order.**
+
 Read once the user has picked a scenario. The survey query and the discovery hooks are in `references/session-protocol.md`.
 Reveals describe the *shape* of a finding, never its values. Counts, failure rates, user numbers, the window and the agent's own wording rotate every cycle — read them from the live result.
 
