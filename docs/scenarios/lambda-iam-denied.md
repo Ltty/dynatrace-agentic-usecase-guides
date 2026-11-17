@@ -32,7 +32,7 @@ the number of agent notes, and the agent's own wording.
 ## Resolver notes
 
 The survey branch matches `root_cause_entity_id == "SERVICE-F4E5246FA8EA27D7"`. Entity ID, not name:
-playground runs its own `image-provider-playground`, and a name match is how `disk-cpu-cascade` leaked
+playground runs its own `image-provider-playground`, and a name match is how a dev-only scenario leaked
 across tenants in testruns 12 and 13.
 
 The cluster also produces `Response time degradation` problems rooted on the *Lambda* service

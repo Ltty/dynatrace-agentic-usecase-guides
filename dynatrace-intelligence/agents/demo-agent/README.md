@@ -3,7 +3,7 @@
 A Dynatrace `deep-agent` that pairs with a user as an on-call SRE on whatever demo environment it runs on,
 exploring with them or walking them through an incident report. It runs two skills:
 `investigating-demo-incidents` (payment failure, two image-service incidents, a Kubernetes slowdown, a Lambda
-permission failure and a host disk problem) and `touring-cloud-observability` (the cloud tour).
+permission failure) and `touring-cloud-observability` (the cloud tour).
 
 | File | Purpose |
 |---|---|

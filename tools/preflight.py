@@ -153,7 +153,6 @@ SCENARIO_ENVIRONMENTS = {
     "broken-images": ("playground",),
     "lambda-iam-denied": ("playground", "demo-live"),
     "k8s-cpu-throttling": ("playground", "demo-live"),
-    "disk-cpu-cascade": ("dev",),
     "cloud-observability": ("demo-live",),
 }
 

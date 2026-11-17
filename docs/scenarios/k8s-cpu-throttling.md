@@ -33,8 +33,8 @@ picked a problem with no spec change behind it.
 
 - **Playground runs its own EasyTrade**, with the same namespace and the same problem names
   ("Easytrade request duration", "High CPU throttling", …) — 123 problems in 7 days. Matching
-  `event.name` or `k8s.namespace.name` would leak the scenario onto the Playground exactly as
-  `disk-cpu-cascade` leaked in testruns 12 and 13. The demo-live entity IDs return zero rows there.
+  `event.name` or `k8s.namespace.name` would leak the scenario onto the Playground exactly as a dev-only
+  scenario leaked in testruns 12 and 13. The demo-live entity IDs return zero rows there.
 - **`event.category` is needed** because TradeManagement also roots `Request error rate increase` and
   `Failure rate increase` problems in the same namespace — two of the five rows the first branch
   matched in 48 hours were errors, not slowdowns.

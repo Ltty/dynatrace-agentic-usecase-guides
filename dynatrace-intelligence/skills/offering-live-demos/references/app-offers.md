@@ -7,13 +7,13 @@ the opening query returned a row for it on this environment (SKILL.md, step 2).
 | Open app | Scenarios offered |
 |---|---|
 | `dynatrace.kubernetes` | `k8s-cpu-throttling` |
-| `dynatrace.infraops` | `k8s-cpu-throttling`, `disk-cpu-cascade` |
+| `dynatrace.infraops` | `k8s-cpu-throttling` |
 | `dynatrace.users.sessions`, `dynatrace.experience.vitals`, `dynatrace.classic.session.replay` | `broken-images`, `payment-failure` |
 | `dynatrace.services`, `dynatrace.error.inspector` | `payment-failure`, `broken-images` |
 | `dynatrace.distributedtracing` | `payment-failure`, `broken-images`, `lambda-iam-denied`, `k8s-cpu-throttling` |
 | `dynatrace.clouds` | `lambda-iam-denied`, `cloud-observability` |
 | `dynatrace.biz.carbon`, `community.cloudsreagents`, `dynatrace.launcher` | `cloud-observability` |
-| `dynatrace.davis.problems` | `payment-failure`, `broken-images`, `lambda-iam-denied`, `k8s-cpu-throttling`, `disk-cpu-cascade`, `cloud-observability` |
+| `dynatrace.davis.problems` | `payment-failure`, `broken-images`, `lambda-iam-denied`, `k8s-cpu-throttling`, `cloud-observability` |
 
 `cloud-observability` is the cloud tour, a showcase with no problem row of its own: it is offered where
 `session-protocol.md` lists it for the environment, not by a row.

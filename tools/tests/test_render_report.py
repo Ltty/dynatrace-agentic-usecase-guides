@@ -51,7 +51,7 @@ SHOWCASE = {
 }
 
 MINIMAL = {
-    "kind": "incident", "environment": "dev", "scenario": "disk-cpu-cascade", "title": "Disk",
+    "kind": "incident", "environment": "playground", "scenario": "payment-failure", "title": "Payment",
 }
 
 

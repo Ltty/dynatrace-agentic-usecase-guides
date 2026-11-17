@@ -32,7 +32,6 @@ SCENARIO_FILES = {
     "broken-images": SCENARIO_DIR / "scenario-broken-images.md",
     "lambda-iam-denied": SCENARIO_DIR / "scenario-lambda-iam-denied.md",
     "k8s-cpu-throttling": SCENARIO_DIR / "scenario-k8s-cpu-throttling.md",
-    "disk-cpu-cascade": SCENARIO_DIR / "scenario-disk-cpu-cascade.md",
     "cloud-observability": TOUR_DIR / "scenario-cloud-observability.md",
 }
 # ---------------------------------------------------------------------------

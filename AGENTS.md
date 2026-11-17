@@ -132,8 +132,7 @@ Adding a scenario: `docs/AUTHORING.md`.
   `references/dql-reference.md` in the skill before trusting an assumption.
 - The Playground is read-only; the agent must never attempt a write (the hook enforces this).
 - No fixture fallback exists — all queries hit the live Playground. The survey query looks back 48h and
-  each of those problems fires at least once a day, so a live occurrence is almost always available
-  (`disk-cpu-cascade` is one long-running problem on the dev tenant). If nothing is
+  each of those problems fires at least once a day, so a live occurrence is almost always available. If nothing is
   found, the agent says the environment is clean and stops.
 - `cloud-observability` is a **showcase**, not an incident, and lives on `demo-live` only, as its own skill. The opening names it without figures; the probe that
   finds the bill runs when the cost track starts, and only where the environment lists the showcase:

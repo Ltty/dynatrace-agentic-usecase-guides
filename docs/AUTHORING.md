@@ -174,8 +174,8 @@ line the walk-through shows while it pulls the first query of every beat, naming
 
    Its branch in the opening query must carry a predicate only that tenant's entities satisfy, and must
    stamp the environment into the `"env:scenario"` key. Match on entity id, never on entity name:
-   playground and demo-live both run Astroshop, and a name match is how `disk-cpu-cascade` leaked onto
-   the Playground in testruns 12 and 13. A scenario on more than one environment needs one Stable-IDs
+   playground and demo-live both run Astroshop, and a name match once leaked a dev-only scenario onto
+   the Playground (testruns 12 and 13). A scenario on more than one environment needs one Stable-IDs
    row per environment, and `--environment` becomes required when validating it.
 2. `python tools/dt_agent.py check` — layout rules; `python tools/tests/test_deep_links.py` — every beat has a
    labelled deep link that uses only known tokens and a **Why this step** line.

@@ -34,8 +34,7 @@ dynatrace-intelligence/
     │       ├── scenario-payment-failure.md   — business context, scope, handoff fields, the 5 beats with DQL, reveals, staging, deep links
     │       ├── scenario-broken-images.md     — same shape, for the image-provider slowdown
     │       ├── scenario-lambda-iam-denied.md  — same shape, for the Lambda refused its DynamoDB permission
-    │       ├── scenario-k8s-cpu-throttling.md — same shape, for the workload tuned below its own demand
-    │       └── scenario-disk-cpu-cascade.md  — same shape, for the dev-tenant disk and CPU problem
+    │       └── scenario-k8s-cpu-throttling.md — same shape, for the workload tuned below its own demand
     ├── offering-live-demos/            — the in-app offer: what an open app can show live, and the walk-through hand-over
     │   ├── SKILL.md                          — when it applies, the steps, the rules
     │   └── references/app-offers.md          — which scenarios each app offers; a test keeps it in step with the scenarios' links
@@ -97,7 +96,6 @@ python tools/validate_dt_skill.py --scenario broken-images --environment playgro
 python tools/validate_dt_skill.py --scenario lambda-iam-denied --environment demo-live
 python tools/validate_dt_skill.py --scenario k8s-cpu-throttling --environment demo-live
 python tools/validate_dt_skill.py --scenario cloud-observability --environment demo-live
-python tools/validate_dt_skill.py --scenario disk-cpu-cascade --environment dev
 ```
 
 Also open one deep link with substituted values and confirm the Dynatrace app loads the right view.
@@ -111,8 +109,6 @@ Also open one deep link with substituted values and confirm the Dynatrace app lo
   every image on every request until a fix lands about 30 minutes later. A single sampled failed
   `GET` span with a `SlowDown` throttle exists on some days only, so the beats do not depend on
   it.
-- **disk-cpu-cascade scenario:** complete — a long-running host problem on the dev tenant, rebuilt against live data.
-  It reports entities, not users, and has no owning team, commit or replay.
 - **lambda-iam-denied scenario:** complete — a daily outage on demo-live where a deploy leaves the image
   function's role unable to read its DynamoDB table. The AWS DevOps Agent's notes are the last beat.
 - **k8s-cpu-throttling scenario:** complete — a daily slowdown on demo-live where the broker service's CPU
@@ -126,17 +122,11 @@ Also open one deep link with substituted values and confirm the Dynatrace app lo
 
 Kept out of the skill on purpose: the agent reads the scenario files and would repeat them to the user.
 
-- `now()-48h`: payment-failure fires about twice a day and broken-images once a day (around 03:04 UTC), so 48 hours always spans at least one occurrence. disk-cpu-cascade is one long-running problem, always inside it.
+- `now()-48h`: payment-failure fires about twice a day and broken-images once a day (around 03:04 UTC), so 48 hours always spans at least one occurrence.
 - `±15m` window padding catches the culprit deploy just before onset, a clean baseline, and the recovery after the fix.
 - The fallback (`pref = 1`) ignores `is_duplicate` and takes the largest-impact problem instead, for cycles where the near-duplicate problems weren't merged.
-- The payment and image branches hardcode Playground service IDs, and the disk branch hardcodes dev IDs. On the
-  other tenant a branch returns nothing and the survey does not list that scenario.
-- The Playground runs the same disk and CPU demo as dev under different IDs (P-26092140, whose record has no root
-  cause). The disk fallback therefore also requires the dev host ID among the affected entities, or a Playground
-  survey listed a dev-only scenario (testruns 12 and 13). Dev records carry no `dt.entity.host`, so the guard is a
-  string test on `smartscape.affected_entities`.
-- A problem is recorded several times (updates and refreshes); only the newest platform-analysed record carries the
-  root cause, which is why the disk primary filters on it.
+- Each branch matches one environment's entity IDs. On the other tenant a branch returns nothing and the survey does
+  not list that scenario.
 - The survey query runs exactly as the file gives it: a hand-trimmed copy dropped fields needed later and cost a second
   query (testrun 12).
 - Payment beat 1 is pinned to the problem ID, so its 48h range is safe; the incident window would risk cutting off
@@ -144,8 +134,7 @@ Kept out of the skill on purpose: the agent reads the scenario files and would r
 - Payment beat 3's deployment-marker query returns a strict subset of beat 2's rows, so it is skipped when beat 2
   ran (testrun 13).
 - Stable entity IDs do not rotate, which is why they are hardcoded in the scenario files.
-- Source guides: payment-failure `96474054-260e-4b94-805e-d10fcbfb8e7a`, broken-images "DEM Act 3", disk-cpu-cascade
-  "cloud-alerts-demo".
+- Source guides: payment-failure `96474054-260e-4b94-805e-d10fcbfb8e7a`, broken-images "DEM Act 3".
 - The walk-through exists because testrun 12 found five correct findings and no story: the answer arrived in turn 5.
   The executive summary answers that up front by running every beat's first query. The risk it carries is turns of
   one template, which `walk-through.md` counters with closing lines that give a reason.

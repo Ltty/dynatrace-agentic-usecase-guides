@@ -64,7 +64,6 @@ column is blank: a segment belongs to one tenant, and carrying another's opens t
 | `broken-images` | yes | | |
 | `lambda-iam-denied` | yes | | yes |
 | `k8s-cpu-throttling` | yes | | yes |
-| `disk-cpu-cascade` | | yes | |
 | `cloud-observability` | | | yes |
 
 **What is offered.** A scenario is offered only when it is listed for this environment **and** the
@@ -102,12 +101,10 @@ fetch dt.davis.problems, from: now()-48h, to: now()
         "SERVICE-DA275964FAFD97CA", "APPLICATION-5DCD0C470BC8680A"), "demo-live:k8s-cpu-throttling",
     else: if(event.category == "SLOWDOWN" and in(root_cause_entity_id, "SERVICE-BE742741A316B7EE",
         "SERVICE-766A1FAD228EB11C"), "playground:k8s-cpu-throttling",
-    else: if(rc == "DISK-2B3DB86FA32F6CE1" or (dt.davis.is_duplicate == false
-        and matchesPhrase(event.description, "/data") and matchesPhrase(event.description, "frontend-high-cpu")
-        and contains(toString(smartscape.affected_entities), "HOST-A2BABAD05D401471")), "dev:disk-cpu-cascade", else: null))))))))
+    else: null)))))))
 | filter isNotNull(key)
 | fieldsAdd env = splitString(key, ":")[0], scenario = splitString(key, ":")[1]
-| fieldsAdd pref = if(dt.davis.is_duplicate == false and (scenario != "disk-cpu-cascade" or rc == "DISK-2B3DB86FA32F6CE1")
+| fieldsAdd pref = if(dt.davis.is_duplicate == false
     and (scenario != "k8s-cpu-throttling" or startsWith(root_cause_entity_id, "SERVICE-")), 0, else: 1)
 | fieldsAdd rank = if(pref == 0, toDouble(timestamp), else: toDouble(coalesce(dt.davis.affected_users_count, 0)))
 | sort scenario asc, pref asc, rank desc, timestamp desc
@@ -258,7 +255,6 @@ rewritten into the past before it is said.
 | `broken-images` | "Product images are crawling in the shop — they load eventually, but slowly, for {affected_users} people, and it's been going on for {duration_min} minutes." | where the request time actually goes, and the deploys around it | A slowdown, not an outage: never "failing" or "erroring", and never "not loading". No cost. State no response times: the survey has none. |
 | `lambda-iam-denied` | "Product images aren't loading in the shop — {affected_users} people hit product pages with the images missing over {duration_min} minutes." | a cloud permission, and whatever the AWS DevOps Agent made of it | An outage, not a slowdown: the requests error, they are not slow. No cost. State no failure rate here: the survey has none. |
 | `k8s-cpu-throttling` | "The trading app got slow enough for people to feel it — EasyTrade was degraded for {affected_users} people over {duration_min} minutes." | Kubernetes resource limits, and what the troubleshooting agent made of them | A slowdown, not an outage: never "failing" or "erroring". No cost. State no response times: the survey has none. The record usually carries no owning team. |
-| `disk-cpu-cascade` | "A host is running out of room — {root_cause} is low on disk, with CPU saturation on the same box, open for {duration_days} days and {duration_hours} hours. Nothing user-facing is on the record; it affects {affected_count} entities." | disk and CPU on one host, and what the disk has blocked | Entities, never users; no cost. For an active problem say it is still open. Never convert `duration_min` yourself. |
 
 ---
 
@@ -308,7 +304,7 @@ Still open:     [what the data does not show]
 - Each link sits on its own labelled line; a link the scenario does not have is left out.
 - "Still open" is assembled from limits the beats already state: what the data does not show, or
   what is the owning team's call. Never invented.
-- A beat that is itself a handoff summary (the disk scenario's last beat) is this block, not a
+- A beat that is itself a handoff summary (a scenario's last beat) is this block, not a
   second summary beside it.
 
 ---

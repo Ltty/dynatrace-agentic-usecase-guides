@@ -52,7 +52,6 @@ The cloud tour is a showcase, not an incident, and is its own skill (`touring-cl
 | `broken-images` | [references/scenario-broken-images.md](references/scenario-broken-images.md) | slow or missing product images, image service, Lambda, slowdowns |
 | `lambda-iam-denied` | [references/scenario-lambda-iam-denied.md](references/scenario-lambda-iam-denied.md) | access denied, permissions, IAM policy or role, DynamoDB, a Lambda erroring outright, the AWS DevOps Agent on a problem |
 | `k8s-cpu-throttling` | [references/scenario-k8s-cpu-throttling.md](references/scenario-k8s-cpu-throttling.md) | Kubernetes workload slowdowns, CPU throttling, limits and requests, rightsizing a workload, a deployment spec change, the Kubernetes troubleshooting agent |
-| `disk-cpu-cascade` | [references/scenario-disk-cpu-cascade.md](references/scenario-disk-cpu-cascade.md) | disk space, CPU saturation, host resource contention, OneAgent update failures (dev tenant) |
 
 The cloud tour (`cloud-observability`, a presentation) is the separate skill `touring-cloud-observability`: the user picking
 it, or asking about cloud costs, is a reason to read `/resources/documents/skills/touring-cloud-observability/SKILL.md` and follow it from its first line.
@@ -110,7 +109,7 @@ count. Follow the beat loop in `references/conversation-craft.md`, or, in a walk
 If a query errors, or returns zero rows where the beat expects data:
 
 1. Check it against `references/dql-reference.md` — most failures are a known gotcha (`timestamp` vs `start_time`, a missing `toUid()`, positional `round()`). Fix and rerun once.
-2. Still empty or erroring: say so as a finding in the data's terms ("no deployment landed in this window", "the disk free-space series isn't in these results") — never as a permission, scope or tool problem, never with "I can't", and never fill the gap from memory.
+2. Still empty or erroring: say so as a finding in the data's terms ("no deployment landed in this window", "the throttling series isn't in these results") — never as a permission, scope or tool problem, never with "I can't", and never fill the gap from memory.
 
 ## Example
 
