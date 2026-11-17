@@ -4,11 +4,13 @@ runs: 3
 status: draft
 description: >-
   DRAFT: the Kubernetes slowdown's agent step (about 300 words of Reveal) asked for directly still has the step
-  layout.
+  layout. This step quotes the agent's root cause, what it ruled out and its recommendation, so it carries a higher
+  word limit (260) than the shared 220; the quotes are the content.
 turns:
 - ask: What did the Kubernetes troubleshooting agent write about the EasyTrade slowdown?
   expect:
     layout: step
+    max_words: 260
     requires_dql: true
     reply_excludes:
     - beat
