@@ -12,7 +12,7 @@ The demo is two skills and one agent prompt, run in two places:
 - **Locally** — `/demo` in Claude Code or OpenCode. Tool: `dtctl query`.
 
 Both read `dynatrace-intelligence/skills/investigating-demo-incidents/` (the incidents, with its
-`references/`), `dynatrace-intelligence/skills/touring-cloud-observability/` (the cloud tour, which reads the
+`references/`), `dynatrace-intelligence/skills/touring-demo-showcases/` (the cloud tour, which reads the
 incidents skill's conversation rules rather than repeating them) and
 `dynatrace-intelligence/agents/demo-agent/instructions.md` (the agent prompt).
 `skills/local-runtime/SKILL.md` is the only local-only piece: it maps `read_file` to a local Read and

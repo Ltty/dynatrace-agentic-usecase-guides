@@ -19,7 +19,7 @@ the evidence — all from live data. The user either steers, choosing what to lo
 through it step by step. **Explain it to someone senior who does not know this platform** — a product or
 engineering manager. Same register in both: plain words first, every term glossed on first use, what a
 finding *means* before how it works. Never simplify the evidence itself; values stay as returned.
-The cloud tour is a showcase, not an incident, and is its own skill (`touring-cloud-observability`).
+The cloud tour is a showcase, not an incident, and is its own skill (`touring-demo-showcases`).
 
 ## Core principles
 
@@ -53,8 +53,8 @@ The cloud tour is a showcase, not an incident, and is its own skill (`touring-cl
 | `lambda-iam-denied` | [references/scenario-lambda-iam-denied.md](references/scenario-lambda-iam-denied.md) | access denied, permissions, IAM policy or role, DynamoDB, a Lambda erroring outright, the AWS DevOps Agent on a problem |
 | `k8s-cpu-throttling` | [references/scenario-k8s-cpu-throttling.md](references/scenario-k8s-cpu-throttling.md) | Kubernetes workload slowdowns, CPU throttling, limits and requests, rightsizing a workload, a deployment spec change, the Kubernetes troubleshooting agent |
 
-The cloud tour (`cloud-observability`, a presentation) is the separate skill `touring-cloud-observability`: the user picking
-it, or asking about cloud costs, is a reason to read `/resources/documents/skills/touring-cloud-observability/SKILL.md` and follow it from its first line.
+The cloud tour (`cloud-observability`, a presentation) is the separate skill `touring-demo-showcases`: the user picking
+it, or asking about cloud costs, is a reason to read `/resources/documents/skills/touring-demo-showcases/SKILL.md` and follow it from its first line.
 
 One opening query finds what is live here (session-protocol → "Session state" and "Environments"); the rows
 that come back are the findings. A scenario file is
@@ -82,7 +82,7 @@ one batch of parallel calls with no text before or between them. Anything alread
 | Greeting — "hi", "what can you do?", "what can we look at?" | none beyond session-protocol | The two directions and nothing else; no query, no numbers |
 | Problem survey — "what's wrong?", "any issues?", "root-cause the latest", "what changed?", or the problems chosen | none | Status line "Checking what's open.", the opening query, then the bullets and one question |
 | Pick — names a scenario, a service or a symptom, with no angle ("the payment failure", "why are the images slow?") | none | "[A] it is." and that scenario's mode question; no query |
-| Cloud tour or cloud cost — "the cloud tour", "cut cloud costs", "save 10% on the cloud bill" | `/resources/documents/skills/touring-cloud-observability/SKILL.md` | Follow that skill from its first line; it asks no mode question |
+| Cloud tour or cloud cost — "the cloud tour", "cut cloud costs", "save 10% on the cloud bill" | `/resources/documents/skills/touring-demo-showcases/SKILL.md` | Follow that skill from its first line; it asks no mode question |
 | Direct start — names an **angle**: the piece of evidence to open with (the traces, the deployment, the affected users, the exception) | that scenario's file, `conversation-craft.md` | Status line naming the lookup ("Checking the deployments on the payment service."), the survey query if no row is held, then the beat loop at that angle; no question |
 | Walk-through — "walk me through it", "take me through it", "present it", or being walked through chosen | that scenario's file, `conversation-craft.md`, `walk-through.md` | The scenario's `pull_line` as status line, then `walk-through.md` — its executive summary, then the offer |
 | Report asked for by name — "brief me", "give me the incident report", "summarise it" | that scenario's file, `walk-through.md` | The report or the handoff block, and **no stepping** (walk-through → "The report, on request") |

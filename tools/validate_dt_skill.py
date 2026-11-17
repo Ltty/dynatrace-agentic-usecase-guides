@@ -25,7 +25,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).parent.parent
 SKILLS_DIR = REPO_ROOT / "dynatrace-intelligence" / "skills"
 SCENARIO_DIR = SKILLS_DIR / "investigating-demo-incidents" / "references"
-TOUR_DIR = SKILLS_DIR / "touring-cloud-observability" / "references"
+TOUR_DIR = SKILLS_DIR / "touring-demo-showcases" / "references"
 
 SCENARIO_FILES = {
     "payment-failure": SCENARIO_DIR / "scenario-payment-failure.md",

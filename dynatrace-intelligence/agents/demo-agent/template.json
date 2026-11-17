@@ -13,11 +13,11 @@
       }
     },
     "resources": {
-      "/resources/documents/": "documents://name starts-with '/skills/investigating-demo-incidents/' or name starts-with '/skills/touring-cloud-observability/' or name starts-with '/skills/offering-live-demos/'"
+      "/resources/documents/": "documents://name starts-with '/skills/investigating-demo-incidents/' or name starts-with '/skills/touring-demo-showcases/' or name starts-with '/skills/offering-live-demos/'"
     },
     "skills": [
       "/resources/documents/skills/investigating-demo-incidents/",
-      "/resources/documents/skills/touring-cloud-observability/",
+      "/resources/documents/skills/touring-demo-showcases/",
       "/resources/documents/skills/offering-live-demos/"
     ],
     "agent_instructions": {

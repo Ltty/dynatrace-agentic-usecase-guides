@@ -1,5 +1,5 @@
 ---
-name: touring-cloud-observability
+name: touring-demo-showcases
 description: >
   Gives a guided tour of the cloud estate on the Dynatrace demo tenant, as an on-call SRE: AWS, Azure
   and Google Cloud together, one function and its problem, the agents that work that problem, and the

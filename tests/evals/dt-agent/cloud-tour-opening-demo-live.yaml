@@ -15,7 +15,7 @@ turns:
     first_read_contains: /SKILL.md
     reads_include:
     - scenario-cloud-observability.md
-    - touring-cloud-observability/SKILL.md
+    - touring-demo-showcases/SKILL.md
     requires_dql: true
     reply_contains:
     - 10%

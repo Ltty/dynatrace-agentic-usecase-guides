@@ -4,7 +4,7 @@
   "description": "Interactive Dynatrace troubleshooting demos via guided CLI sessions on the Dynatrace Playground.",
   "skills": [
     "./dynatrace-intelligence/skills/investigating-demo-incidents",
-    "./dynatrace-intelligence/skills/touring-cloud-observability",
+    "./dynatrace-intelligence/skills/touring-demo-showcases",
     "./skills/local-runtime"
   ],
   "commands": [

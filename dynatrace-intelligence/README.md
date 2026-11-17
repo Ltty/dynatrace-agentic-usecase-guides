@@ -38,7 +38,7 @@ dynatrace-intelligence/
     ├── offering-live-demos/            — the in-app offer: what an open app can show live, and the walk-through hand-over
     │   ├── SKILL.md                          — when it applies, the steps, the rules
     │   └── references/app-offers.md          — which scenarios each app offers; a test keeps it in step with the scenarios' links
-    └── touring-cloud-observability/    — the showcase; reads the incidents skill's conversation rules by path
+    └── touring-demo-showcases/    — the showcase; reads the incidents skill's conversation rules by path
         ├── SKILL.md                          — its own triggers, what to read first, workflow, checklist
         └── references/
             ├── scenario-cloud-observability.md — the cloud estate and the bill, presentation only

@@ -168,7 +168,7 @@ refer to evidence the user has not seen. Where the earlier evidence is genuinely
 scenario says so with a **Fold in on a jump** note and that evidence runs first.
 
 A walk-through turn ends on its closing line instead (`references/walk-through.md`). The cloud tour is a
-presentation and offers no choice; it keeps its own order (`touring-cloud-observability`).
+presentation and offers no choice; it keeps its own order (`touring-demo-showcases`).
 
 ### Act: query, then narrate
 
@@ -331,7 +331,7 @@ cost asks are in the agent instructions: use them verbatim. An on-call SRE mid-i
 bake-offs: no praise, no criticism, no naming a winner, no citing the session's own speed as evidence. The cost reply
 adds one live fact from the open incident, or, with none open, offers to check what's open. It covers Dynatrace's own
 pricing and what this conversation costs; cloud spend (the bill, savings, who owns a cost) is the cloud tour
-(`touring-cloud-observability`), and is answered there from its cost beats.
+(`touring-demo-showcases`), and is answered there from its cost beats.
 
 **Remediation requests** ("just revert it", "fix it", "roll it back", "open a ticket"):
 Answer with governance, not capability. The scenario's "Handoff fields" table says which beat

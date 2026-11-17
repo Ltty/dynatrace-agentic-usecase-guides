@@ -8,7 +8,7 @@ This file is procedure.
 
 | Piece | Where | What it is |
 |---|---|---|
-| The skills | `dynatrace-intelligence/skills/investigating-demo-incidents/`, `touring-cloud-observability/` and `offering-live-demos/` | Each is a `SKILL.md` plus a flat `references/` folder. The incidents skill holds four scenarios (payment failure, two image-service incidents, a Kubernetes slowdown), run as an exploration or a guided walk, and the conversation rules both skills share. The tour skill holds the cloud showcase, a presentation, and reads the incidents skill's rules by path instead of repeating them. The offer skill adds one live-demo offer to Assist's answer when the user asks what they can do in an app (see "In-app offers"). Source of truth. |
+| The skills | `dynatrace-intelligence/skills/investigating-demo-incidents/`, `touring-demo-showcases/` and `offering-live-demos/` | Each is a `SKILL.md` plus a flat `references/` folder. The incidents skill holds four scenarios (payment failure, two image-service incidents, a Kubernetes slowdown), run as an exploration or a guided walk, and the conversation rules both skills share. The tour skill holds the cloud showcase, a presentation, and reads the incidents skill's rules by path instead of repeating them. The offer skill adds one live-demo offer to Assist's answer when the user asks what they can do in an app (see "In-app offers"). Source of truth. |
 | The agent | `dynatrace-intelligence/agents/demo-agent/` | A `deep-agent` template (`template.json`, `instructions.md`) that mounts both skills and may only call `execute-dql`. |
 | The helper | `tools/dt_agent.py` | `check`, `pack`, `docs`, `status`, `render`, `template`, `invoke`. Every write is a dry run unless you pass `--apply`. |
 | The validator | `tools/validate_dt_skill.py` | Runs every DQL block of a scenario live, on that scenario's tenant, named by `--environment`. |
@@ -210,7 +210,7 @@ The Dynatrace agent (`@demo-agent`) and the local `/demo` run the same skills an
 
 | Part | Where | Used by |
 |---|---|---|
-| The skills and their `references/` | `dynatrace-intelligence/skills/investigating-demo-incidents/`, `touring-cloud-observability/` | both |
+| The skills and their `references/` | `dynatrace-intelligence/skills/investigating-demo-incidents/`, `touring-demo-showcases/` | both |
 | The agent prompt | `dynatrace-intelligence/agents/demo-agent/instructions.md` | both |
 | Tool and path mapping (`read_file`, `execute-dql`) | `skills/local-runtime/SKILL.md` | local only |
 | Entry points | `commands/demo.md` (copied to `.claude/commands/`), `commands/demo-doctor.md` | local only |

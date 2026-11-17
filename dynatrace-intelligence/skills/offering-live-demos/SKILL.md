@@ -69,7 +69,7 @@ with no text before them or between them, and the first thing the user reads is 
 6. **On a yes, or on naming one of them:** hand over, with no query of your own. An incident: read
    `/resources/documents/skills/investigating-demo-incidents/SKILL.md` and continue from its "Classify the opening" as a
    **pick**: "[A] it is." and that scenario's mode question, so the user chooses between being walked through and
-   exploring. The cloud tour: read `/resources/documents/skills/touring-cloud-observability/SKILL.md` and follow it.
+   exploring. The cloud tour: read `/resources/documents/skills/touring-demo-showcases/SKILL.md` and follow it.
 7. **On a no, or any other topic:** drop it. The offer is made once per conversation and never repeated.
 
 ## Rules
