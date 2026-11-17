@@ -14,6 +14,8 @@ turns:
     requires_dql: true
     max_dql_calls: 1
     reply_contains:
+    - Try a live demo
+    - demonstration based on this environment
     - want me to
     - cloud bill
     reply_excludes:

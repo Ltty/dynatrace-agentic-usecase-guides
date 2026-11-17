@@ -17,12 +17,15 @@ turns:
     requires_dql: true
     max_dql_calls: 1
     reply_contains:
+    - Try a live demo
+    - demonstration based on an actual problem
     - want me to
     reply_contains_any:
     - EasyTrade
     - trading
     reply_excludes:
     - k8s-cpu-throttling
+    - what the troubleshooting agent made
     - playground
     - demo-live
 - ask: Yes please.

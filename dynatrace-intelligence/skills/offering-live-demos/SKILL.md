@@ -37,12 +37,24 @@ Example questions this skill handles:
 4. **Match.** The scenarios offered are the row's scenarios that returned a row of their own. The cloud tour has no
    row: it is offered only when some returned row's `env` is one that lists `cloud-observability` in that file's
    "Environments" table. Nothing matches: say nothing about demos. No "there is no live demo for this", no apology.
-5. **One match: add the offer after the answer**, after a blank line, as one or two sentences:
-   - The scenario's discovery hook from `session-protocol.md` ("Discovery hooks"), first sentence only: its facts and
-     framing, the tense from the row's `problem_state`, no cost and no figure the hook does not carry.
-   - Then, for an incident: "I can walk you through it as a concrete demo — want me to?"
-   - For the cloud tour: "I can show you how to bring the cloud bill down, from real data — want me to?" No figures.
-6. **Several matches:** one line naming them the way their hooks name them, in plain words, and ask which. Rank
+5. **One match: add the offer after the answer** as its own block, so it stands out from the app's feature answer.
+   The headline is exactly `### Try a live demo`. Then one introduction, the problem, and the question on its own line:
+
+   ```text
+   ### Try a live demo
+
+   I can give you a demonstration based on an actual problem in this environment. <the problem>
+
+   Want me to walk you through it?
+   ```
+
+   - `<the problem>` is the scenario's discovery hook from `session-protocol.md` ("Discovery hooks"), its first
+     sentence only: the facts and framing, the tense from the row's `problem_state`. Never the hook's route (the
+     closing clause the survey adds), never a cost, and never a figure the hook does not carry.
+   - The cloud tour has no hook, so its block is the same headline, then "I can give you a demonstration based on this
+     environment's real cloud data: how to bring the cloud bill down." and the question "Want me to show you?" No figures.
+6. **Several matches:** the same block, with the introduction followed by "There are N to choose from:" and each
+   named in plain words from its hook, then the question "Which one would you like me to walk you through?" Rank
    nothing and recommend nothing: which one to look at is the user's choice.
 7. **On a yes, or on naming one of them:** hand over, with no query of your own. An incident: read
    `/resources/documents/skills/investigating-demo-incidents/SKILL.md` and continue from its "Classify the opening" as a
