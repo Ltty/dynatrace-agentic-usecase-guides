@@ -97,8 +97,8 @@ def norm(text: str) -> str:
 
 
 # The layout of a step reply (conversation-craft.md -> "The shape of a beat turn"): checked only where a case asks.
-STEP_LAYOUT = {"headline": True, "max_words": 220, "max_paragraph_sentences": 3, "max_bullet_sentences": 2,
-               "bullets": [2, 4], "labelled_links": True}
+STEP_LAYOUT = {"headline": True, "max_words": 220, "max_paragraph_sentences": 3, "max_bullet_sentences": 3,
+               "bullets": [2, 4], "max_table_rows": 6, "labelled_links": True}
 LINK_RE = re.compile(r"\[[^\]]*\]\([^)]*\)")
 SENTENCE_END_RE = re.compile(r"[.!?](?=\s|$)")
 OPTION_BULLET_RE = re.compile(r"^\s*[-*]\s+\*\*[a-c]\)")
@@ -135,9 +135,22 @@ def check_layout(reply: str, expect: dict) -> list[str]:
         if not any(l.startswith("### ") for l in first):
             fails.append(f"no ### headline in the first lines: {first[:1]}")
     if "max_words" in spec:
-        words = sum(len(LINK_RE.sub("", l).split()) for l in lines)
+        # counted from the headline down: a first step's one-line approach comes before it and is not the layout
+        start = next((i for i, l in enumerate(lines) if l.strip().startswith("### ")), 0)
+        words = sum(len(LINK_RE.sub("", l).split()) for l in lines[start:])
         if words > spec["max_words"]:
-            fails.append(f"{words} words outside the table and link, allowed {spec['max_words']}")
+            fails.append(f"{words} words from the headline down, outside the table and link, allowed {spec['max_words']}")
+    if "max_table_rows" in spec:
+        rows, longest = 0, 0
+        for l in reply.splitlines():
+            if l.strip().startswith("|"):
+                if not re.match(r"^\s*\|[\s:|-]+\|?\s*$", l):
+                    rows += 1
+            elif rows:
+                longest, rows = max(longest, rows - 1), 0
+        longest = max(longest, rows - 1)
+        if longest > spec["max_table_rows"]:
+            fails.append(f"a table has {longest} rows, allowed {spec['max_table_rows']}: condense a series")
     bullets = [l for l in lines if re.match(r"^\s*[-*]\s+", l) and not OPTION_BULLET_RE.match(l)]
     if "max_paragraph_sentences" in spec:
         for l in lines:

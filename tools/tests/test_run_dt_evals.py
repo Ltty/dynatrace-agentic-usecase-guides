@@ -105,8 +105,21 @@ def test_layout_rejects_a_bare_url_and_accepts_a_labelled_one():
 
 def test_layout_caps_words_outside_the_table_and_link():
     padded = STEP + "\n" + "word " * 260
-    assert any("words outside" in f for f in layout_fails(padded))
-    assert layout_fails(padded, max_words=400) == [] or not any("words outside" in f for f in layout_fails(padded, max_words=400))
+    assert any("words from the headline" in f for f in layout_fails(padded))
+    assert not any("words from the headline" in f for f in layout_fails(padded, max_words=400))
+
+
+def test_layout_counts_words_from_the_headline_not_the_approach_line():
+    approach = "Here's how I'd work it: " + "who it hit then what changed " * 12 + "\n\n"
+    assert layout_fails(approach + STEP, max_words=140) == []
+    assert any("words from the headline" in f for f in layout_fails(approach + STEP, max_words=20))
+
+
+def test_layout_caps_table_rows():
+    rows = "".join(f"| bucket {i} | {i} | 0 |\n" for i in range(8))
+    long = STEP.replace("| 56e23b6 | 04:01 | 2.3 |\n", rows)
+    assert any("table has 8 rows" in f for f in layout_fails(long))
+    assert not any("table has" in f for f in layout_fails(STEP))
 
 
 def test_layout_caps_sentences_in_a_paragraph_and_a_bullet():
@@ -114,7 +127,7 @@ def test_layout_caps_sentences_in_a_paragraph_and_a_bullet():
                         "One. Two. Three. Four sentences here.")
     assert any("paragraph has more" in f for f in layout_fails(wall))
     fat = STEP.replace("- **Timing only:** a short gap suggests a cause; it does not prove one.",
-                       "- **Timing only:** one. Two. Three.")
+                       "- **Timing only:** one. Two. Three. Four.")
     assert any("bullet has more" in f for f in layout_fails(fat))
 
 

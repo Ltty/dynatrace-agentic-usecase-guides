@@ -150,7 +150,11 @@ fetch spans, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 The window is the problem's, padded 15 minutes each side, so the clean buckets either side come back in the
 same result.
 
-**Show:** Headline "Failures arrive as a switch". Table: Bucket (UTC) | Requests | Failed | Failure rate (%), 8-14 rows. Finding: the peak {failure_rate_pct} comes first, then how many 5-minute buckets it holds, with the clock times of the first and last failing bucket. Bullets: clean traffic before; the jump to the ceiling within one or two buckets; clean traffic after; throughput in the failing buckets as returned.
+**Show:** Headline "Failures arrive as a switch". Table: Bucket (UTC) | Requests | Failed | Failure rate (%), 5-6 rows
+(the last clean bucket, the onset, the plateau, the recovery and the first clean bucket after; the full series is one
+link away). Finding: the peak {failure_rate_pct} comes first, then how many 5-minute buckets it holds, with the clock
+times of the first and last failing bucket. Bullets: clean traffic before; the jump to the ceiling within one or two
+buckets; clean traffic after; throughput in the failing buckets as returned.
 
 **Reveal:** Give the shape, not every row: clean before, the rate it climbs to and how many buckets it holds
 there, clean after, with the clock times of the first and last failing bucket. A rate that goes from zero to

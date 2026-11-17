@@ -189,7 +189,11 @@ fetch spans, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 | fieldsAdd queried_at = now(), elapsed_min = round(toDouble(now() - toTimestamp("{{SURVEY_AT}}")) / 60000000000, decimals: 0)
 ```
 
-**Show:** Headline "What the image service changed". Table: Time bucket (UTC) | Requests | Resizes | Median latency (ms), 6-12 rows. Finding: the median latency before and after the flip, after value first ({p50_ms} in the flip bucket against the earlier buckets). Bullets: resizes are zero before the deploy; resizes equal requests from the deploy on; recovery after the later deploy.
+**Show:** Headline "What the image service changed". Table: Time bucket (UTC) | Requests | Resizes | Median latency
+(ms), 5-6 rows (the bucket before the flip, the flip, the plateau, the recovery and the one after; the full series is
+one link away). Finding: the median latency before and after the flip, after value first ({p50_ms} in the flip bucket
+against the earlier buckets). Bullets: resizes are zero before the deploy; resizes equal requests from the deploy on;
+recovery after the later deploy.
 
 **Reveal:** Before the regression deploy, `resizes` is zero. From the deploy's bucket on, `resizes` equals `requests`: every single image request runs
 the full resize pipeline, and `p50_ms` jumps from tens of milliseconds to seconds. After the later
@@ -246,7 +250,10 @@ fetch spans, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 One row per operation in call order; sub-50 ms noise is dropped except DynamoDB, which shows
 it is fast.
 
-**Show:** Headline "Where one slow request spends time". Table: Service | Operation | Duration (ms), 4-8 rows. Finding: the staged line, the resize step's {duration_ms} first, then the whole request's {duration_ms}. Bullets: latency from work that should not happen, not an error; the fast steps (database lookup, storage check); the cache check runs and the resize runs anyway.
+**Show:** Headline "Where one slow request spends time". Table: Service | Operation | Duration (ms), 4-6 rows (the
+slowest steps of the one request; the rest go in one bullet). Finding: the staged line, the resize step's
+{duration_ms} first, then the whole request's {duration_ms}. Bullets: latency from work that should not happen, not an
+error; the fast steps (database lookup, storage check); the cache check runs and the resize runs anyway.
 
 **Reveal:** The Lambda invocations themselves are not marked failed — this is latency, not an error. Inside the
 Lambda, the DynamoDB lookup and the S3 "check if image for screen size exists" take

@@ -132,7 +132,7 @@ the end of the Staging is replaced by the closing line.
 Sessions with no country recorded are part of the count: "[T] sessions, [M] of them with no country
 recorded and the rest across [N] countries", never "plus [M]".
 
-Budget: about 150 words per turn outside the table and the link.
+Budget: about 170 words per turn from the headline down, outside the table and the link.
 
 ## Closing lines
 

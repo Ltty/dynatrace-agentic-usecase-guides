@@ -76,6 +76,16 @@ def test_a_table_has_two_to_five_columns():
                 assert 2 <= columns <= 5, (scenario, heading, columns, "columns, expected 2-5")
 
 
+def test_a_table_has_at_most_six_rows():
+    """A series is condensed (before, onset, peak, recovery, after), never printed whole."""
+    for scenario, path in v.SCENARIO_FILES.items():
+        for heading, body in steps(path):
+            for show in shows(body):
+                table = re.search(r"Table:\s*(.*?)\.\s*Finding:", show).group(1)
+                counts = [int(b or a) for a, b in re.findall(r"(\d+)(?:\s*-\s*(\d+))?\s+rows", table)]
+                assert not counts or max(counts) <= 6, (scenario, heading, max(counts), "rows, expected at most 6")
+
+
 def test_bullets_are_two_to_four_topics():
     for scenario, path in v.SCENARIO_FILES.items():
         for heading, body in steps(path):

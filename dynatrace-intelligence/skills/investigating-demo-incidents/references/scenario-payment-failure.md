@@ -210,7 +210,11 @@ fetch events, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 Skip this query when beat 2 has run in this conversation: its rows already give each commit's
 first deploy.
 
-**Show:** Headline "How often payments failed over time". Table: Bucket (UTC) | Requests | Failures | Failure rate (%), 5-8 rows. Finding: {failure_rate_pct} percent failure rate after the deploy against {failure_rate_pct} before it, in the bucket at {bucket}. Bullets: Before and after rates with failures and totals; Where the rise lines up with the deploy; The later deploy after which the rate falls back.
+**Show:** Headline "How often payments failed over time". Table: Bucket (UTC) | Requests | Failures | Failure rate
+(%), 5-6 rows (the last clean bucket, the onset, the peak, the recovery and the last bucket; the full series is one
+link away). Finding: {failure_rate_pct} percent failure rate after the deploy against {failure_rate_pct} before it, in
+the bucket at {bucket}. Bullets: Before and after rates with failures and totals; Where the rise lines up with the
+deploy; The later deploy after which the rate falls back.
 
 **Reveal:** A rise from near-zero to an elevated failure rate that stays elevated until the
 later deploy. It can ramp over several buckets rather than step. The first failures fall in or
@@ -287,7 +291,11 @@ One row per service in call order. Failure propagates: the ingress, frontend, an
 also show `failed > 0` because they return the error payment raised — checkout's own exception
 wraps payment's message. Payment is the origin; the rows with `failed == 0` are the clean calls.
 
-**Show:** Headline "The exact error and its request". Table: Service | Spans | Failed | First start (UTC) | Slowest call (ms), 5-8 rows. Finding: Exception: {exception_msg}, verbatim, alone on its own line. Bullets: Where the exception is raised, {exception_file} and {exception_line}; How the failure relays upstream while sibling calls stay clean; When the first failure happened against when the problem opened, {detected_after_min} minutes.
+**Show:** Headline "The exact error and its request". Table: Service | Spans | Failed | First start (UTC) | Slowest
+call (ms), up to 6 rows (the services on the failing trace; any more go in one bullet). Finding: Exception:
+{exception_msg}, verbatim, alone on its own line. Bullets: Where the exception is raised, {exception_file} and
+{exception_line}; How the failure relays upstream while sibling calls stay clean; When the first failure happened
+against when the problem opened, {detected_after_min} minutes.
 
 **Reveal:** The failing payment spans carry a specific exception — quote it verbatim. Say what
 the data shows: the service itself raises it, at the file and line returned, with a message that

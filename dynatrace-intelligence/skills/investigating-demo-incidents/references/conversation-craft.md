@@ -188,7 +188,7 @@ concrete and not hedged.
 **The finding line** is the first number in the turn, and the one that sticks, so make it the one that matters — the
 impact, the cost, the finding — never a row count or a scan figure.
 
-**The table** has 3–5 rows and a header row naming its columns. A column name says what the number is and its unit:
+**The table** has 3–5 rows (6 at most) and a header row naming its columns. A series is condensed to the bucket before, the onset, the peak, the recovery and the one after, with the span said in words; the full series is one link away. A column name says what the number is and its unit:
 "95th percentile (ms)", not "p95"; a table whose header is blank makes the reader guess. One fact per cell: a value
 and its time are two columns, not "272.1, at 03:00 UTC". The table holds the numbers; the bullets never repeat them.
 
@@ -382,10 +382,10 @@ Never escalate in length or get coy.
 
 | Context | Limit |
 |---|---|
-| A step (explore) | About 180 words outside the table and the link: headline, why this step, the finding, 3–5 table rows, 2–4 bullets, the link on the beat's last step, the **Next:** block; a peak moment's staging may run longer |
+| A step (explore) | About 200 words from the headline down, outside the table and the link: why this step, the finding, 3–5 table rows, 2–4 bullets, the link on the beat's last step, the **Next:** block; a peak moment's staging may run longer |
 | Side quest | ≤6 lines, then re-anchor |
 | Opening report (walk-through) | Up to 14 lines: headline, summary line, four bullets, the offer (`references/walk-through.md`) |
-| Step (walk-through) | About 150 words outside the table and the link: headline, the link back, finding, table, bullets, link, closing line and cue |
+| Step (walk-through) | About 170 words from the headline down, outside the table and the link: the link back, finding, table, bullets, link, closing line and cue |
 | Session close | Per `references/session-protocol.md` → "Session close"; the handoff block is its own length |
 
 Evidence is a table. What it means is 2–4 bullets with bold lead-ins, never a paragraph over three sentences, and

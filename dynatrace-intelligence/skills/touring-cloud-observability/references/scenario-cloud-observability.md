@@ -255,7 +255,11 @@ smartscapeEdges "*"
 | summarize related = collectDistinct(target_type), by: { relationship = type }
 ```
 
-**Show:** Headline "One function in full detail". Table: Setting | Value, 8-10 rows (name, region, runtime, memory (MB), timeout (s), last modified (UTC), stage, application, team, owner team tag, cost center). Finding: {name} runs {runtime} with {memory_mb} MB, last modified {last_modified} UTC. Bullets: live configuration read from the AWS API; ownership tags, stating both {team} and {owner_team_tag} when they differ; cloud relationships (IAM role, security group, VPC, subnet).
+**Show:** Headline "One function in full detail". Table: Setting | Value, 6 rows (name, runtime, memory (MB), timeout
+(s), last modified (UTC), owner team tag; the other attributes go in the bullets). Finding: {name} runs {runtime} with
+{memory_mb} MB, last modified {last_modified} UTC. Bullets: live configuration read from the AWS API; ownership tags,
+stating both {team} and {owner_team_tag} when they differ; cloud relationships (IAM role, security group, VPC,
+subnet).
 
 **Reveal:** The function's live configuration (runtime, memory, timeout, when it was last modified) and its tags (stage,
 application, cost center), read from the AWS API. Two ownership tags are set: `team` and `owner_team_tag`. When they
