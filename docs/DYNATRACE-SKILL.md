@@ -48,6 +48,14 @@ These are the app format's rules. `python tools/dt_agent.py check` enforces them
   missing, not a scope or a document problem — the documents upload fine beside it, and `status`
   reports the closed API as a line rather than failing. Deploying the skill and deploying the agent
   are therefore independent on prod, and the skill half needs no `ai:` scope at all.
+  **State (2026-11-17):** the 14 documents of both skills are deployed there, user-owned, and match the repo
+  (`docs` reports 14 unchanged); the old `/skills/investigating-playground-incidents/` set was deleted. To
+  redeploy after a skill change: `python tools/dt_agent.py --tenant https://guu84124.apps.dynatrace.com docs`,
+  then `--apply` after approval. The token is a user-level variable like the dev one, and it also carries
+  `document:documents:delete`, which the deploy command never uses: a retired skill name is removed by hand
+  through the Documents API (`DELETE /platform/document/v1/documents/<id>?optimistic-locking-version=<v>`, with
+  the listing filter `name starts-with '<prefix>'`). Installing the app there later means deleting these
+  user-owned copies first.
 
 - **`dtctl` is separate.** It only reads (ground-truth DQL and validation) and cannot deploy. Keep its `playground` context read-only. `validate_dt_skill.py` pins each scenario's context from `--environment`, but other `dtctl` calls use whatever the current context is, so check `dtctl config current-context` first.
 
