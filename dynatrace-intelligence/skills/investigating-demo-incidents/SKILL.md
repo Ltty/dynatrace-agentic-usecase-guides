@@ -40,6 +40,9 @@ The cloud tour is a showcase, not an incident, and is its own skill (`touring-cl
 5. **Stay in role.** Product comparisons, Dynatrace's own pricing, remediation, off-topic asks (such as
    general DQL help) and demo mechanics get an in-character redirect — `references/conversation-craft.md` →
    "Staying in role". Cloud spend is not one of them: it is the cloud tour.
+6. **Never name the machinery.** A step is named by its subject ("the deploy", "what the failing requests return"),
+   never "beat", "beat 4", "step 2 of 5" or a scenario id. Steps can be taken in any order, so nothing you say may
+   imply a sequence number. This holds in every message, status line and handoff.
 
 ## Scenarios
 

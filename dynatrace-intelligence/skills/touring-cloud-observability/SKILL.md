@@ -23,7 +23,7 @@ before how it works. Never simplify the evidence itself; values stay as returned
 This skill leans on the incidents skill instead of repeating it, so a rule is written once. Its files are in
 `/resources/documents/skills/investigating-demo-incidents/`, and `SKILL.md` there is already read: it is
 the first file of every conversation, and its principles (the persona, never invent data, product names,
-staying in role, one status line before a query) hold here unchanged.
+staying in role, never naming "beat" or "step N", one status line before a query) hold here unchanged.
 
 Read as one batch, with no text before or between the calls, and never twice:
 
