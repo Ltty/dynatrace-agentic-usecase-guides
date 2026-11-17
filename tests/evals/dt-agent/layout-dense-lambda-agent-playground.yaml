@@ -1,0 +1,16 @@
+id: layout-dense-lambda-agent-playground
+tenant: playground
+runs: 3
+status: draft
+description: >-
+  DRAFT: the permission denial's last step, what the AWS DevOps Agent wrote, has the longest Reveal in the
+  scenarios (about 380 words). A user who asks for it directly still gets the step layout: a headline, a bold
+  finding, a small table, 2-4 bullets, one labelled link, within the word budget.
+turns:
+- ask: What did the AWS DevOps Agent make of the image permission problem?
+  expect:
+    layout: step
+    requires_dql: true
+    reply_excludes:
+    - beat
+    - lambda-iam-denied

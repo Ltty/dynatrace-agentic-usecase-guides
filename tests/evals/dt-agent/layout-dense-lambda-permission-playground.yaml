@@ -1,0 +1,15 @@
+id: layout-dense-lambda-permission-playground
+tenant: playground
+runs: 3
+status: draft
+description: >-
+  DRAFT: the permission step of the denial (about 290 words of Reveal) asked for directly still has the step
+  layout.
+turns:
+- ask: What is the image function's role actually allowed to do today?
+  expect:
+    layout: step
+    requires_dql: true
+    reply_excludes:
+    - beat
+    - lambda-iam-denied

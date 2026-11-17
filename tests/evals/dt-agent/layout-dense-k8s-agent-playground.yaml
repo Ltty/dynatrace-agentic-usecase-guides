@@ -1,0 +1,15 @@
+id: layout-dense-k8s-agent-playground
+tenant: playground
+runs: 3
+status: draft
+description: >-
+  DRAFT: the Kubernetes slowdown's agent step (about 300 words of Reveal) asked for directly still has the step
+  layout.
+turns:
+- ask: What did the Kubernetes troubleshooting agent write about the EasyTrade slowdown?
+  expect:
+    layout: step
+    requires_dql: true
+    reply_excludes:
+    - beat
+    - k8s-cpu-throttling

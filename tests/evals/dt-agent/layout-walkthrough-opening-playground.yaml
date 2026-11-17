@@ -1,0 +1,21 @@
+id: layout-walkthrough-opening-playground
+tenant: playground
+runs: 3
+status: draft
+description: >-
+  DRAFT: the walk-through's opening report has its own layout: a headline, one bold summary line, four labelled
+  bullets (who felt it, what broke, what happened in order, who owns it), a one-line timeline, and the offer.
+  It stays within the word budget and has no bare URL.
+turns:
+- ask: Walk me through the EasyTrade slowdown.
+  expect:
+    headline: true
+    max_words: 220
+    max_paragraph_sentences: 3
+    labelled_links: true
+    requires_dql: true
+    reply_contains:
+    - I can show you how we know each of these
+    reply_excludes:
+    - beat
+    - k8s-cpu-throttling

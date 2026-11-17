@@ -1,0 +1,20 @@
+id: layout-tour-bill-demo-live
+tenant: demo-live
+runs: 3
+status: draft
+description: >-
+  DRAFT: the cloud tour's cost track. The opening states the job; the next step, the bill against the target
+  (about 290 words of Reveal), has the step layout with a single Next line, never a list of options.
+turns:
+- ask: How can I take 10% off our cloud bill?
+  expect:
+    reply_excludes:
+    - beat
+    - cloud-observability
+- ask: go on
+  expect:
+    layout: step
+    requires_dql: true
+    reply_excludes:
+    - beat
+    - cloud-observability
