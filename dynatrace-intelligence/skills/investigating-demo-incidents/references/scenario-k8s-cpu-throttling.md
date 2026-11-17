@@ -342,6 +342,8 @@ fetch events, from: "{{DQL_FROM}}", to: "{{DQL_TO}}"
 | filter isNotNull(display_id)
 | fieldsAdd d = toString(event.description)
 | fieldsAdd rc = indexOf(d, "## Root Cause"), sol = indexOf(d, "## Solution"), chk = indexOf(d, "## What Was Checked")
+| fieldsAdd sections = if(rc >= 0, 1, else: 0) + if(chk >= 0, 1, else: 0) + if(sol >= 0, 1, else: 0)
+| sort sections desc
 | summarize notes = count(), on_problems = countDistinct(display_id), problems = collectDistinct(problem),
     first_note = min(timestamp), last_note = max(timestamp),
     agent_root_cause = takeFirst(if(rc >= 0, substring(d, from: rc + 14, to: rc + 360), else: "")),
