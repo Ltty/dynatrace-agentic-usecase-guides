@@ -189,6 +189,38 @@ Readings, with the caveat that each margin is wide (8 to 45 prompts per stratum,
 - Kubernetes sizing and cloud-to-cluster have 2 to 6 labelled prompts each on playground: no conclusion either way.
 - What the rules still miss is small there (5 of 132 rejected prompts were judged offer-worthy).
 
+## The triggers, written and tested (2026-11-18)
+
+The offer skill now has two triggers instead of one, written as **meanings**, not keywords (`offering-live-demos/references/triggers.md`,
+description in `SKILL.md`): `T-orient` (what can I do here, in the Home page and the listed apps), and `T-cause` / `T-k8s-sizing` in any
+app (why is it slow or failing, what changed, root cause, investigate or analyse a problem, or Kubernetes workloads starved or
+over-provisioned). A shared "never offer when" list covers preset button prompts, mid-task prompts (writing or fixing a query,
+dashboard or configuration), one-word replies, documentation questions and cloud costs, and an offer is made at most once per
+conversation, after the answer. The examples in the file are synthetic.
+
+**Test.** Assist picks skills from the description alone, so a neutral Assist was asked, per message and without seeing the skill, whether
+the description clearly covers it, and the answer was scored against the judge's labels (demo-live prompts, which stay local; one pass per
+arm; 95% intervals). The instruction was strict ("load only if the description clearly says so"), so recall is a floor, not a forecast of
+the real Assist.
+
+| Test set | Description | Precision | Recall |
+|---|---|---|---|
+| 120 real prompts | before (orientation only) | 38% (14-69) | 5% (2-14) |
+| 120 real prompts | new triggers | **78%** (55-91) | **23%** (14-35) |
+| 71 held-out real prompts | new triggers, v1 wording | 90% (70-97), but only 2 hard negatives in the set | 41% (28-56) |
+| 71 held-out real prompts | v2 (adds "investigate or analyze a problem or error") | 90% (71-97) | 43% (30-58) |
+
+Readings:
+
+- The new triggers lift the description from loading on almost nothing real (recall 5%) to loading on roughly a quarter to two fifths
+  of what the judge would offer on, at 78 to 90% precision. Loading on prompts the judge said should not get an offer: 4 of 60.
+- **Widening the wording changed nothing measurable** (v1 and v2 differ on 3 of 71 prompts); v2 is kept because it is no worse.
+- What is still missed is mostly generic incident questions and payment questions asked in Problems and on Home (27 of 46 and 10 of 46 in
+  the first set). Phrasing that stretches further risks the precision just gained; the next lever is the real Assist's behaviour, not more words.
+- **Playground is not tested.** Its labelled prompts have no text any more (the text file was deleted after judging), so this was measured
+  on demo-live only. Playground users ask differently (see above), so expect lower precision there until it is re-sampled with the sign-off.
+- The synthetic examples are not a test of the description's recall: they were written alongside it.
+
 ## What this changes (both tenants agree)
 
 - **Orientation-only triggers reach about 0.1 to 0.3% of traffic** (demo-live 0.3%, playground 0.1%). The current design is right but
@@ -205,6 +237,6 @@ Readings, with the caveat that each margin is wide (8 to 45 prompts per stratum,
 
 ## Not yet done
 
-Clustering the unmatched half; the trigger table (`offering-live-demos/references/triggers.md`) and its evals; the app-repo change
+Clustering the unmatched half; evals for the triggers (`tests/evals/dt-agent/offer-trigger-*.yaml`); a real-UI check of both triggers; the app-repo change
 that would put the skill on playground; re-measuring seven days after the next deploy (demo-live) and after the app-repo change
 ships (playground). Playground has been judged once (above); a second round on revised rules is still to do.

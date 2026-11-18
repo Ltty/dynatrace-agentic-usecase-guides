@@ -1,52 +1,57 @@
 ---
 name: offering-live-demos
 description: >
-  Adds one live-demo offer to Dynatrace Assist's answer when the user opens a Dynatrace app, or is on the Home
-  page (the main or start page), and asks what they can do there, what the app is for, how to get started or to be shown something, and a matching problem
-  is live on this environment. Use when the open app is one of dynatrace.kubernetes, dynatrace.infraops,
+  Adds one live-demo offer to the end of Dynatrace Assist's answer, never instead of it, when a matching problem is
+  live on this environment. Trigger 1: on the Home page, or in dynatrace.kubernetes, dynatrace.infraops,
   dynatrace.users.sessions, dynatrace.experience.vitals, dynatrace.classic.session.replay, dynatrace.services,
-  dynatrace.error.inspector, dynatrace.distributedtracing, dynatrace.clouds, dynatrace.launcher (the Home
-  page) or dynatrace.davis.problems, and the question is about the app or page
-  itself ("What can I do here?", "What is this app for?", "Show me what this can do"). Not for questions about
-  the user's own data in the app, and not for writing code or DQL.
+  dynatrace.error.inspector, dynatrace.distributedtracing, dynatrace.clouds, dynatrace.launcher or
+  dynatrace.davis.problems, the user asks what they can do here, what the app or page is for, how to get started, or to
+  be shown something. Trigger 2, in any app: the user asks why something is slow, failing or erroring, what changed,
+  what is causing it or its root cause, asks to investigate or analyze a problem or error, or asks whether Kubernetes
+  workloads are starved, wasted or over-provisioned. Not
+  while the user is writing or fixing a query, DQL, dashboard or configuration; not for one-word replies, preset
+  button prompts, documentation questions or cloud costs.
 ---
 
 # Offering Live Demos
 
 ## Objective
 
-Assist answers "what can I do here?" with the app's features. When a real problem on this environment is one the
-app can show, the answer also says so, once, and offers to walk through it. The offer is an addition to the
-answer, never a replacement for it.
+Assist answers the user's question as it normally would. When a real problem on this environment is one a demo can show, and
+the question is one of the triggers in `references/triggers.md`, the answer also says so, once, and offers to walk through it. The offer
+is an addition to the answer, never a replacement for it.
 
-Example questions this skill handles:
+Messages this skill handles (the meaning decides, not the words; the full list and the blocks are in `references/triggers.md`):
 
-- "What can I do here?" (asked inside the Kubernetes app)
+- "What can I do here?" (asked inside the Kubernetes app, or on the Home page)
 - "What is this app for?" (asked inside Users & Sessions)
-- "Show me what this can do." (asked inside Clouds)
-- "How do I get started?" (asked inside Services)
+- "Why did checkout slow down after the release?" (asked anywhere)
+- "Which of my workloads request far more CPU than they use?" (asked anywhere)
 
 ## Steps
 
 **Text you write between tool calls is shown to the user as it is written.** So all the lookups below finish first,
 with no text before them or between them, and the first thing the user reads is the answer.
 
-1. **Look up, in silence.** The Home page (also called the main page, start page or Launcher) is the app
-   `dynatrace.launcher`: treat it as the open app even when no app ID is given. Read `references/app-offers.md` and
+1. **Look up, in silence.** Read `references/triggers.md`, `references/app-offers.md` and
    `/resources/documents/skills/investigating-demo-incidents/references/session-protocol.md` ("Session state") in one
-   batch. The open app has no row: you are done looking up. Run no query and make no offer. Otherwise run the opening
-   query from `session-protocol.md` with the DQL tool that skill names, once per conversation; a conversation that
-   already holds its rows does not run it again.
-2. **Match.** The scenarios offered are the row's scenarios that returned a row of their own. The tour has no
-   row: it is offered only when some returned row's `env` is one that lists it (`kubernetes-complexity`) in that
-   file's "Environments" table. Where the Kubernetes tour is offered, the
-   Kubernetes incident is not (`references/app-offers.md` → "A tour replaces the incident it contains"). That choice is
-   made silently and never mentioned. Nothing matches: no offer, no mention of demos, no "there is no live demo for this", no apology.
-3. **Write the answer, then the offer.** Open on the answer to the user's question, as Assist normally would: the first
-   sentence is about the app, for example "The Kubernetes app gives you a unified view of your Kubernetes estate."
-   Never open on, or write anywhere, a word about skills, lookups, queries, rows or which scenario matched. The offer
-   is the last block of the same message.
-4. **One match: the offer** is its own block, so it stands out from the app's feature answer.
+   batch. Decide which trigger the message fires, by its meaning. None fires, or a "never offer" case applies: you are done
+   looking up; run no query and make no offer. The Home page (also called the main page, start page or Launcher) is the app
+   `dynatrace.launcher`: treat it as the open app even when no app ID is given. `T-orient` also needs the open app to have a
+   row; the other triggers do not care which app is open. Otherwise run the opening query from `session-protocol.md` with the
+   DQL tool that skill names, once per conversation; a conversation that already holds its rows does not run it again.
+2. **Match.** `T-orient`: the scenarios in the open app's row that returned a row of their own. `T-cause`: the scenarios that
+   returned a row of their own, named by what the user asked about where one clearly fits (payment, images, a Lambda, a slow
+   Kubernetes workload), otherwise all of them. `T-k8s-sizing`: the Kubernetes tour where it is listed, else the throttling
+   incident if it returned a row. The tour has no row: it is offered only when some returned row's `env` is one that lists it
+   (`kubernetes-complexity`) in that file's "Environments" table. Where the Kubernetes tour is offered, the Kubernetes incident is not
+   (`references/app-offers.md` → "A tour replaces the incident it contains"). That choice is made silently and never mentioned.
+   Nothing matches: no offer, no mention of demos, no "there is no live demo for this", no apology.
+3. **Write the answer, then the offer.** Answer the question as Assist normally would. For `T-orient` the first sentence is about
+   the app, for example "The Kubernetes app gives you a unified view of your Kubernetes estate." For `T-cause` and
+   `T-k8s-sizing` the answer is the user's own question answered in full: the demo never stands in for it. Never open on, or write
+   anywhere, a word about skills, lookups, queries, rows or which scenario matched. The offer is the last block of the same message.
+4. **One match: the offer** is its own block, so it stands out from the answer.
    The headline is exactly `### Try a live demo`. Then one introduction, the problem, and the question on its own line:
 
    ```text
@@ -89,11 +94,15 @@ with no text before them or between them, and the first thing the user reads is 
 - **Never narrate a choice.** Which scenario was offered instead of another, that one replaces another, which
   environment this is and why: none of it is said, before the answer or after. A line such as "the environment lists
   X, so I offer Y" is the failure this rule exists for; the user hears only the app's answer and the offer.
-- **Stay in the app's lane.** Offer only the scenarios in the open app's row, even when others are live.
+- **Stay in the app's lane for `T-orient`.** Offer only the scenarios in the open app's row, even when others are live.
+  `T-cause` and `T-k8s-sizing` follow the question, not the app.
+- **The answer is never shortened to make room.** A cause or sizing question gets the same answer with or without the offer.
 - **The offer is not the demo.** No investigation, figure or finding appears in it beyond the hook. The hand-over
   starts the investigation.
-- Questions about the user's own data in the app are not this skill's: answer them as Assist normally would.
+- **Blocks win.** Whatever the trigger, the "never offer when" cases in `references/triggers.md` apply: a preset button prompt,
+  a user mid-task, a one-word reply, a documentation or cloud-cost question.
 
 ## References
 
+- [references/triggers.md](references/triggers.md): the triggers, the blocks, and synthetic examples of each.
 - [references/app-offers.md](references/app-offers.md): which scenarios each app offers.

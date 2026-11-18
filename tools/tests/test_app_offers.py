@@ -77,6 +77,50 @@ def test_the_description_names_no_app_without_an_offer():
             assert app in table, (app, "in the description but has no offer row")
 
 
+TRIGGERS = (SKILL_DIR / "references" / "triggers.md").read_text(encoding="utf-8")
+SKILL_TEXT = (SKILL_DIR / "SKILL.md").read_text(encoding="utf-8")
+
+
+def trigger_ids():
+    return re.findall(r"^\| `(T-[a-z0-9-]+)` \|", TRIGGERS, re.M)
+
+
+def examples(trigger):
+    """(offer, do_not_offer) bullet lists under '### <trigger>' in triggers.md."""
+    section = re.search(rf"^### {re.escape(trigger)}\n(.*?)(?=^### |\Z)", TRIGGERS, re.M | re.S).group(1)
+    offer, _, rest = section.partition("Do not offer:")
+    bullets = lambda text: [b for b in re.findall(r"^- (.+)$", text, re.M)]
+    return bullets(offer.split("Offer:", 1)[-1]), bullets(rest)
+
+
+def test_there_are_triggers_and_each_has_synthetic_examples_both_ways():
+    ids = trigger_ids()
+    assert ids, "no trigger rows found in references/triggers.md"
+    for trigger in ids:
+        offer, never = examples(trigger)
+        assert len(offer) >= 5, (trigger, "needs at least 5 prompts it should fire on", len(offer))
+        assert len(never) >= 5, (trigger, "needs at least 5 prompts it must not fire on", len(never))
+
+
+def test_the_skill_names_every_trigger_and_the_description_fits():
+    for trigger in trigger_ids():
+        assert trigger in SKILL_TEXT, f"SKILL.md never mentions {trigger}"
+    description = " ".join(re.search(r"description: >\n(.*?)\n---", SKILL_TEXT, re.S).group(1).split())
+    assert len(description) <= 1024, f"description is {len(description)} characters; a skill description is capped at 1024"
+
+
+def test_the_blocks_every_trigger_shares_are_all_there():
+    blocks = TRIGGERS.split("## Never offer when", 1)[1].split("## Examples", 1)[0].lower()
+    for needle in ("preset button", "mid-task", "reply", "documentation", "cloud costs", "already made"):
+        assert needle in blocks, f"the 'never offer when' list lost: {needle}"
+
+
+def test_no_example_in_triggers_looks_like_a_real_prompt():
+    """The examples are written by us. A placeholder, an email or an id would mean one was pasted from data."""
+    assert not re.search(r"<(?:email|url|id)>", TRIGGERS)
+    assert not re.search(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[a-z]{2,}", TRIGGERS)
+
+
 def main() -> int:
     failed = 0
     for name, fn in sorted((n, f) for n, f in globals().items() if n.startswith("test_") and callable(f)):
