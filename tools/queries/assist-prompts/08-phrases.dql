@@ -1,0 +1,32 @@
+// assist-prompts / phrases: counts only. Run in a Notebook on the tenant and send back the result table.
+// 30 days, rows shown only for at least 10 distinct users. Change both numbers on the first line and the filter.
+fetch dt.system.events, from: now()-30d, to: now()
+| filter event.kind == "GENAI_EVENT" and event.type == "GenAI Skill Invocation"
+| filter contains(user_input, "<QUESTION>")
+| parse user_input, "'<QUESTION>' DATA:question '</QUESTION>'"
+| parse user_input, "DATA '<OPEN-APP>' DATA:block '</OPEN-APP>'"
+| parse block, "DATA 'viewing ' DATA ' (' DATA:app_named ') and it is installed'"
+| parse block, "DATA 'viewing ' DATA:app_bare ' and it is installed'"
+| fieldsAdd open_app = coalesce(app_named, app_bare, "(none)")
+| fieldsAdd q = trim(replacePattern(replacePattern(replacePattern(replacePattern(replacePattern(lower(question), "[a-z0-9._%+-]+ '@' [a-z0-9.-]+", "<email>"), "'http' 's'? '://' NSPACE", "<url>"), "[a-z0-9_-]{16,}", "<id>"), "[0-9]+", "#"), "SPACE+", " "))
+| fieldsAdd intent = "other"
+| fieldsAdd intent = if(intent == "other" and (matchesPhrase(q, "continue") or contains(q, "explain what happened in the problem") or contains(q, "provide a detailed explanation of the found vulnerability") or contains(q, "explain and provide insights on this database execution plan") or contains(q, "explain log")), "canned_ui_prompt", else: intent)
+| fieldsAdd intent = if(intent == "other" and (matchesPhrase(q, "what can i do here") or matchesPhrase(q, "what can i do on this") or matchesPhrase(q, "what can i do in this") or matchesPhrase(q, "what can i do with this") or matchesPhrase(q, "what is this app") or matchesPhrase(q, "what is this page") or matchesPhrase(q, "what's this app") or matchesPhrase(q, "what is this for") or matchesPhrase(q, "what does this app do") or matchesPhrase(q, "what can this app do") or matchesPhrase(q, "what can this page do") or matchesPhrase(q, "how do i use this") or matchesPhrase(q, "show me around") or matchesPhrase(q, "how do i get started") or matchesPhrase(q, "help me get started") or matchesPhrase(q, "getting started") or matchesPhrase(q, "get started") or matchesPhrase(q, "where do i start") or matchesPhrase(q, "where should i start") or matchesPhrase(q, "explain this app") or matchesPhrase(q, "explain this page") or matchesPhrase(q, "overview of this app")), "orientation", else: intent)
+| fieldsAdd intent = if(intent == "other" and (matchesPhrase(q, "demo") or matchesPhrase(q, "tour") or matchesPhrase(q, "walk me through") or matchesPhrase(q, "show me an example") or matchesPhrase(q, "show me what this can do")), "asks_demo", else: intent)
+| fieldsAdd intent = if(intent == "other" and (matchesPhrase(q, "what can you do") or matchesPhrase(q, "how can you help") or matchesPhrase(q, "what can you help") or matchesPhrase(q, "what are you able")), "assist_capabilities", else: intent)
+| fieldsAdd intent = if(intent == "other" and (matchesPhrase(q, "what's wrong") or matchesPhrase(q, "whats wrong") or matchesPhrase(q, "what is wrong") or matchesPhrase(q, "any problems") or matchesPhrase(q, "open problems") or matchesPhrase(q, "root cause") or matchesPhrase(q, "what changed") or matchesPhrase(q, "why is") or matchesPhrase(q, "why are") or matchesPhrase(q, "failing") or matchesPhrase(q, "outage") or matchesPhrase(q, "slow")), "problem_investigation", else: intent)
+| fieldsAdd intent = if(intent == "other" and (matchesPhrase(q, "over-provisioned") or matchesPhrase(q, "overprovisioned") or matchesPhrase(q, "right-size") or matchesPhrase(q, "rightsize") or matchesPhrase(q, "requests and limits") or matchesPhrase(q, "cpu throttling") or matchesPhrase(q, "memory limit") or matchesPhrase(q, "cpu limit") or contains(q, "oomkill")), "kubernetes_sizing", else: intent)
+| fieldsAdd intent = if(intent == "other" and (matchesPhrase(q, "kubernetes") or matchesPhrase(q, "k8s") or matchesPhrase(q, "pod") or matchesPhrase(q, "pods") or matchesPhrase(q, "namespace") or matchesPhrase(q, "workload") or matchesPhrase(q, "cluster")), "kubernetes", else: intent)
+| fieldsAdd intent = if(intent == "other" and (matchesPhrase(q, "cloud cost") or matchesPhrase(q, "cloud spend") or matchesPhrase(q, "cost") or matchesPhrase(q, "costs") or matchesPhrase(q, "spend") or matchesPhrase(q, "bill") or matchesPhrase(q, "savings")), "cloud_cost", else: intent)
+| fieldsAdd intent = if(intent == "other" and (matchesPhrase(q, "security") or matchesPhrase(q, "compliance") or contains(q, "vulnerab") or contains(q, "cve-")), "security", else: intent)
+| fieldsAdd intent = if(intent == "other" and (matchesPhrase(q, "log") or matchesPhrase(q, "logs")), "logs", else: intent)
+| fieldsAdd intent = if(intent == "other" and (matchesPhrase(q, "dql") or matchesPhrase(q, "query") or matchesPhrase(q, "fetch") or matchesPhrase(q, "timeseries") or matchesPhrase(q, "summarize")), "dql_query", else: intent)
+| fieldsAdd intent = if(intent == "other" and (matchesPhrase(q, "dashboard") or matchesPhrase(q, "notebook") or matchesPhrase(q, "create a") or matchesPhrase(q, "build a")), "authoring", else: intent)
+| fieldsAdd intent = if(intent == "other" and (matchesPhrase(q, "how do i") or matchesPhrase(q, "how to") or matchesPhrase(q, "documentation") or matchesPhrase(q, "what is a") or matchesPhrase(q, "what is the") or matchesPhrase(q, "explain")), "docs_howto", else: intent)
+| fieldsAdd offered = contains(toString(response), "Try a live demo")
+| filter stringLength(q) >= 3 and stringLength(q) <= 120
+| filter not contains(q, "<email>") and not contains(q, "<url>") and not contains(q, "<id>")
+| summarize users = countDistinct(user_id), prompts = count(), by: { pattern = q }
+| filter users >= 10
+| sort users desc
+| limit 200

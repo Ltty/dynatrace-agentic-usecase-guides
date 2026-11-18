@@ -31,6 +31,8 @@ Thumbs.db
 
 # demo-agent eval review sheets (transcripts)
 tests/evals/dt-agent/reports/
+# Scrubbed Assist prompts from the internal pilot (tools/assist_prompts.py fetch): never committed
+analysis/
 
 # session reports rendered by tools/render_report.py
 reports/

@@ -1,0 +1,9 @@
+// assist-prompts / profile: counts only. Run in a Notebook on the tenant and send back the result table.
+// 30 days, rows shown only for at least 10 distinct users. Change both numbers on the first line and the filter.
+fetch dt.system.events, from: now()-30d, to: now()
+| filter event.kind == "GENAI_EVENT" and event.type == "GenAI Skill Invocation"
+| fieldsAdd interactive = contains(user_input, "<QUESTION>"), has_app = contains(user_input, "<OPEN-APP>")
+| summarize events = count(), conversations = countDistinct(conversation_id), users = countDistinct(user_id),
+    interactive_events = countIf(interactive), interactive_conversations = countDistinct(if(interactive, conversation_id)),
+    interactive_users = countDistinct(if(interactive, user_id)), with_open_app = countIf(has_app),
+    offers_shown = countIf(contains(toString(response), "Try a live demo"))
