@@ -16,7 +16,7 @@ the bare id). That block is how the real Assist hands our skill its context.
 | Tenant | Readable? |
 |---|---|
 | `demo-live` (Dynatrace employees and partners) | Yes: ~11,000 events and 3,000 conversations in 30 days |
-| `playground` (customers and people who are not customers) | **Not with the current role.** My role there sees 2 of 13 event kinds in `dt.system.events` and no audit, query-execution or workflow events from the last 2 hours although queries ran on it, so the events are hidden from that role rather than missing. |
+| `playground` (customers and people who are not customers) | **Yes since 2026-11-18** (checked again that day: all 13 event kinds, ~37,800 GenAI events in 30 days). Before that my role saw 2 of 13 kinds and no audit, query-execution or workflow events although queries ran on it: hidden from the role, not missing. Run only after the data-protection sign-off was confirmed, and only as the count-only report. |
 
 ## Privacy rules
 
@@ -27,7 +27,8 @@ The prompts belong to other people and the repository is public.
 2. `fetch` (scrubbed rows to the git-ignored `analysis/` folder, user ids hashed with a per-run salt, no email) works on `demo-live`
    only and refuses every other tenant. Nothing from `analysis/` is committed.
 3. No model sees an individual customer's prompt. For a tenant with outside users the most that may reach a model is k-anonymous wording.
-4. Analysing customer and prospect prompts on playground needs a data-protection sign-off from that tenant's owner. Nothing was run there.
+4. Analysing customer and prospect prompts on playground needs a data-protection sign-off from that tenant's owner. It was confirmed
+   on 2026-11-18, and only the count-only report (floor of 10 users) has been run there.
 
 ## How to run it
 
@@ -80,17 +81,63 @@ demo request. The 1,022 no-app prompts are 71% canned.
 7 of 20 (two users, our testing), Home 2 of 11, Problems 0 of 3 (it is in the table), Notebooks 0 of 7 and Dashboards 0 of 3 (not in
 the table). **4 of the 11 offers began with environment or scenario text** (the leak fixed on 2026-11-18; re-measure).
 
-## What this changes
+## Playground (30 days to 2026-11-18, count-only report, every row at least 10 distinct users)
 
-- **Orientation-only triggers can reach about 1% of traffic.** The current design is right but thin: a rewrite of its wording will
-  not move the volume.
-- The reachable demo-relevant groups are **Kubernetes plus sizing (~3.7%)** and **problem investigation (~2.8%)**, as topical
-  triggers. Cloud cost (2.4%) must not trigger: Assist's own cost skill owns it.
-- About a fifth of volume is app buttons, not questions. Offering a demo there would interrupt a task the user started with one click,
-  so it is out unless the data later says otherwise.
-- Half the prompts are still unclassified; the next pass clusters them (aggregate-only on playground).
+Same template and the same parser. **9,926 interactive prompts from 1,561 users in 3,299 conversations** (demo-live: 6,217 / 725).
+Our offer is not deployed there, so offers shown are 0 and the 13 orientation prompts are the unserved baseline.
+
+**Where people are.** Home (`dynatrace.launcher`) **5,157 prompts (52%)** from 512 users; no app 1,155; Problems 654; Dashboards 600;
+Notebooks 530; Logs 201; Infrastructure & Operations 139; Services 138; Smartscape 136; Distributed Tracing 119; Kubernetes 97
+(44 users); Clouds 65.
+
+**What they ask (seed rules, 9,922 prompts):**
+
+| Group | Share | Note |
+|---|---|---|
+| Not matched by any rule | 52% | |
+| DQL and query building | 14.8% | the largest typed topic; no demo of ours addresses it |
+| Canned prompt behind an app button | 11% | 1,094 prompts; the Problems "explain the problem" preset is 736 prompts from 406 users |
+| Logs | 5.2% | |
+| Kubernetes | 4.5% | plus 0.2% sizing: **462 prompts, ~126 users** |
+| Docs and how-to | 4.5% | |
+| Dashboards and notebooks authoring | 2.6% | |
+| Problem investigation | 2.2% | |
+| Security | 1.2% | |
+| Cloud cost | 1.1% | must not trigger |
+| Asks for a demo | 0.2% | 16 prompts, 15 users |
+| **Orientation** | **0.1%** | 13 prompts, 12 users, all on Home |
+
+**Home on playground (5,157):** 55% unmatched typed questions, **21% DQL (1,078 prompts, 121 users)**, Kubernetes 318 (57 users), logs
+283, docs 207, authoring 114, security 85, problem investigation 78, cloud cost 74. Orientation and demo requests together are
+well under 1%.
+
+**Shared wording.** Besides the app buttons, several questions were used by 12 to 23 different users each (a response-time question
+about a demo service, "how does Dynatrace determine the root cause of a problem", "observability score", "slowest database query
+executions"), plus "yes" and "continue". They look like suggested or guided prompts that many people clicked, not free typing, which is
+worth confirming with the Assist team before reading them as demand.
+
+**Vocabulary (10+ users):** dynatrace, DQL, query, filter, fetch, fields, summarize (people pasting or writing DQL), service, logs,
+dashboard, problem, host, error. Kubernetes terms are far down.
+
+**What exists to offer on playground.** Only the incidents: `payment-failure`, `broken-images`, `lambda-iam-denied`,
+`k8s-cpu-throttling`. The Kubernetes tour is demo-live only, so a Kubernetes trigger there offers the throttling incident.
+
+## What this changes (both tenants agree)
+
+- **Orientation-only triggers reach about 0.1 to 0.3% of traffic** (demo-live 0.3%, playground 0.1%). The current design is right but
+  thin: rewording it will not move the volume. Home is where the people are (26% on demo-live, 52% on playground), and they are not
+  asking Home about itself.
+- The reachable demo-relevant groups are **Kubernetes plus sizing (3.7% demo-live, 4.7% playground)** and **problem investigation
+  (2.8% and 2.2%)**, as topical triggers. Cloud cost (2.4% and 1.1%) must not trigger: Assist's own cost skill owns it. DQL (6.5% and
+  14.8%) is the biggest typed topic and nothing we offer addresses it.
+- 11 to 19% of volume is app buttons, not questions (the Problems "explain the problem" preset alone is 13% on demo-live). Offering a
+  demo there would interrupt a task the user started with one click, so it is out unless the data later says otherwise.
+- About half the prompts are unclassified on both tenants; the next pass clusters them with the vocabulary report (aggregate-only on playground).
+- The offer skill is not on playground, so there it has no baseline of its own; the throttling incident is the only Kubernetes
+  demo that exists there.
 
 ## Not yet done
 
-Clustering the unmatched half; the trigger table (`offering-live-demos/references/triggers.md`) and its evals; playground (access,
-sign-off); re-measuring seven days after the next deploy.
+Clustering the unmatched half; the trigger table (`offering-live-demos/references/triggers.md`) and its evals; the app-repo change
+that would put the skill on playground; re-measuring seven days after the next deploy (demo-live) and after the app-repo change
+ships (playground).
