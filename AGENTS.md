@@ -134,12 +134,10 @@ Adding a scenario: `docs/AUTHORING.md`.
 - No fixture fallback exists — all queries hit the live Playground. The survey query looks back 48h and
   each of those problems fires at least once a day, so a live occurrence is almost always available. If nothing is
   found, the agent says the environment is clean and stops.
-- `cloud-observability` is a **showcase**, not an incident, and lives on `demo-live` only, as its own skill. The opening names it without figures; the probe that
-  finds the bill runs when the cost track starts, and only where the environment lists the showcase:
-  on playground it would cost 3.77 GB scanned for a row that cannot exist there. Cloud spend is in scope in that
-  scenario; Dynatrace's own pricing is not. Each contributor sets the context up themselves
-  (`docs/scenarios/cloud-observability.md`).
-- `kubernetes-complexity` (the KubeCon booth demo) is the second showcase in the same skill, `demo-live` only. Its
+- **Cloud costs are not part of this demo.** Assist's own cost skill (`dt-biz-cloud-costs`, Dynatrace-owned) answers them, and
+  nothing here may claim them: no skill description with cost triggers, no routing of a cost ask to a tour. The demo-agent
+  redirects a cost ask in character. The cloud tour that used to cover it was removed (`docs/scenarios/cloud-observability.md`).
+- `kubernetes-complexity` (the KubeCon booth demo) is the one showcase, in `touring-demo-showcases`, `demo-live` only. Its
   troubleshoot track **is** the `k8s-cpu-throttling` incident, so the in-app offer shows the tour instead of that
   incident where the tour is listed. Source, stable IDs and what moved since the script: `docs/scenarios/kubernetes-complexity.md`.
 - The **report** (`tools/render_report.py`) is local-only: the Dynatrace runtime cannot write files.

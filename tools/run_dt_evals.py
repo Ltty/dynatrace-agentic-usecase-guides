@@ -21,7 +21,7 @@ the same instructions and skill documents, and each case's DQL runs through dtct
 (playground, dev or demo-live), so no agent has to be deployed. It needs ANTHROPIC_API_KEY.
 
 Tokens: DT_DEV_AGENT_TOKEN (dev), DT_PLAYGROUND_AGENT_TOKEN (playground) and DT_DEMO_LIVE_AGENT_TOKEN
-(demo-live, guu84124: the cloud-observability showcase); never printed.
+(demo-live, guu84124: the kubernetes-complexity showcase); never printed.
 """
 
 from __future__ import annotations

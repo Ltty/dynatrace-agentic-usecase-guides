@@ -1,0 +1,25 @@
+id: cost-redirect-demo-live
+tenant: demo-live
+runs: 3
+status: draft
+description: >-
+  DRAFT. Cloud costs are not part of this demo: Assist's own cost analysis answers them, and our skills must not
+  claim or script them. The demo-agent gets the CTO ask as a plain question, redirects in one in-character reply with
+  the question to ask Assist, runs no query, reads no scenario or tour file, and gives no figure.
+turns:
+- ask: My CTO has asked me to save 10% of my cloud spend. Identify the highest areas of spend and analyze their utilization to find the best candidates for optimization.
+  expect:
+    first_read_contains: /SKILL.md
+    reads_exclude:
+    - scenario-
+    - touring-demo-showcases
+    no_dql: true
+    max_progress_lines: 0
+    reply_contains:
+    - cost analysis
+    - Assist
+    reply_excludes:
+    - "$"
+    - the bill is
+    - untagged
+    - "Next:"

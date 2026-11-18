@@ -41,16 +41,15 @@ dynatrace-intelligence/
     └── touring-demo-showcases/         — the tours; reads the incidents skill's conversation rules by path
         ├── SKILL.md                          — its triggers, the Tours table, workflow, checklist
         └── references/
-            ├── scenario-cloud-observability.md — the cloud estate and the bill, with its cost track
             ├── scenario-kubernetes-complexity.md — the KubeCon tour: estate, starved and bloated workloads, EKS to EC2
             ├── tour-protocol.md              — what every tour shares: delivery, tokens, the close
-            └── tour-register.md              — how a tour sounds: tense, stakes, findings against the target
+            └── tour-register.md              — how a tour sounds: tense, stakes, the approach
 ```
 
 Every scenario runs in two deliveries: the user explores with the SRE as a peer (default), or the SRE
 reports the incident to them as to a manager and ends with a handoff block. The survey offers the second
 once, after the entry angles. `walk-through.md` holds its rules; SKILL.md, session-protocol and the agent
-instructions only route to it. Incidents only: the cloud tour is a presentation and never reaches it. Scenarios author no walk-through content,
+instructions only route to it. Incidents only: a tour is a presentation and never reaches it. Scenarios author no walk-through content,
 but they supply a `symptom`, a `Goes to` row, and a `pull_line` where they can be walked through, and the handoff block draws on their Handoff fields table, so a scenario with no
 owner or no user count must say so there.
 
@@ -96,7 +95,7 @@ python tools/validate_dt_skill.py --scenario payment-failure --environment demo-
 python tools/validate_dt_skill.py --scenario broken-images --environment playground
 python tools/validate_dt_skill.py --scenario lambda-iam-denied --environment demo-live
 python tools/validate_dt_skill.py --scenario k8s-cpu-throttling --environment demo-live
-python tools/validate_dt_skill.py --scenario cloud-observability --environment demo-live
+python tools/validate_dt_skill.py --scenario kubernetes-complexity --environment demo-live
 ```
 
 Also open one deep link with substituted values and confirm the Dynatrace app loads the right view.
@@ -114,8 +113,9 @@ Also open one deep link with substituted values and confirm the Dynatrace app lo
   function's role unable to read its DynamoDB table. The AWS DevOps Agent's notes are the last beat.
 - **k8s-cpu-throttling scenario:** complete — a daily slowdown on demo-live where the broker service's CPU
   ceiling is halved and throttling follows it; the Kubernetes troubleshooting agent's analysis is last.
-- **cloud-observability showcase:** complete — three clouds down to one function, the agents that work its
-  problems, and the bill. Presentation only: no mode question, no walk-through.
+- **kubernetes-complexity showcase:** complete — the KubeCon tour: an estate of four clusters, a starved and a bloated
+  workload, EKS nodes to EC2 and a cloud alert ruled out, and the throttling incident as its troubleshoot track.
+  Presentation only: no mode question, no walk-through. Cloud costs are Assist's own skill, not part of this demo.
 - **Walk-through delivery:** complete locally — the executive summary, then the offer, then every beat as a step,
   then the handoff block. Not yet uploaded or evaluated on `@demo-agent`.
 

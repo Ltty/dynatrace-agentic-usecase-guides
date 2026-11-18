@@ -34,7 +34,7 @@ INCIDENT = {
 }
 
 SHOWCASE = {
-    "kind": "showcase", "environment": "demo-live", "scenario": "cloud-observability",
+    "kind": "showcase", "environment": "demo-live", "scenario": "kubernetes-complexity",
     "title": "Where 10% is",
     "timeline": [{"time": "last 30 days", "what": "the bill"}],
     "cost": {
@@ -135,7 +135,7 @@ def test_it_writes_a_named_file_and_prints_the_path(capsys=None):
         assert rc == 0, rc
         written = Path(printed)
         assert written.exists(), printed
-        assert written.name.endswith("-demo-live-cloud-observability.html"), written.name
+        assert written.name.endswith("-demo-live-kubernetes-complexity.html"), written.name
         assert "Where 10% is" in written.read_text(encoding="utf-8")
 
 

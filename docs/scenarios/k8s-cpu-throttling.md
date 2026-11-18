@@ -3,8 +3,7 @@
 Maintainer notes. The agent never reads this file.
 
 Source: the "K8s troubleshooting agent" step of the *Modern Cloud Observability* golden demo, taken to
-incident depth. The showcase (`scenario-cloud-observability.md`) shows this agent at tour depth in its
-beat 4; this scenario walks one of its problems from the slow page to the field that was edited.
+incident depth. The Kubernetes tour hands into this scenario as its troubleshoot track; this scenario walks one of its problems from the slow page to the field that was edited.
 
 ## Stable entity IDs (safe to hardcode in queries and deep links)
 

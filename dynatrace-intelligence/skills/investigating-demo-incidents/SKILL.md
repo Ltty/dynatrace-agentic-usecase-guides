@@ -19,7 +19,7 @@ the evidence — all from live data. The user either steers, choosing what to lo
 through it step by step. **Explain it to someone senior who does not know this platform** — a product or
 engineering manager. Same register in both: plain words first, every term glossed on first use, what a
 finding *means* before how it works. Never simplify the evidence itself; values stay as returned.
-The cloud tour and the Kubernetes tour are showcases, not incidents, and live in their own skill (`touring-demo-showcases`).
+The Kubernetes tour is a showcase, not an incident, and lives in its own skill (`touring-demo-showcases`).
 
 ## Core principles
 
@@ -39,7 +39,7 @@ The cloud tour and the Kubernetes tour are showcases, not incidents, and live in
    IDs in links are identifiers, not names to say.
 5. **Stay in role.** Product comparisons, Dynatrace's own pricing, remediation, off-topic asks (such as
    general DQL help) and demo mechanics get an in-character redirect — `references/conversation-craft.md` →
-   "Staying in role". Cloud spend is not one of them: it is the cloud tour.
+   "Staying in role". Cloud spend gets the same redirect, pointing at Assist's own cost analysis.
 6. **Never name the machinery.** A step is named by its subject ("the deploy", "what the failing requests return"),
    never "beat", "beat 4", "step 2 of 5" or a scenario id. Steps can be taken in any order, so nothing you say may
    imply a sequence number. This holds in every message, status line and handoff.
@@ -53,8 +53,8 @@ The cloud tour and the Kubernetes tour are showcases, not incidents, and live in
 | `lambda-iam-denied` | [references/scenario-lambda-iam-denied.md](references/scenario-lambda-iam-denied.md) | access denied, permissions, IAM policy or role, DynamoDB, a Lambda erroring outright, the AWS DevOps Agent on a problem |
 | `k8s-cpu-throttling` | [references/scenario-k8s-cpu-throttling.md](references/scenario-k8s-cpu-throttling.md) | Kubernetes workload slowdowns, CPU throttling, a deployment spec change, the Kubernetes troubleshooting agent (a workload's sizing, limits or requests is the Kubernetes tour) |
 
-The tours (`cloud-observability`, `kubernetes-complexity`; presentations) are the separate skill `touring-demo-showcases`: the user
-picking one, asking about cloud costs, or asking which workloads are over- or under-provisioned, why a workload keeps having problems against its limits, or whether a cloud alert is
+The Kubernetes tour (`kubernetes-complexity`, a presentation) is the separate skill `touring-demo-showcases`: the user
+picking it, or asking which workloads are over- or under-provisioned, why a workload keeps having problems against its limits, or whether a cloud alert is
 the cluster, is a reason to read `/resources/documents/skills/touring-demo-showcases/SKILL.md` and follow it from its first line.
 
 One opening query finds what is live here (session-protocol → "Session state" and "Environments"); the rows
@@ -83,7 +83,7 @@ one batch of parallel calls with no text before or between them. Anything alread
 | Greeting — "hi", "what can you do?", "what can we look at?" | none beyond session-protocol | The two directions and nothing else; no query, no numbers |
 | Problem survey — "what's wrong?", "any issues?", "root-cause the latest", "what changed?", or the problems chosen | none | Status line "Checking what's open.", the opening query, then the bullets and one question |
 | Pick — names a scenario, a service or a symptom, with no angle ("the payment failure", "why are the images slow?") | none | "[A] it is." and that scenario's mode question; no query |
-| A tour, cloud cost or workload sizing — "the cloud tour", "cut cloud costs", "the Kubernetes tour", "which workloads are over-provisioned?", "does this service have enough memory?" | `/resources/documents/skills/touring-demo-showcases/SKILL.md` | Follow that skill from its first line; it asks no mode question |
+| The Kubernetes tour or workload sizing — "the Kubernetes tour", "which workloads are over-provisioned?", "does this service have enough memory?" | `/resources/documents/skills/touring-demo-showcases/SKILL.md` | Follow that skill from its first line; it asks no mode question |
 | Direct start — names an **angle**: the piece of evidence to open with (the traces, the deployment, the affected users, the exception) | that scenario's file, `conversation-craft.md` | Status line naming the lookup ("Checking the deployments on the payment service."), the survey query if no row is held, then the beat loop at that angle; no question |
 | Walk-through — "walk me through it", "take me through it", "present it", or being walked through chosen | that scenario's file, `conversation-craft.md`, `walk-through.md` | The scenario's `pull_line` as status line, then `walk-through.md` — its executive summary, then the offer |
 | Report asked for by name — "brief me", "give me the incident report", "summarise it" | that scenario's file, `walk-through.md` | The report or the handoff block, and **no stepping** (walk-through → "The report, on request") |
@@ -98,7 +98,7 @@ even while you read files. **One status line before each turn's query, and never
 ### 2. Gather context
 
 Run the opening query once per conversation and keep its rows as session state (session-protocol → "Session state"); its rows carry the environment.
-A scenario with no row is not offered; a tour is offered wherever the environment lists it.
+A scenario with no row is not offered; the tour is offered wherever the environment lists it.
 
 ### 3. Run the investigation
 

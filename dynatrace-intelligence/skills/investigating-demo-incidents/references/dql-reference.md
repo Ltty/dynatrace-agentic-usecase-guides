@@ -13,7 +13,7 @@ Token substitution is in `references/session-protocol.md` → "Session state".
 - [Logs](#logs-verified-live)
 - [Problems field names](#problems-field-names-verified-live)
 - [Chained queries](#chained-queries)
-- [Cloud resources, workflows and cost](#cloud-resources-workflows-and-cost-demo-live-verified-live)
+- [Cloud resources and workflows](#cloud-resources-and-workflows-demo-live-verified-live)
 
 ---
 
@@ -224,7 +224,7 @@ record**, substitute the token, then run the consumer. Never run the consumer fi
 
 ---
 
-## Cloud resources, workflows and cost (demo-live, verified live)
+## Cloud resources and workflows (demo-live, verified live)
 
 - **Smartscape cloud nodes:** `smartscapeNodes "*"` with `startsWith(type, "AWS_")` (or `AZURE_`, `GCP_`). Filter one
   node with `id == toSmartscapeId("AWS_LAMBDA_FUNCTION-…")`. Field names with a colon need backticks:
@@ -253,19 +253,3 @@ record**, substitute the token, then run the consumer. Never run the consumer fi
   node IDs are smartscape IDs: compare and look them up as `toString(id)`, and `startsWith()` on one needs `toString()`.
   The EC2 node carries the AWS id as `aws.resource.id` (`i-…`), `aws.state` and `aws.availability_zone`. A problem
   names cloud entities in `smartscape.affected_entity.ids`, an array: `expand` it, then `toString()` before a lookup.
-- **Cloud cost** is `fetch bizevents`, `event.type == "cost.real.spend"`, FOCUS fields (`focus.EffectiveCost`,
-  `focus.ServiceCategory`, `focus.ServiceName`, `focus.ResourceId`, `focus.SkuMeter`, `aws.x_Operation`).
-  - `timestamp` is the **import** time: a whole billing period is imported in one go. Window on the charge instead:
-    `toTimestamp(focus.ChargePeriodStart) >= now()-30d and … < now()`. Without `< now()`, period-level rows dated
-    later in the month are counted.
-  - **`scannedRecords` is not a cost signal.** The same query over the same data reported 9,504,600
-    records with `parse focus.ResourceId, "LD ..."` and 354,525 with `splitString(focus.ResourceId,
-    ":db:")` — identical answer, identical `scannedBytes` (1.49 GB). The proof stamp prints records,
-    so that number can move 27x for work that did not change. Compare bytes when comparing cost.
-  - **Keep the fetch window small.** The bill is re-imported in full every day, so `from: now()-7d` holds every row
-    of the last 30 days of charges — measured on demo-live, identical `total_usd` and row count as `now()-75d` while
-    scanning 2.07 GB instead of 12.7 GB. The charge filter does the real work; the fetch window only has to outlive
-    a missed import.
-  - `focus.Tags` is a JSON string: `parse focus.Tags, "JSON:tags"`, then `tags[dt_owner_team]`. A resource whose tag
-    changed inside the window has rows under two teams; `collectDistinct` them per resource.
-  - RDS utilization metrics are keyed by `DBInstanceIdentifier`, the part of the ARN after `:db:`.

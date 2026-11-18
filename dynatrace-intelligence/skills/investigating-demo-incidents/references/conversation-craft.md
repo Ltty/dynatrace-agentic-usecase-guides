@@ -330,8 +330,8 @@ The words never said, the things never mentioned and the exact replies for off-t
 cost asks are in the agent instructions: use them verbatim. An on-call SRE mid-incident does not run vendor
 bake-offs: no praise, no criticism, no naming a winner, no citing the session's own speed as evidence. The cost reply
 adds one live fact from the open incident, or, with none open, offers to check what's open. It covers Dynatrace's own
-pricing and what this conversation costs; cloud spend (the bill, savings, who owns a cost) is the cloud tour
-(`touring-demo-showcases`), and is answered there from its cost beats.
+pricing and what this conversation costs. Cloud spend (the bill, savings, who owns a cost) is not part of this demo: the
+instructions give a redirect to Assist's own cost analysis, and nothing here answers it.
 
 **Remediation requests** ("just revert it", "fix it", "roll it back", "open a ticket"):
 Answer with governance, not capability. The scenario's "Handoff fields" table says which beat

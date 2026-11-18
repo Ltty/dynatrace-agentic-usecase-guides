@@ -3,8 +3,7 @@
 Maintainer notes. The agent never reads this file.
 
 Source: the "AWS DevOps Agent integration" step of the *Modern Cloud Observability* golden demo, taken
-to incident depth. The showcase (`scenario-cloud-observability.md`) names this same problem in its
-beat 3 and counts the agents' notes in beat 4; this scenario walks it to the root cause.
+to incident depth. The retired cloud tour (`docs/scenarios/cloud-observability.md`) named this same problem at tour depth; this scenario walks it to the root cause.
 
 ## Stable entity IDs (safe to hardcode in queries and deep links)
 

@@ -5,8 +5,8 @@ description: >
   they can do there, what the app is for, how to get started or to be shown something, and a matching problem
   is live on this environment. Use when the open app is one of dynatrace.kubernetes, dynatrace.infraops,
   dynatrace.users.sessions, dynatrace.experience.vitals, dynatrace.classic.session.replay, dynatrace.services,
-  dynatrace.error.inspector, dynatrace.distributedtracing, dynatrace.clouds, dynatrace.biz.carbon,
-  community.cloudsreagents, dynatrace.launcher or dynatrace.davis.problems, and the question is about the app
+  dynatrace.error.inspector, dynatrace.distributedtracing, dynatrace.clouds, dynatrace.launcher or
+  dynatrace.davis.problems, and the question is about the app
   itself ("What can I do here?", "What is this app for?", "Show me what this can do"). Not for questions about
   the user's own data in the app, and not for writing code or DQL.
 ---
@@ -36,9 +36,9 @@ with no text before them or between them, and the first thing the user reads is 
    batch. The open app has no row: you are done looking up. Run no query and make no offer. Otherwise run the opening
    query from `session-protocol.md` with the DQL tool that skill names, once per conversation; a conversation that
    already holds its rows does not run it again.
-2. **Match.** The scenarios offered are the row's scenarios that returned a row of their own. A tour has no
-   row: it is offered only when some returned row's `env` is one that lists the tour (`cloud-observability`,
-   `kubernetes-complexity`) in that file's "Environments" table. Where the Kubernetes tour is offered, the
+2. **Match.** The scenarios offered are the row's scenarios that returned a row of their own. The tour has no
+   row: it is offered only when some returned row's `env` is one that lists it (`kubernetes-complexity`) in that
+   file's "Environments" table. Where the Kubernetes tour is offered, the
    Kubernetes incident is not (`references/app-offers.md` → "A tour replaces the incident it contains"). Nothing matches: no offer, no mention of demos, no "there is no live demo for this", no apology.
 3. **Write the answer, then the offer.** Open on the answer to the user's question, as Assist normally would: the first
    sentence is about the app, for example "The Kubernetes app gives you a unified view of your Kubernetes estate."
@@ -61,8 +61,6 @@ with no text before them or between them, and the first thing the user reads is 
    - `<the route>` is that scenario's Route column, in its own words, as its own sentence: what the demo is about, so
      the user sees what they are agreeing to. Never fold it into the hook's sentence with a dash. It names the subject,
      never a finding or a cause.
-   - The cloud tour has no hook, so its block is the same headline, then "I can give you a demonstration based on this
-     environment's real cloud data: how to bring the cloud bill down." and the question "Want me to show you?" No figures.
    - The Kubernetes tour has no hook either: the same headline, then "I can give you a demonstration based on this
      environment's real Kubernetes data: finding the cause of a slowdown, wasted or starved resources, and what the
      clusters run on in the cloud." and the question "Want me to show you?" No figures.
@@ -73,7 +71,7 @@ with no text before them or between them, and the first thing the user reads is 
 6. **On a yes, or on naming one of them:** hand over, with no query of your own. An incident: read
    `/resources/documents/skills/investigating-demo-incidents/SKILL.md` and continue from its "Classify the opening" as a
    **pick**: "[A] it is." and that scenario's mode question, so the user chooses between being walked through and
-   exploring. A tour: read `/resources/documents/skills/touring-demo-showcases/SKILL.md` and follow it as that tour
+   exploring. The Kubernetes tour: read `/resources/documents/skills/touring-demo-showcases/SKILL.md` and follow it as that tour
    picked, so it starts on the tour's Opening.
 7. **On a no, or any other topic:** drop it. The offer is made once per conversation and never repeated.
 

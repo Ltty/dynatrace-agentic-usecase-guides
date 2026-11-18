@@ -254,3 +254,9 @@ A showcase with three tracks, built from the KubeCon booth script. The `troubles
   finding is placed against the previous one (starved, then bloated) rather than against a goal.
 - **The cloud track is EKS only.** Beat 5's check walks every cluster, but beat 4 shows one; a user
   asking about AKS learns from the data that its nodes carry no cloud link, which is true but abrupt.
+
+## `cloud-observability`, retired 2026-11-18
+
+The cloud tour and its cost track are removed (`docs/scenarios/cloud-observability.md` says why). Any verdict above that
+names the 10% target, the cost action list or the tour's four questions describes behaviour that no longer exists. The
+verdicts for the incident scenarios and the Kubernetes tour stand.

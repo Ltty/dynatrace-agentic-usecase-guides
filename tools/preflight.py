@@ -153,7 +153,6 @@ SCENARIO_ENVIRONMENTS = {
     "broken-images": ("playground",),
     "lambda-iam-denied": ("playground", "demo-live"),
     "k8s-cpu-throttling": ("playground", "demo-live"),
-    "cloud-observability": ("demo-live",),
     "kubernetes-complexity": ("demo-live",),
 }
 
@@ -545,45 +544,23 @@ def _dql_reachable() -> bool:
 
 
 def _showcase_live(skill, scenario_id):
-    """A showcase is live when its own probe returns a figure; it has no problem record.
+    """A showcase is live when its first step returns rows; it has no problem record.
 
-    The cloud tour's probe is its bill query -- the block that returns total_usd, which is also
-    what the opening appends to the survey. A tour with no bill probes with its first block that
-    needs no token, and is live when that returns rows.
+    The probe is the scenario's first DQL block that needs no token, so it runs with nothing held.
     """
     import datetime as _dt
     # The block stamps elapsed_min against the opening's time; here there is no opening, so now().
     survey_at = _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z")
-    blocks = skill.extract_dql_blocks(skill.SCENARIO_FILES[scenario_id])
-    if not any("total_usd" in raw for raw in blocks):
-        for raw in blocks:
-            dql = substitute_placeholders(raw, {"SURVEY_AT": survey_at}, pass_through_unknown=True)
-            if skill.remaining_tokens(dql):
-                continue
-            _, out, _ = run_dtctl("query", skill.strip_dql_comments(dql), "-o", "json",
-                                  "--max-field-chars", "0")
-            envelope = parse_envelope(out)
-            if not (envelope and envelope.get("ok")):
-                return False, "BROKEN - the probe query failed"
-            records = _flatten_records(envelope)
-            return (True, f"{len(records)} rows from its first step") if records else (False, "EMPTY - no rows")
-        return False, "BROKEN - no probe block found in the scenario file"
-    for raw in blocks:
-        if "total_usd" not in raw:
-            continue
+    for raw in skill.extract_dql_blocks(skill.SCENARIO_FILES[scenario_id]):
         dql = substitute_placeholders(raw, {"SURVEY_AT": survey_at}, pass_through_unknown=True)
         if skill.remaining_tokens(dql):
             continue
-        _, out, _ = run_dtctl("query", skill.strip_dql_comments(dql), "-o", "json",
-                              "--max-field-chars", "0")
+        _, out, _ = run_dtctl("query", skill.strip_dql_comments(dql), "-o", "json", "--max-field-chars", "0")
         envelope = parse_envelope(out)
         if not (envelope and envelope.get("ok")):
-            continue
+            return False, "BROKEN - the probe query failed"
         records = _flatten_records(envelope)
-        if records and records[0].get("total_usd"):
-            row = records[0]
-            return True, f"${row['total_usd']} over 30 days, 10% = ${row.get('target_usd', '?')}"
-        return False, "EMPTY - the bill returned no charges"
+        return (True, f"{len(records)} rows from its first step") if records else (False, "EMPTY - no rows")
     return False, "BROKEN - no probe block found in the scenario file"
 
 

@@ -200,7 +200,7 @@ The Playground token needs `ai:operator:execute`, `mcp-gateway:servers:read` and
   carries the beat, not on the opening.
 - **Review sheet:** every run writes `tests/evals/dt-agent/reports/<timestamp>-<tenant>.md` (git-ignored) with the transcripts, for tone and persona, which a script cannot judge.
 - **Ground truth (Playground):** a case can list `truth: [payment-failure, ...]`. The runner runs the survey query (narrowed to the scenario) and the deployment DQL itself, pinned to the read-only `playground` `dtctl` context (`python tools/run_dt_evals.py --truth payment-failure` prints it), and `{truth.<scenario>.<field>}` placeholders in a case are replaced with the live values. An empty truth fails the check instead of skipping it.
-- **Tenants:** `--tenant dev` uses `DT_DEV_AGENT_TOKEN`; `--tenant playground` uses `DT_PLAYGROUND_AGENT_TOKEN`; `--tenant demo-live` (`guu84124`, the `cloud-observability` and `kubernetes-complexity` showcases) uses `DT_DEMO_LIVE_AGENT_TOKEN`, and with `--local` the `demo-live` dtctl context. If the tenant has no `demo-agent` template, the runner skips with a message. Cases marked `status: draft` (the Playground ones) need `--include-draft` and their expectations are unvalidated until the agent exists there.
+- **Tenants:** `--tenant dev` uses `DT_DEV_AGENT_TOKEN`; `--tenant playground` uses `DT_PLAYGROUND_AGENT_TOKEN`; `--tenant demo-live` (`guu84124`, the `kubernetes-complexity` showcase) uses `DT_DEMO_LIVE_AGENT_TOKEN`, and with `--local` the `demo-live` dtctl context. If the tenant has no `demo-agent` template, the runner skips with a message. Cases marked `status: draft` (the Playground ones) need `--include-draft` and their expectations are unvalidated until the agent exists there.
 - **Manual groups:** `docs/dt-skill-evals.md` and `docs/guardrail-probes.md` stay the source for cases that are not automated yet (persistence, deep links).
 - **Dev has no scenario.** Every branch of the survey query matches Playground or demo-live entities, so on dev the survey finds nothing and the demo says the environment is clean. The generic cases (greeting, cost, injection and the like) still run on it.
 
@@ -221,7 +221,7 @@ Because the local runtime reads the repo files and the Dynatrace agent reads the
 
 The local runtime has three properties the Dynatrace one does not. `dtctl` returns an envelope whose `metadata` feeds the local-only proof stamp. It can resolve its environment before it queries, from `dtctl config get-contexts`, which is what lets it refuse a context that is not `readonly` and pick the right `{{LINK_HOST}}` — the Dynatrace runtime learns its environment only from the `env` the opening query's rows carry. And it can write files, so the session close also renders an HTML report (`skills/local-runtime/SKILL.md` → "Report (local only)"); the Dynatrace agent has `execute-dql` and nothing else, so it has none.
 
-Local `/demo` reaches whichever environment the current context names, the `cloud-observability` showcase on `demo-live` included.
+Local `/demo` reaches whichever environment the current context names, the `kubernetes-complexity` showcase on `demo-live` included.
 
 Verify an incident's shape on several days before writing its reveal. The Playground's incidents change: the image slowdown looked like a failing-span story on one day and a pure-latency story on another, because one sampled failed span exists only on some days. Anchor the beats on what repeats every cycle.
 

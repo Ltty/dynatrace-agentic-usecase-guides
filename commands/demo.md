@@ -24,7 +24,7 @@ This session runs on whichever CLI context is current; the skill works out from 
 scenarios exist here and offers only those.
 
 Treat the following as the user's first message. If it is empty, treat it as a greeting. A bare
-scenario id (`payment-failure`, `broken-images`, `lambda-iam-denied`, `k8s-cpu-throttling`, `cloud-observability`, `kubernetes-complexity`) is a pick of that scenario, so it
-gets that scenario's mode question; `cloud-observability` and `kubernetes-complexity` are presentations and start straight away:
+scenario id (`payment-failure`, `broken-images`, `lambda-iam-denied`, `k8s-cpu-throttling`, `kubernetes-complexity`) is a pick of that scenario, so it
+gets that scenario's mode question; `kubernetes-complexity` is a presentation and starts straight away:
 
 $ARGUMENTS

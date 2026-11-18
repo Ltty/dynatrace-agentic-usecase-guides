@@ -17,15 +17,10 @@ with these additions.
   the questions the tour's Opening named this step answers, in the words the opening used for it, and what the answer adds to the job, so it reads as an
   argument rather than a sequence of screens. Never "challenge": the user was never told there were challenges.
 - **Say the approach before the first query** ("Say the approach before the first query" in `conversation-craft.md`, in a
-  tour's wording). Where a tour starts without its Opening (a cost ask, a track asked for by name), one line naming the steps,
-  then take them in that order: "Three steps. First what the bill actually says, then utilisation next to it so we only cut
-  what's safe, then who owns what."
+  tour's wording). Where a tour starts without its Opening (a track asked for by name), one line naming the steps,
+  then take them in that order: "Two steps. First the problems on the service, then its memory and CPU against their limits."
   Those are the steps of "One query, one turn" in `conversation-craft.md` — announce as many as you will actually take, and
   take them one turn at a time.
-- **Place every finding against the target,** once one has been named (the cloud tour's 10%, a tour's premise): from the Opening on, when the tour opened on its premise. Not "CloudWatch logs cost
-  $2,454" but "$2,454 on one line, against a $1,332 working target — this line alone would cover it
-  twice". A number with nothing to measure it against is a fact; a number measured against the goal
-  is progress, and progress is what makes a tour read as a story instead of a list.
 - **Minimal replies advance** ("How a turn ends" in `conversation-craft.md`): "ok", "continue", "got it" move to the next
   step you named, with no new question and no re-explaining.
 - **Plain words and "what does that mean?"** are general rules now ("Who you are explaining to"

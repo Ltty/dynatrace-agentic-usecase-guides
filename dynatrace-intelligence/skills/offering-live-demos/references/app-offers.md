@@ -11,13 +11,13 @@ the opening query returned a row for it on this environment (SKILL.md, step 2).
 | `dynatrace.users.sessions`, `dynatrace.experience.vitals`, `dynatrace.classic.session.replay` | `broken-images`, `payment-failure` |
 | `dynatrace.services`, `dynatrace.error.inspector` | `payment-failure`, `broken-images` |
 | `dynatrace.distributedtracing` | `payment-failure`, `broken-images`, `lambda-iam-denied`, `k8s-cpu-throttling` |
-| `dynatrace.clouds` | `lambda-iam-denied`, `cloud-observability`, `kubernetes-complexity` |
-| `dynatrace.biz.carbon`, `community.cloudsreagents` | `cloud-observability` |
-| `dynatrace.launcher` | `cloud-observability`, `kubernetes-complexity` |
-| `dynatrace.davis.problems` | `payment-failure`, `broken-images`, `lambda-iam-denied`, `k8s-cpu-throttling`, `cloud-observability`, `kubernetes-complexity` |
+| `dynatrace.clouds` | `lambda-iam-denied`, `kubernetes-complexity` |
+| `dynatrace.launcher` | `kubernetes-complexity` |
+| `dynatrace.davis.problems` | `payment-failure`, `broken-images`, `lambda-iam-denied`, `k8s-cpu-throttling`, `kubernetes-complexity` |
 
-`cloud-observability` and `kubernetes-complexity` are tours, showcases with no problem row of their own: each is
-offered where `session-protocol.md` lists it for the environment, not by a row.
+`kubernetes-complexity` is a tour, a showcase with no problem row of its own: it is offered where
+`session-protocol.md` lists it for the environment, not by a row. Cloud costs have no offer: Assist's own cost analysis
+answers them, so the cost-flavoured apps (`dynatrace.biz.carbon`, `community.cloudsreagents`) carry no row.
 
 **A tour replaces the incident it contains.** `kubernetes-complexity`'s troubleshoot track *is* `k8s-cpu-throttling`.
 Where a row lists both and the tour is available, offer the tour and not the incident: offering both makes the user

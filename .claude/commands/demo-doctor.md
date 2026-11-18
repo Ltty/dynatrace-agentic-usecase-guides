@@ -41,7 +41,7 @@ Run preflight checks for the Dynatrace Agentic Guides demo environment.
    ✅/❌ shape; each line is one published scenario:
    - ✅ **payment-failure** — P-261038 ACTIVE, 333 users (live_active)
    - ❌ **broken-images** — EMPTY, no live problem in the last 48h
-   - [SKIP] **cloud-observability** — not in this environment
+   - [SKIP] **kubernetes-complexity** — not in this environment
 
    A SKIP is not a failure: that scenario's data lives on another environment.
 
