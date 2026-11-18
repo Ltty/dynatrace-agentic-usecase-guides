@@ -129,31 +129,38 @@ and nothing blocks it. Blocks: an app button (nobody typed it), a one-word follo
 mid-task), cloud cost (Assist's own cost skill answers it). Orientation and demo requests are offered in any app. The rules are in
 `tools/assist_prompts.py` (`DEMO_RULES`, `demo_steps`), the verdicts in the queries `demo_fit` and `demo_fit_by_app`.
 
-**Rule verdicts, all interactive prompts, 30 days:**
+**Rule verdicts, all interactive prompts, 30 days, revised rules (after the first calibration):**
 
 | | demo-live (6,216) | playground (9,926) |
 |---|---|---|
-| Would get an offer (could and should) | 355 (5.7%) | 313 (3.2%) |
-| Fits a demo but blocked | 66 (1.1%) | 93 (0.9%), mostly pasted DQL |
-| No demo fit | 5,832 (94%), of which 1,134 are app buttons | ~9,465 (95%) |
+| Would get an offer (could and should) | 241 (3.9%): cause-seeking 166, Kubernetes sizing 19, payment 16, cloud-to-cluster 11, asked for a demo 29 | 236 (2.4%): cause-seeking 175, payment 25, Kubernetes sizing 21, asked for a demo 15 |
+| Fits a demo but blocked | 57 (0.9%) | 59 (0.6%), pasted DQL or mid-task |
+| No demo fit | about 5,900 (95%), of which 1,137 are app buttons | about 9,630 (97%) |
 
-**Calibration (demo-live only; playground prompts were never read by a model).** 261 unique prompts, drawn by rule verdict and
-shuffled, labelled by an independent model judge that did not see the rule labels (one judge, one pass, so a measured opinion, not user
-behaviour). Weighted back to the 4,491 unique typed prompts:
+**Calibration (demo-live only; playground prompts were never read by a model).** A judge model labelled prompts without seeing the rule
+labels (one judge, one pass per round: a measured opinion, not user behaviour), once on 261 prompts and again on 222 fresh ones. Weighted
+back to the 4,491 unique typed prompts. Intervals are 95%.
 
-- The judge says **about 756 could use a demo (17%) and about 511 should be offered one (11%)**: more than the rules' 310.
-- **Precision of the rules is 41%** (52% for "could"); **recall is 25%**. They are noisy on the wrong subjects and blind to the right ones.
-- By rule: incident-generic 64% should; payment-failure 48%; Kubernetes resources 36% (but only 20% agreed on *which* demo); cloud-to-cluster
-  33%, on 6 prompts; **Lambda and IAM 8%** (the words match unrelated questions); orientation and demo requests only **10%** (43% could):
-  the words "demo" and "tour" mostly appear in unrelated prompts.
-- What the rules miss (9 of 100 sampled prompts they rejected were should-offers) is almost all **incident-generic**: someone asking
-  why something is wrong, slow or failing, in words my keyword rules did not cover.
-- Strata of 25 or fewer prompts carry a wide margin (about 20 points); Kubernetes, cloud-to-cluster and images are too small to separate from noise.
+| | Round 1 (first rules) | Round 2 (revised rules) |
+|---|---|---|
+| Precision: the judge agrees an offer is right | 41% | **74%** (55-87%) |
+| Recall: the judge's offers the rules find | 25% | **23%** (12-36%) |
+| Judge says should be offered | ~511 (11%) | ~665 (15%) |
 
-**What this means for the triggers.** The reliable pattern is not a subject word but an **intent to find the cause of something that is
-wrong** (why is it slow or failing, what changed, root cause, analyse this error or slowdown), asked as a question and not as a task.
-Subject words (Lambda, IAM, "demo") are poor triggers. Demo-fit is about 11% of typed prompts, so the realistic reach is a few hundred
-prompts a month per tenant, not the 0.1 to 0.3% that orientation questions give.
+What changed between rounds: the rules now need a subject **and** a context or symptom, the Lambda rule needs permission-denied wording,
+the images rule is gone, a demo request must be an actual ask ("is there a demo", not the word "demo"), and DQL or authoring prompts count
+as mid-task. By rule in round 2: cause-seeking 78% should (63-88%), Kubernetes sizing and cloud-to-cluster 80% or more on 5 to 6 prompts
+each (too few to trust), payment 55% (28-79%), asked-for-a-demo only 33% (14-61%).
+
+**Recall did not move.** About 12% (7-18%) of the prompts the rules reject are ones the judge would offer on, roughly 500 unique prompts,
+mostly cause-seeking questions in wording the rules do not hold, plus a few Kubernetes sizing ones. Widening the keyword lists would cost the
+precision just gained. Small strata (25 prompts or fewer) and a single judge keep the margins wide.
+
+**What this means for the triggers.** The keyword rules are a precise, narrow filter: a floor for counting and for measuring. The wider set
+the judge sees (about 15% of typed prompts) is a matter of meaning: a person trying to find the cause of something that is wrong, or to
+size a Kubernetes workload, in any wording. Assist's own skill selection is exactly that kind of reader, so the deployed trigger should be
+the **intent described in words** (the judge's could and should definition), not a keyword list, and it has to be tested on labelled
+prompts. Subject words (Lambda, IAM, "demo") stay poor triggers.
 
 ## What this changes (both tenants agree)
 

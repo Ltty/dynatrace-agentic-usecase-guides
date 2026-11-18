@@ -54,7 +54,8 @@ SEED_INTENTS = [
         "what can this app do", "what can this page do", "how do i use this", "show me around",
         "how do i get started", "help me get started", "getting started", "get started", "where do i start",
         "where should i start", "explain this app", "explain this page", "overview of this app"], []),
-    ("asks_demo", ["demo", "tour", "walk me through", "show me an example", "show me what this can do"], []),
+    ("asks_demo", ["show me a demo", "give me a demo", "is there a demo", "live demo", "demo of", "can i see a demo", "guided tour",
+                   "walk me through", "take me through", "show me an example investigation"], []),
     ("assist_capabilities", ["what can you do", "how can you help", "what can you help", "what are you able"], []),
     ("problem_investigation", ["what's wrong", "whats wrong", "what is wrong", "any problems", "open problems",
                                 "root cause", "what changed", "why is", "why are", "failing", "outage", "slow"], []),
@@ -74,16 +75,25 @@ OPPORTUNITY_INTENTS = ["orientation", "asks_demo"]
 # words, stems match anywhere). The kubernetes demos need a Kubernetes word AND a subject word, so "limits" alone is not one.
 K8S_WORDS = ["kubernetes", "k8s", "pod", "pods", "container", "containers", "workload", "workloads", "deployment", "deployments",
              "namespace", "eks", "cluster", "clusters"]
+CAUSE_PHRASES = ["why is", "why are", "why did", "why does", "why do", "what is causing", "what's causing", "whats causing",
+                 "what caused", "what changed", "what went wrong", "find the cause", "figure out why", "investigate", "troubleshoot",
+                 "diagnose", "what happened to", "what happened with"]
+SYMPTOMS = ["slow", "slower", "slowdown", "latency", "error", "errors", "fail", "fails", "failed", "failing", "failure", "failures",
+            "outage", "down", "degraded", "timeout", "timeouts", "crash", "crashing", "broken", "spike", "spiking", "not working", "unavailable"]
 DEMO_RULES = [
-    ("k8s-resources", [["over-provisioned", "overprovisioned", "right-size", "rightsize", "throttled", "throttling", "oomkilled",
-                        "oomkill", "requests", "limits", "limit", "reclaim", "starved", "wasted", "wasting", "utilization"], K8S_WORDS]),
-    ("k8s-slowdown", [["slow", "slower", "slowdown", "latency", "response time", "degraded", "what changed", "throttling"],
-                      ["kubernetes", "k8s", "pod", "pods", "container", "workload", "deployment", "eks"]]),
+    # Calibration (demo-live, 2026-11-18): bare subject words were poor triggers, so each rule needs a subject AND a context or symptom.
+    ("k8s-resources", [["over-provisioned", "overprovisioned", "under-provisioned", "right-size", "rightsize", "right-sizing", "throttled",
+                        "throttling", "oomkilled", "oomkill", "memory limit", "memory limits", "cpu limit", "cpu limits",
+                        "requests and limits", "resource requests", "resource limits", "reclaim", "starved", "wasted", "wasting"], K8S_WORDS]),
     ("cloud-to-cluster", [["ec2", "aws resources", "cloud alert", "instance", "instances"],
                           ["kubernetes", "k8s", "node", "nodes", "cluster", "clusters", "eks"]]),
-    ("payment-failure", [["payment", "payments", "checkout", "credit card", "card payment", "transaction", "transactions"]]),
-    ("broken-images", [["image", "images"], ["slow", "missing", "broken", "loading", "load", "crawl", "crawling"]]),
-    ("lambda-iam", [["lambda", "iam", "dynamodb", "access denied", "permission denied", "accessdenied"]]),
+    ("payment-failure", [["payment", "payments", "checkout", "credit card", "card payment", "transaction", "transactions"], SYMPTOMS]),
+    ("lambda-iam", [["access denied", "permission denied", "accessdenied", "not authorized", "unauthorized", "forbidden"],
+                    ["lambda", "dynamodb", "iam", "role"]]),
+    # Cause-seeking: a symptom, asked as "why / what changed / what is causing". The subject word does not matter.
+    ("incident-generic", [CAUSE_PHRASES, SYMPTOMS]),
+    ("incident-generic", [["root cause", "what's wrong", "whats wrong", "what is wrong", "anything wrong", "any problems", "open problems",
+                           "what went wrong", "what changed"]]),
 ]
 FOLLOW_UPS = ["yes", "no", "ok", "okay", "continue", "thanks", "thank you", "sure", "go on", "next", "more"]
 # Why a prompt that fits a demo should still not be offered one.
@@ -148,6 +158,7 @@ def demo_steps() -> list[str]:
         f'| fieldsAdd blocked = if(blocked == "none" and in(q, {{{follow}}}), "follow_up", else: blocked)',
         f'| fieldsAdd blocked = if(blocked == "none" and ({dql}), "pasted_dql", else: blocked)',
         '| fieldsAdd blocked = if(blocked == "none" and intent == "cloud_cost", "cloud_cost_is_assists", else: blocked)',
+        '| fieldsAdd blocked = if(blocked == "none" and in(intent, {"dql_query", "authoring"}), "mid_task", else: blocked)',
         '| fieldsAdd fit = if(in(intent, {"orientation", "asks_demo"}), "offer: asked for orientation or a demo",'
         ' else: if(demo != "none" and blocked == "none", "offer: topical",'
         ' else: if(demo != "none", "fits a demo but blocked", else: "no demo fit")))',
