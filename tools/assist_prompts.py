@@ -69,6 +69,25 @@ SEED_INTENTS = [
     ("docs_howto", ["how do i", "how to", "documentation", "what is a", "what is the", "explain"], []),
 ]
 OPPORTUNITY_INTENTS = ["orientation", "asks_demo"]
+
+# Which demo a prompt's subject could be answered with. A rule matches when every group has a hit (phrases are whole
+# words, stems match anywhere). The kubernetes demos need a Kubernetes word AND a subject word, so "limits" alone is not one.
+K8S_WORDS = ["kubernetes", "k8s", "pod", "pods", "container", "containers", "workload", "workloads", "deployment", "deployments",
+             "namespace", "eks", "cluster", "clusters"]
+DEMO_RULES = [
+    ("k8s-resources", [["over-provisioned", "overprovisioned", "right-size", "rightsize", "throttled", "throttling", "oomkilled",
+                        "oomkill", "requests", "limits", "limit", "reclaim", "starved", "wasted", "wasting", "utilization"], K8S_WORDS]),
+    ("k8s-slowdown", [["slow", "slower", "slowdown", "latency", "response time", "degraded", "what changed", "throttling"],
+                      ["kubernetes", "k8s", "pod", "pods", "container", "workload", "deployment", "eks"]]),
+    ("cloud-to-cluster", [["ec2", "aws resources", "cloud alert", "instance", "instances"],
+                          ["kubernetes", "k8s", "node", "nodes", "cluster", "clusters", "eks"]]),
+    ("payment-failure", [["payment", "payments", "checkout", "credit card", "card payment", "transaction", "transactions"]]),
+    ("broken-images", [["image", "images"], ["slow", "missing", "broken", "loading", "load", "crawl", "crawling"]]),
+    ("lambda-iam", [["lambda", "iam", "dynamodb", "access denied", "permission denied", "accessdenied"]]),
+]
+FOLLOW_UPS = ["yes", "no", "ok", "okay", "continue", "thanks", "thank you", "sure", "go on", "next", "more"]
+# Why a prompt that fits a demo should still not be offered one.
+DQL_MARKS = [" | ", "fieldsadd", "summarize ", "| filter"]
 STOPWORDS = ["the", "and", "for", "with", "that", "this", "what", "can", "how", "are", "you", "from", "any", "does", "have",
              "not", "where", "all", "which", "there", "one", "but", "would", "could", "should", "when", "about", "only",
              "was", "were", "has", "had", "its", "our", "your", "their", "them", "then", "than", "into", "also", "more",
@@ -110,6 +129,32 @@ def intent_steps() -> list[str]:
     return steps
 
 
+def demo_steps() -> list[str]:
+    """demo = which demo the subject could be answered with; blocked = why it should not be offered anyway; fit = the verdict.
+
+    could  = the subject matches a demo (or the user asked for orientation or a demo).
+    should = could, and nothing blocks it: not an app button, not a one-word follow-up, not pasted DQL, not cloud cost.
+    """
+    steps = ['| fieldsAdd demo = "none"']
+    for name, groups in DEMO_RULES:
+        tests = ["(" + " or ".join(f"matchesPhrase(q, {_q(p)})" for p in group) + ")" for group in groups]
+        steps.append(f'| fieldsAdd demo = if(demo == "none" and {" and ".join(tests)}, {_q(name)}, else: demo)')
+    steps.append('| fieldsAdd demo = if(demo == "none" and intent == "problem_investigation", "incident-generic", else: demo)')
+    follow = ", ".join(_q(w) for w in FOLLOW_UPS)
+    dql = " or ".join(f"contains(q, {_q(m)})" for m in DQL_MARKS) + ' or startsWith(q, "fetch ")'
+    steps += [
+        '| fieldsAdd blocked = "none"',
+        '| fieldsAdd blocked = if(intent == "canned_ui_prompt", "app_button", else: blocked)',
+        f'| fieldsAdd blocked = if(blocked == "none" and in(q, {{{follow}}}), "follow_up", else: blocked)',
+        f'| fieldsAdd blocked = if(blocked == "none" and ({dql}), "pasted_dql", else: blocked)',
+        '| fieldsAdd blocked = if(blocked == "none" and intent == "cloud_cost", "cloud_cost_is_assists", else: blocked)',
+        '| fieldsAdd fit = if(in(intent, {"orientation", "asks_demo"}), "offer: asked for orientation or a demo",'
+        ' else: if(demo != "none" and blocked == "none", "offer: topical",'
+        ' else: if(demo != "none", "fits a demo but blocked", else: "no demo fit")))',
+    ]
+    return steps
+
+
 def base_dql() -> str:
     """Interactive prompts only (the template), with the question scrubbed and the open app parsed."""
     return "\n".join([
@@ -123,6 +168,7 @@ def base_dql() -> str:
         '| fieldsAdd open_app = coalesce(app_named, app_bare, "(none)")',
         f'| fieldsAdd q = {scrub_dql("question")}',
         *intent_steps(),
+        *demo_steps(),
         f'| fieldsAdd offered = contains(toString(response), {_q(OFFER_MARK)})',
     ])
 
@@ -167,6 +213,19 @@ def queries() -> dict[str, str]:
             '| filter users >= __K__',
             '| fieldsAdd offer_rate_pct = round(100.0 * offers / opportunities, decimals: 0)',
             '| sort opportunities desc',
+        ]),
+        "demo_fit": b + "\n" + "\n".join([
+            '| summarize prompts = count(), users = countDistinct(user_id), by: { fit, demo, blocked }',
+            '| filter users >= __K__',
+            '| sort prompts desc',
+            '| limit 60',
+        ]),
+        "demo_fit_by_app": b + "\n" + "\n".join([
+            '| filter fit == "offer: topical" or fit == "offer: asked for orientation or a demo"',
+            '| summarize prompts = count(), users = countDistinct(user_id), by: { demo, open_app }',
+            '| filter users >= __K__',
+            '| sort prompts desc',
+            '| limit 60',
         ]),
         "offer_leaks": b + "\n" + "\n".join([
             '| filter offered',
@@ -231,11 +290,23 @@ def _load_preflight():
 
 def run(pf, dql: str) -> list[dict]:
     one_line = " ".join(line.strip() for line in dql.splitlines() if line.strip() and not line.strip().startswith("//"))
-    _, out, err = pf.run_dtctl("query", one_line, "-o", "json", "--max-field-chars", "0", timeout=240)
+    _, out, err = pf.run_dtctl("query", one_line, "-o", "json", "--max-field-chars", "0",
+                               "--max-result-records", "60000", "--max-result-bytes", "80000000", timeout=300)
     envelope = pf.parse_envelope(out)
     if not (envelope and envelope.get("ok")):
         raise SystemExit(f"query failed: {(err or out)[:300]}")
-    return pf._flatten_records(envelope)
+    result = envelope.get("result", {})
+    if result.get("kind") != "result-file":
+        return pf._flatten_records(envelope)
+    # A big result is spilled by dtctl to a local JSONL file (constant columns left out). It can hold raw user ids and
+    # sits outside the repo, so read it once and delete it.
+    path = Path(result["path"])
+    constant = result.get("constant", {})
+    try:
+        with path.open(encoding="utf-8") as handle:
+            return [{**constant, **json.loads(line)} for line in handle if line.strip()]
+    finally:
+        path.unlink(missing_ok=True)
 
 
 def print_table(rows: list[dict]) -> None:
@@ -289,7 +360,7 @@ def cmd_fetch(args) -> int:
     os.environ["DTCTL_CONTEXT"] = args.tenant
     pf = _load_preflight()
     dql = base_dql().replace("__DAYS__", str(args.days)) + "\n" + "\n".join([
-        '| fields timestamp, conversation_id, user_id, route = skill, open_app, intent, q, offered',
+        '| fields timestamp, conversation_id, user_id, route = skill, open_app, intent, demo, blocked, fit, q, offered',
         '| sort timestamp asc',
         f'| limit {args.limit}',
     ])
@@ -305,7 +376,8 @@ def cmd_fetch(args) -> int:
             seen[conv] = seen.get(conv, 0) + 1
             record = {"ts": row.get("timestamp"), "conversation": conv, "user": pseudonym(str(row.get("user_id")), salt),
                       "turn": seen[conv], "route": row.get("route"), "open_app": row.get("open_app"),
-                      "intent": row.get("intent"), "question": scrub(str(row.get("q") or "")), "offered": row.get("offered")}
+                      "intent": row.get("intent"), "demo": row.get("demo"), "blocked": row.get("blocked"), "fit": row.get("fit"),
+                      "question": scrub(str(row.get("q") or "")), "offered": row.get("offered")}
             handle.write(json.dumps(record, ensure_ascii=False) + "\n")
     print(f"{len(rows)} rows -> {path} (scrubbed, user ids hashed with a one-run salt, no email; git-ignored)")
     return 0

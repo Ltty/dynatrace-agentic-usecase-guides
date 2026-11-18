@@ -1,4 +1,4 @@
-// assist-prompts / terms: counts only. Run in a Notebook on the tenant and send back the result table.
+// assist-prompts / demo_fit_by_app: counts only. Run in a Notebook on the tenant and send back the result table.
 // 30 days, rows shown only for at least 10 distinct users. Change both numbers on the first line and the filter.
 fetch dt.system.events, from: now()-30d, to: now()
 | filter event.kind == "GENAI_EVENT" and event.type == "GenAI Skill Invocation"
@@ -23,13 +23,23 @@ fetch dt.system.events, from: now()-30d, to: now()
 | fieldsAdd intent = if(intent == "other" and (matchesPhrase(q, "dql") or matchesPhrase(q, "query") or matchesPhrase(q, "fetch") or matchesPhrase(q, "timeseries") or matchesPhrase(q, "summarize")), "dql_query", else: intent)
 | fieldsAdd intent = if(intent == "other" and (matchesPhrase(q, "dashboard") or matchesPhrase(q, "notebook") or matchesPhrase(q, "create a") or matchesPhrase(q, "build a")), "authoring", else: intent)
 | fieldsAdd intent = if(intent == "other" and (matchesPhrase(q, "how do i") or matchesPhrase(q, "how to") or matchesPhrase(q, "documentation") or matchesPhrase(q, "what is a") or matchesPhrase(q, "what is the") or matchesPhrase(q, "explain")), "docs_howto", else: intent)
+| fieldsAdd demo = "none"
+| fieldsAdd demo = if(demo == "none" and (matchesPhrase(q, "over-provisioned") or matchesPhrase(q, "overprovisioned") or matchesPhrase(q, "right-size") or matchesPhrase(q, "rightsize") or matchesPhrase(q, "throttled") or matchesPhrase(q, "throttling") or matchesPhrase(q, "oomkilled") or matchesPhrase(q, "oomkill") or matchesPhrase(q, "requests") or matchesPhrase(q, "limits") or matchesPhrase(q, "limit") or matchesPhrase(q, "reclaim") or matchesPhrase(q, "starved") or matchesPhrase(q, "wasted") or matchesPhrase(q, "wasting") or matchesPhrase(q, "utilization")) and (matchesPhrase(q, "kubernetes") or matchesPhrase(q, "k8s") or matchesPhrase(q, "pod") or matchesPhrase(q, "pods") or matchesPhrase(q, "container") or matchesPhrase(q, "containers") or matchesPhrase(q, "workload") or matchesPhrase(q, "workloads") or matchesPhrase(q, "deployment") or matchesPhrase(q, "deployments") or matchesPhrase(q, "namespace") or matchesPhrase(q, "eks") or matchesPhrase(q, "cluster") or matchesPhrase(q, "clusters")), "k8s-resources", else: demo)
+| fieldsAdd demo = if(demo == "none" and (matchesPhrase(q, "slow") or matchesPhrase(q, "slower") or matchesPhrase(q, "slowdown") or matchesPhrase(q, "latency") or matchesPhrase(q, "response time") or matchesPhrase(q, "degraded") or matchesPhrase(q, "what changed") or matchesPhrase(q, "throttling")) and (matchesPhrase(q, "kubernetes") or matchesPhrase(q, "k8s") or matchesPhrase(q, "pod") or matchesPhrase(q, "pods") or matchesPhrase(q, "container") or matchesPhrase(q, "workload") or matchesPhrase(q, "deployment") or matchesPhrase(q, "eks")), "k8s-slowdown", else: demo)
+| fieldsAdd demo = if(demo == "none" and (matchesPhrase(q, "ec2") or matchesPhrase(q, "aws resources") or matchesPhrase(q, "cloud alert") or matchesPhrase(q, "instance") or matchesPhrase(q, "instances")) and (matchesPhrase(q, "kubernetes") or matchesPhrase(q, "k8s") or matchesPhrase(q, "node") or matchesPhrase(q, "nodes") or matchesPhrase(q, "cluster") or matchesPhrase(q, "clusters") or matchesPhrase(q, "eks")), "cloud-to-cluster", else: demo)
+| fieldsAdd demo = if(demo == "none" and (matchesPhrase(q, "payment") or matchesPhrase(q, "payments") or matchesPhrase(q, "checkout") or matchesPhrase(q, "credit card") or matchesPhrase(q, "card payment") or matchesPhrase(q, "transaction") or matchesPhrase(q, "transactions")), "payment-failure", else: demo)
+| fieldsAdd demo = if(demo == "none" and (matchesPhrase(q, "image") or matchesPhrase(q, "images")) and (matchesPhrase(q, "slow") or matchesPhrase(q, "missing") or matchesPhrase(q, "broken") or matchesPhrase(q, "loading") or matchesPhrase(q, "load") or matchesPhrase(q, "crawl") or matchesPhrase(q, "crawling")), "broken-images", else: demo)
+| fieldsAdd demo = if(demo == "none" and (matchesPhrase(q, "lambda") or matchesPhrase(q, "iam") or matchesPhrase(q, "dynamodb") or matchesPhrase(q, "access denied") or matchesPhrase(q, "permission denied") or matchesPhrase(q, "accessdenied")), "lambda-iam", else: demo)
+| fieldsAdd demo = if(demo == "none" and intent == "problem_investigation", "incident-generic", else: demo)
+| fieldsAdd blocked = "none"
+| fieldsAdd blocked = if(intent == "canned_ui_prompt", "app_button", else: blocked)
+| fieldsAdd blocked = if(blocked == "none" and in(q, {"yes", "no", "ok", "okay", "continue", "thanks", "thank you", "sure", "go on", "next", "more"}), "follow_up", else: blocked)
+| fieldsAdd blocked = if(blocked == "none" and (contains(q, " | ") or contains(q, "fieldsadd") or contains(q, "summarize ") or contains(q, "| filter") or startsWith(q, "fetch ")), "pasted_dql", else: blocked)
+| fieldsAdd blocked = if(blocked == "none" and intent == "cloud_cost", "cloud_cost_is_assists", else: blocked)
+| fieldsAdd fit = if(in(intent, {"orientation", "asks_demo"}), "offer: asked for orientation or a demo", else: if(demo != "none" and blocked == "none", "offer: topical", else: if(demo != "none", "fits a demo but blocked", else: "no demo fit")))
 | fieldsAdd offered = contains(toString(response), "Try a live demo")
-| filter intent != "canned_ui_prompt"
-| fieldsAdd term = splitString(q, " ")
-| expand term
-| filter stringLength(term) >= 3 and not contains(term, "<")
-| filter not in(term, {"the", "and", "for", "with", "that", "this", "what", "can", "how", "are", "you", "from", "any", "does", "have", "not", "where", "all", "which", "there", "one", "but", "would", "could", "should", "when", "about", "only", "was", "were", "has", "had", "its", "our", "your", "their", "them", "then", "than", "into", "also", "more", "some", "such", "these", "those", "will", "just", "like", "need", "want", "get", "got", "see", "use", "using", "please", "tell", "give", "show", "given", "following", "provide", "detailed", "instructions.", "why", "who", "is", "it", "in", "on", "of", "to", "do", "me", "my", "we", "us", "be", "or", "an", "at", "as", "by", "if", "so"})
-| summarize users = countDistinct(user_id), prompts = count(), by: { term }
+| filter fit == "offer: topical" or fit == "offer: asked for orientation or a demo"
+| summarize prompts = count(), users = countDistinct(user_id), by: { demo, open_app }
 | filter users >= 10
-| sort users desc
-| limit 150
+| sort prompts desc
+| limit 60

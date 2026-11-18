@@ -122,6 +122,39 @@ dashboard, problem, host, error. Kubernetes terms are far down.
 **What exists to offer on playground.** Only the incidents: `payment-failure`, `broken-images`, `lambda-iam-denied`,
 `k8s-cpu-throttling`. The Kubernetes tour is demo-live only, so a Kubernetes trigger there offers the throttling incident.
 
+## Which prompts could and should get "do you want a demo?" (every interactive prompt, scored)
+
+The question is asked of each prompt, not of a topic. **Could**: a demo's subject matches what the person asks. **Should**: could,
+and nothing blocks it. Blocks: an app button (nobody typed it), a one-word follow-up ("yes", "continue"), pasted DQL (they are
+mid-task), cloud cost (Assist's own cost skill answers it). Orientation and demo requests are offered in any app. The rules are in
+`tools/assist_prompts.py` (`DEMO_RULES`, `demo_steps`), the verdicts in the queries `demo_fit` and `demo_fit_by_app`.
+
+**Rule verdicts, all interactive prompts, 30 days:**
+
+| | demo-live (6,216) | playground (9,926) |
+|---|---|---|
+| Would get an offer (could and should) | 355 (5.7%) | 313 (3.2%) |
+| Fits a demo but blocked | 66 (1.1%) | 93 (0.9%), mostly pasted DQL |
+| No demo fit | 5,832 (94%), of which 1,134 are app buttons | ~9,465 (95%) |
+
+**Calibration (demo-live only; playground prompts were never read by a model).** 261 unique prompts, drawn by rule verdict and
+shuffled, labelled by an independent model judge that did not see the rule labels (one judge, one pass, so a measured opinion, not user
+behaviour). Weighted back to the 4,491 unique typed prompts:
+
+- The judge says **about 756 could use a demo (17%) and about 511 should be offered one (11%)**: more than the rules' 310.
+- **Precision of the rules is 41%** (52% for "could"); **recall is 25%**. They are noisy on the wrong subjects and blind to the right ones.
+- By rule: incident-generic 64% should; payment-failure 48%; Kubernetes resources 36% (but only 20% agreed on *which* demo); cloud-to-cluster
+  33%, on 6 prompts; **Lambda and IAM 8%** (the words match unrelated questions); orientation and demo requests only **10%** (43% could):
+  the words "demo" and "tour" mostly appear in unrelated prompts.
+- What the rules miss (9 of 100 sampled prompts they rejected were should-offers) is almost all **incident-generic**: someone asking
+  why something is wrong, slow or failing, in words my keyword rules did not cover.
+- Strata of 25 or fewer prompts carry a wide margin (about 20 points); Kubernetes, cloud-to-cluster and images are too small to separate from noise.
+
+**What this means for the triggers.** The reliable pattern is not a subject word but an **intent to find the cause of something that is
+wrong** (why is it slow or failing, what changed, root cause, analyse this error or slowdown), asked as a question and not as a task.
+Subject words (Lambda, IAM, "demo") are poor triggers. Demo-fit is about 11% of typed prompts, so the realistic reach is a few hundred
+prompts a month per tenant, not the 0.1 to 0.3% that orientation questions give.
+
 ## What this changes (both tenants agree)
 
 - **Orientation-only triggers reach about 0.1 to 0.3% of traffic** (demo-live 0.3%, playground 0.1%). The current design is right but
