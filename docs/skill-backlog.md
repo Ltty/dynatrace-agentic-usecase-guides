@@ -178,6 +178,20 @@ The hosted path was run with no command-line access at all, to prove the Dynatra
 the same opening: it surveyed, read `env` off the rows, ran the bill probe as a second query and
 narrated the same reply with the same $13,320.
 
+## Done in the repo, 2026-11-18 (Kubernetes tour added, cloud tour retired; deployed to demo-live)
+
+From the KubeCon booth demo and a colleague's report (testrun-20):
+- `touring-demo-showcases` (renamed from `touring-cloud-observability`) now holds one tour, `kubernetes-complexity`: the
+  complexity-wall opening, the estate per cluster, a starved and a bloated workload, EKS nodes to EC2 and a cloud alert
+  ruled in or out. Its troubleshoot track hands into `k8s-cpu-throttling`, whose agent step also shows the workflow run.
+- The cloud tour is removed. Its description and the demo-agent's routing claimed cloud-cost asks, so Assist ran our
+  script instead of `dt-biz-cloud-costs`. The demo-agent now redirects a cost ask in character, with the CTO question to
+  ask Assist. Why and how to restore: `docs/scenarios/cloud-observability.md`.
+- Resources track: per-container series, 30 days of hourly maxima for the starved workload, and `avg()` summed per
+  workload for requests, because `timeseries sum()` multiplies a request by the samples in the bucket (`dql-reference.md`).
+- In-app offers show the Kubernetes tour instead of the incident it contains; the cost apps offer nothing.
+- Cost evals deleted; `cost-redirect-demo-live` and `offer-none-cost-app-demo-live` added.
+
 ## Open
 
 - **Deep links on demo-live have not been opened in a browser.** `--links` resolves all of them for
@@ -197,9 +211,10 @@ narrated the same reply with the same $13,320.
   agent still serves the previous upload. The new `opening-availability-live` and the rewritten
   `greeting` are unvalidated.
 
-- **cloud-observability:** open the seven deep links in the browser (none opened yet; `--links` prints the Extra's as "Beat 7"); run the three
-  `demo-live` eval cases (`--local --tenant demo-live --include-draft`) and add one for the "do not shrink" peak; decide whether the deployed
-  `demo-agent` goes to `guu84124` (it runs DQL on its own tenant only).
+- **cloud-observability:** retired 2026-11-18, nothing to do (see the entry above `## Open`).
+- **kubernetes-complexity:** open the five deep links in the browser (the easytrade-db StatefulSet one is inferred, not
+  copied); run each `k8s-tour-*` case three times (`--local --tenant demo-live --include-draft`, or in-session); one full
+  `/demo` session through all three tracks and the close; ask the reporter to retry their CTO prompt in plain Assist.
 
 - **Deep links, testrun 14:** confirmed in the apps by the user, 2026-10-20: Error Inspector loads with a relative window
   (`tf=now-<N>h%3Bnow` plus the same parameters; payment and images), and Distributed Tracing loads with an absolute ISO
