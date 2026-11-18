@@ -40,7 +40,8 @@ with no text before them or between them, and the first thing the user reads is 
 2. **Match.** The scenarios offered are the row's scenarios that returned a row of their own. The tour has no
    row: it is offered only when some returned row's `env` is one that lists it (`kubernetes-complexity`) in that
    file's "Environments" table. Where the Kubernetes tour is offered, the
-   Kubernetes incident is not (`references/app-offers.md` → "A tour replaces the incident it contains"). Nothing matches: no offer, no mention of demos, no "there is no live demo for this", no apology.
+   Kubernetes incident is not (`references/app-offers.md` → "A tour replaces the incident it contains"). That choice is
+   made silently and never mentioned. Nothing matches: no offer, no mention of demos, no "there is no live demo for this", no apology.
 3. **Write the answer, then the offer.** Open on the answer to the user's question, as Assist normally would: the first
    sentence is about the app, for example "The Kubernetes app gives you a unified view of your Kubernetes estate."
    Never open on, or write anywhere, a word about skills, lookups, queries, rows or which scenario matched. The offer
@@ -85,6 +86,9 @@ with no text before them or between them, and the first thing the user reads is 
 - **Work silently.** No line before the lookups, none between them, and none that explains the answer: not "let me
   run the opening query", not "the Kubernetes app maps to a scenario that has a row". The user's first words are the
   answer to their question, and the offer is its last block.
+- **Never narrate a choice.** Which scenario was offered instead of another, that one replaces another, which
+  environment this is and why: none of it is said, before the answer or after. A line such as "the environment lists
+  X, so I offer Y" is the failure this rule exists for; the user hears only the app's answer and the offer.
 - **Stay in the app's lane.** Offer only the scenarios in the open app's row, even when others are live.
 - **The offer is not the demo.** No investigation, figure or finding appears in it beyond the hook. The hand-over
   starts the investigation.
