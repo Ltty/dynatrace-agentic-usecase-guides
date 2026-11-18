@@ -119,6 +119,23 @@ def test_the_query_pack_is_in_step_with_the_module():
     assert on_disk == set(ap.pack_files()), on_disk ^ set(ap.pack_files())
 
 
+def test_sampling_individual_prompts_needs_the_explicit_clearance_flag():
+    class Args:
+        tenant = "playground"; days = 30; nofit_mod = 55; offer_mod = 2; cleared = False
+    assert raises_exit(ap.cmd_sample, Args())
+
+
+def test_the_sample_query_never_selects_a_person_a_conversation_or_a_time():
+    dql = ap.sample_dql(55, 2, 30)
+    final = dql.split("| fields ")[-1].splitlines()[0]
+    for forbidden in ("user_id", "user.email", "conversation_id", "timestamp", "user_input", "response", "question"):
+        assert forbidden not in final, (forbidden, final)
+    assert "<email>" in dql and "<url>" in dql and "<id>" in dql, "prompts holding a placeholder must be dropped"
+    assert "limit" in dql
+    for pattern in guard.DQL_WRITE_PATTERNS:
+        assert not re.search(pattern, dql, re.IGNORECASE), pattern
+
+
 def main() -> int:
     failed = 0
     for name, fn in sorted((n, f) for n, f in globals().items() if n.startswith("test_") and callable(f)):

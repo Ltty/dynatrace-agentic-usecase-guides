@@ -366,6 +366,59 @@ def pseudonym(user_id: str, salt: str) -> str:
     return hashlib.sha256((salt + user_id).encode("utf-8")).hexdigest()[:12]
 
 
+SAMPLE_MAX = 300
+SAMPLE_QCHARS = 200
+
+
+def sample_dql(nofit_mod: int, offer_mod: int, days: int) -> str:
+    """A thin, quasi-random sample, drawn inside the tenant so only the sampled rows leave it.
+
+    Returns scrubbed question text and the rule labels. It never selects a user, a conversation or a time. A prompt that kept a
+    placeholder for an email, a url or an id is dropped whole: whatever it referred to may identify someone.
+    """
+    return base_dql().replace("__DAYS__", str(days)) + "\n" + "\n".join([
+        '| filter intent != "canned_ui_prompt"',
+        '| filter not contains(q, "<email>") and not contains(q, "<url>") and not contains(q, "<id>") and stringLength(q) >= 3',
+        '| fieldsAdd h = toLong(timestamp) / 1000000',
+        f'| filter (fit == "no demo fit" and h % {int(nofit_mod)} == 0) or (fit != "no demo fit" and h % {int(offer_mod)} == 0)',
+        '| fields open_app, fit, demo, blocked, intent, q',
+        f'| limit {SAMPLE_MAX * 2}',
+    ])
+
+
+def cmd_sample(args) -> int:
+    """Individual scrubbed prompts for a judge. Needs --cleared: for a tenant with outside users this reads customers' wording."""
+    if not args.cleared:
+        raise SystemExit("error: sample reads individual prompts. Pass --cleared only once the data-protection sign-off for "
+                         "analysing this tenant's individual prompts is confirmed.")
+    os.environ["DTCTL_CONTEXT"] = args.tenant
+    pf = _load_preflight()
+    rows = run(pf, sample_dql(args.nofit_mod, args.offer_mod, args.days))
+    seen: set[str] = set()
+    picked = []
+    for row in rows:
+        q = scrub(str(row.get("q") or ""))[:SAMPLE_QCHARS]
+        if len(q) < 3 or q in seen or "<" in q:
+            continue
+        seen.add(q)
+        picked.append((row, q))
+    picked = picked[:SAMPLE_MAX]
+    out_dir = FETCH_DIR / args.tenant
+    out_dir.mkdir(parents=True, exist_ok=True)
+    rng = secrets.SystemRandom()
+    rng.shuffle(picked)
+    sample_path, key_path = out_dir / "judge-sample.jsonl", out_dir / "judge-key.jsonl"
+    with sample_path.open("w", encoding="utf-8", newline="\n") as sample, key_path.open("w", encoding="utf-8", newline="\n") as key:
+        for number, (row, q) in enumerate(picked, 1):
+            sid = f"p{number:03d}"
+            sample.write(json.dumps({"id": sid, "open_app": row.get("open_app"), "question": q}, ensure_ascii=False) + "\n")
+            key.write(json.dumps({"id": sid, "fit": row.get("fit"), "demo": row.get("demo"), "blocked": row.get("blocked"),
+                                  "intent": row.get("intent")}) + "\n")
+    print(f"{len(picked)} prompts -> {out_dir / 'judge-sample.jsonl'} (no user, conversation or time; truncated to "
+          f"{SAMPLE_QCHARS} characters). Delete judge-sample.jsonl once judged: the key holds no text.")
+    return 0
+
+
 def cmd_fetch(args) -> int:
     check_fetch_allowed(args.tenant)
     os.environ["DTCTL_CONTEXT"] = args.tenant
@@ -410,8 +463,14 @@ def main(argv: list[str]) -> int:
     fetch.add_argument("--tenant", default="demo-live")
     fetch.add_argument("--days", type=int, default=30)
     fetch.add_argument("--limit", type=int, default=50000)
+    sample = sub.add_parser("sample", help="a thin sample of scrubbed prompts for a judge; needs --cleared")
+    sample.add_argument("--tenant", required=True)
+    sample.add_argument("--days", type=int, default=30)
+    sample.add_argument("--nofit-mod", type=int, default=55, help="keep 1 in N of the prompts that fit no demo")
+    sample.add_argument("--offer-mod", type=int, default=2, help="keep 1 in N of the prompts that fit a demo")
+    sample.add_argument("--cleared", action="store_true", help="the data-protection sign-off for individual prompts is confirmed")
     args = parser.parse_args(argv[1:])
-    return {"report": cmd_report, "pack": cmd_pack, "fetch": cmd_fetch}[args.cmd](args)
+    return {"report": cmd_report, "pack": cmd_pack, "fetch": cmd_fetch, "sample": cmd_sample}[args.cmd](args)
 
 
 if __name__ == "__main__":

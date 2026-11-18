@@ -162,6 +162,33 @@ size a Kubernetes workload, in any wording. Assist's own skill selection is exac
 the **intent described in words** (the judge's could and should definition), not a keyword list, and it has to be tested on labelled
 prompts. Subject words (Lambda, IAM, "demo") stay poor triggers.
 
+### Playground calibration (2026-11-18, on the owner's instruction)
+
+Unlike everything above, this step had a model read **individual** playground prompts. It was done only because it was asked for
+explicitly after the limits were stated, and as narrowly as the job allows (`assist_prompts.py sample --cleared`): a thin
+quasi-random sample drawn inside the tenant (**211 prompts**, 132 from the rejected group and 79 the revised rules would offer on or
+block), scrubbed text of at most 200 characters, **no user, conversation or time**, and any prompt that kept a placeholder for an
+email, url or id dropped. The judge was told the prompts are confidential and to quote nothing. The file holding the text was deleted
+after judging; what remains locally (git-ignored) is the labels and the rule labels, with no prompt text.
+
+| | demo-live (round 2) | playground |
+|---|---|---|
+| Precision: the judge agrees an offer is right | 74% (55-87%) | **45% (28-64%)** |
+| Recall: the judge's offers the rules find | 23% (12-36%) | **24% (8-52%)** |
+| Judge says should be offered, of typed prompts | ~15% | **~5%** (~440 of ~8,800) |
+| Cause-seeking rule: should | 78% (63-88%) | 47% (33-61%) |
+| Payment rule: should | 55% (28-79%) | 62% (31-86%), 8 prompts |
+
+Readings, with the caveat that each margin is wide (8 to 45 prompts per stratum, one judge, one pass):
+
+- **The rules tuned on internal users overstate the fit for customers.** Playground users ask fewer "what is wrong" questions and
+  more DQL and documentation questions, and the same wording means something else. A trigger written from demo-live data would
+  over-offer there.
+- **Demand is about a third of demo-live's**: roughly 5% of typed prompts, a few hundred a month, and about 1 in 2 of the rules' offers
+  would be right.
+- Kubernetes sizing and cloud-to-cluster have 2 to 6 labelled prompts each on playground: no conclusion either way.
+- What the rules still miss is small there (5 of 132 rejected prompts were judged offer-worthy).
+
 ## What this changes (both tenants agree)
 
 - **Orientation-only triggers reach about 0.1 to 0.3% of traffic** (demo-live 0.3%, playground 0.1%). The current design is right but
@@ -180,4 +207,4 @@ prompts. Subject words (Lambda, IAM, "demo") stay poor triggers.
 
 Clustering the unmatched half; the trigger table (`offering-live-demos/references/triggers.md`) and its evals; the app-repo change
 that would put the skill on playground; re-measuring seven days after the next deploy (demo-live) and after the app-repo change
-ships (playground).
+ships (playground). Playground has been judged once (above); a second round on revised rules is still to do.
