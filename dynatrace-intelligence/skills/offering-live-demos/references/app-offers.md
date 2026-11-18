@@ -12,7 +12,7 @@ the opening query returned a row for it on this environment (SKILL.md, step 2).
 | `dynatrace.services`, `dynatrace.error.inspector` | `payment-failure`, `broken-images` |
 | `dynatrace.distributedtracing` | `payment-failure`, `broken-images`, `lambda-iam-denied`, `k8s-cpu-throttling` |
 | `dynatrace.clouds` | `lambda-iam-denied`, `kubernetes-complexity` |
-| `dynatrace.launcher` | `kubernetes-complexity` |
+| `dynatrace.launcher` (the Home page) | `kubernetes-complexity` |
 | `dynatrace.davis.problems` | `payment-failure`, `broken-images`, `lambda-iam-denied`, `k8s-cpu-throttling`, `kubernetes-complexity` |
 
 `kubernetes-complexity` is a tour, a showcase with no problem row of its own: it is offered where

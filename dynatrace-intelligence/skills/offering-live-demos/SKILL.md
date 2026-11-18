@@ -1,12 +1,12 @@
 ---
 name: offering-live-demos
 description: >
-  Adds one live-demo offer to Dynatrace Assist's answer when the user opens a Dynatrace app and asks what
-  they can do there, what the app is for, how to get started or to be shown something, and a matching problem
+  Adds one live-demo offer to Dynatrace Assist's answer when the user opens a Dynatrace app, or is on the Home
+  page (the main or start page), and asks what they can do there, what the app is for, how to get started or to be shown something, and a matching problem
   is live on this environment. Use when the open app is one of dynatrace.kubernetes, dynatrace.infraops,
   dynatrace.users.sessions, dynatrace.experience.vitals, dynatrace.classic.session.replay, dynatrace.services,
-  dynatrace.error.inspector, dynatrace.distributedtracing, dynatrace.clouds, dynatrace.launcher or
-  dynatrace.davis.problems, and the question is about the app
+  dynatrace.error.inspector, dynatrace.distributedtracing, dynatrace.clouds, dynatrace.launcher (the Home
+  page) or dynatrace.davis.problems, and the question is about the app or page
   itself ("What can I do here?", "What is this app for?", "Show me what this can do"). Not for questions about
   the user's own data in the app, and not for writing code or DQL.
 ---
@@ -31,7 +31,8 @@ Example questions this skill handles:
 **Text you write between tool calls is shown to the user as it is written.** So all the lookups below finish first,
 with no text before them or between them, and the first thing the user reads is the answer.
 
-1. **Look up, in silence.** Read `references/app-offers.md` and
+1. **Look up, in silence.** The Home page (also called the main page, start page or Launcher) is the app
+   `dynatrace.launcher`: treat it as the open app even when no app ID is given. Read `references/app-offers.md` and
    `/resources/documents/skills/investigating-demo-incidents/references/session-protocol.md` ("Session state") in one
    batch. The open app has no row: you are done looking up. Run no query and make no offer. Otherwise run the opening
    query from `session-protocol.md` with the DQL tool that skill names, once per conversation; a conversation that
