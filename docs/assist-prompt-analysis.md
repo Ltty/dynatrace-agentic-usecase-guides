@@ -192,9 +192,10 @@ Readings, with the caveat that each margin is wide (8 to 45 prompts per stratum,
 ## The triggers, written and tested (2026-11-18)
 
 The offer skill now has two triggers instead of one, written as **meanings**, not keywords (`offering-live-demos/references/triggers.md`,
-description in `SKILL.md`): `T-orient` (what can I do here, in the Home page and the listed apps), and `T-cause` / `T-k8s-sizing` in any
-app (why is it slow or failing, what changed, root cause, investigate or analyse a problem, or Kubernetes workloads starved or
-over-provisioned). A shared "never offer when" list covers preset button prompts, mid-task prompts (writing or fixing a query,
+description in `SKILL.md`): `T-orient` (what can I do here, on the Home page and in the listed apps) and `T-cause` in any app (why is it slow or
+failing, what changed, root cause, investigate or analyse a problem). A Kubernetes sizing trigger was written and then removed: the
+Kubernetes tour's description already claims those questions and Assist answers them in the tour's format, so the two skills
+competed and the agent picked the tour (found by an in-session eval). A shared "never offer when" list covers preset button prompts, mid-task prompts (writing or fixing a query,
 dashboard or configuration), one-word replies, documentation questions and cloud costs, and an offer is made at most once per
 conversation, after the answer. The examples in the file are synthetic.
 

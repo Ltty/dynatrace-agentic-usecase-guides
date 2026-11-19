@@ -1,0 +1,26 @@
+id: k8s-tour-sizing-anywhere-demo-live
+tenant: demo-live
+runs: 3
+status: draft
+open_app: dynatrace.notebooks
+description: >-
+  DRAFT. A Kubernetes sizing question asked in any app belongs to the Kubernetes tour, whose description claims it, not to the
+  offer skill. Assist answers it in the tour's format: the tour's resources step, with the CPU reserved against used, in
+  millicores, and the scenario never named. No separate "Try a live demo" block follows, because the answer already is the demo.
+  (Two skills used to claim this question and the agent picked the tour and skipped the offer.)
+turns:
+- ask: Which of my Kubernetes workloads request far more CPU than they actually use?
+  expect:
+    reads_include:
+    - touring-demo-showcases/SKILL.md
+    - scenario-kubernetes-complexity.md
+    requires_dql: true
+    reply_contains_any:
+    - millicore
+    - "m of CPU"
+    reply_excludes:
+    - Try a live demo
+    - kubernetes-complexity
+    - k8s-cpu-throttling
+    - demo-live
+    - "$"

@@ -1,0 +1,35 @@
+id: offer-trigger-cause-demo-live
+tenant: demo-live
+runs: 3
+status: draft
+forbid: false
+open_app: dynatrace.dashboards
+description: >-
+  DRAFT. T-cause fires in any app, not only a listed one: a user in Dashboards asks why something slowed down and what
+  changed. The question is answered first, in full, as Assist normally would, and the answer ends in one offer block. The
+  offer names no scenario, environment or lookup, and the user's own wording is the synthetic prompt below, not a real one.
+  The runner's persona-wide phrase ban (for example "I can't") is switched off: this is a neutral Assist answering a data question, and
+  "I can't tell you what changed" is an honest answer there. The checks that matter stay as explicit exclusions.
+turns:
+- ask: Why did response time on the checkout service jump this morning, and what changed around then?
+  expect:
+    reads_include:
+    - offering-live-demos/SKILL.md
+    - triggers.md
+    requires_dql: true
+    reply_contains:
+    - Try a live demo
+    - want me to
+    reply_excludes:
+    - let me run
+    - the environment lists
+    - opening query
+    - has a row
+    - maps to
+    - the skill
+    - kubernetes-complexity
+    - k8s-cpu-throttling
+    - payment-failure
+    - lambda-iam-denied
+    - demo-live
+    - playground

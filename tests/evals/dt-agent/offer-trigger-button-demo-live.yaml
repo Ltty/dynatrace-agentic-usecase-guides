@@ -1,0 +1,27 @@
+id: offer-trigger-button-demo-live
+tenant: demo-live
+runs: 3
+status: draft
+forbid: false
+open_app: dynatrace.davis.problems
+description: >-
+  DRAFT. The preset behind the Problems app's "ask Assist" button was not typed: the user started a task with a click, so no
+  offer follows its answer, although it is about a problem and would otherwise fit T-cause.
+  The problem id must be a real recent one: with an id that does not exist the agent has nothing to answer and the case passes for
+  the wrong reason. Replace P-123456 with a closed problem from `fetch dt.davis.problems` before each run.
+  The runner's persona-wide phrase ban (for example "I can't") is switched off: this is a neutral Assist answering a data question, and
+  "I can't tell you what changed" is an honest answer there. The checks that matter stay as explicit exclusions.
+turns:
+- ask: Explain what happened in the problem P-123456, why it happened, and actionable steps to remediate it.
+  expect:
+    reply_excludes:
+    - opening query
+    - has a row
+    - maps to
+    - the skill
+    - let me run
+    - the environment lists
+    - Try a live demo
+    - live demo
+    - walk you through
+    - want me to show you

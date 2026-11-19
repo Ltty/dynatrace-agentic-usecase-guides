@@ -145,6 +145,14 @@ The Playground token needs `ai:operator:execute`, `mcp-gateway:servers:read` and
 - **The table is the contract.** `references/app-offers.md` lists the scenarios each app offers. `tools/tests/test_app_offers.py` fails when a scenario's beat links name an app with no row for it, when a row names an unknown scenario, and when the SKILL.md description and the table name different apps. The description is what triggers the skill, so every app ID is in it.
 - **No live problem, no offer, no mention.** The skill reads the incidents skill's opening query by path and matches its rows to the app's row. The cloud tour has no row: it is offered only where `session-protocol.md` lists it for the environment.
 - **Adding an app:** a row in the table and the ID in the description, then the test.
+- **Triggers are meanings, written down.** `references/triggers.md` holds the triggers (`T-orient` in the listed apps and Home; `T-cause` in any
+  app; Kubernetes sizing questions belong to the tour's own description, not to a trigger here), the shared "never offer when" list (preset button prompts, a user mid-task, one-word replies, documentation,
+  cloud costs) and synthetic examples. The description must stay at or under 1,024 characters and the test checks it. They were derived and
+  tested from real prompts: `docs/assist-prompt-analysis.md` has the method, the numbers and how the description was tested as a selector.
+- **Changing a trigger.** Test the description as a selector on labelled prompts before and after (a neutral Assist per message), on prompts
+  you did not tune against; widening the wording did not help last time. Re-measure from the live prompts seven days after a deploy with
+  `python tools/assist_prompts.py report` (offers shown, leaks, offer rate). Never commit a real prompt: the analysis tool is aggregate-only
+  outside the internal tenant, and its `sample` command needs `--cleared`.
 - **Testing it.** A case's `open_app` becomes a context line on its first turn (the QuickStart skills key on "the open app is ..." the same way), and `run_dt_evals.py --local --assist` (or the in-session subagent with `tools/local_agent.assist_system()` as its prompt) runs a neutral Assist that picks skills by description alone, so the test covers whether the description triggers, not only what happens after. How Assist really passes the open app is not verified: check it in the UI on dev (Infrastructure & Operations, "What can I do here?").
 
 ## Test

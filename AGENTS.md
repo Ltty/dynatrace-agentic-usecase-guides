@@ -108,6 +108,9 @@ Adding a scenario: `docs/AUTHORING.md`.
 - `python tools/run_dt_evals.py --tenant dev|playground|demo-live` — the `demo-agent` behaviour cases (3 runs each,
   scripted assertions, ground-truth numbers); writes a review sheet
 - `python tools/preflight.py check` — connectivity/auth/safety-level gate on the current context (what `/demo-doctor` runs)
+- `python tools/assist_prompts.py report|pack|fetch|sample` — what people ask Assist, from the GenAI events in `dt.system.events`: counts only
+  (rows need 10 distinct users outside `demo-live`), a `.dql` query pack for a tenant admin, a scrubbed local export for `demo-live` only, and a
+  guarded `sample` (needs `--cleared`). The prompts are other people's text: never commit one. Method and numbers: `docs/assist-prompt-analysis.md`
 - `python tools/preflight.py env` — the current environment and its link host
 - `python tools/preflight.py login [<environment>]` — browser OAuth for one environment
 - `python tools/preflight.py preflight` — is each scenario's problem live?

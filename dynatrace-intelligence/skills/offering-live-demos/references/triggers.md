@@ -7,7 +7,9 @@ made at most once per conversation, and only when `SKILL.md` step 2 finds a live
 |---|---|---|---|
 | `T-orient` | asking what they can do here, what this app or page is for, how to get started, or to be shown something or given a demo | the Home page and the apps in `references/app-offers.md` | the open app's row there |
 | `T-cause` | trying to find the cause of something that is wrong: asking why it is slow, failing or erroring, what changed, what is causing it, its root cause, or asking you to investigate, analyze or explain a problem, failure or slowdown | any app | the live incidents: one named, several as a list; the Kubernetes tour in place of the throttling incident where the tour exists |
-| `T-k8s-sizing` | asking whether Kubernetes workloads are starved, wasted or over-provisioned, how to right-size them, or about throttling and limits | any app | the Kubernetes tour where it exists, else the throttling incident |
+**Kubernetes sizing is not a trigger here.** A question about starved, wasted or over-provisioned workloads, right-sizing, throttling or
+limits belongs to the Kubernetes tour, whose own description claims it: Assist answers it in the tour's format, which is the demo. Two
+skills claiming the same question made the agent pick the tour and skip the offer, so this skill leaves it alone.
 
 A trigger is a **meaning**, not a keyword. "Why is checkout slow since the release?" and "can you work out what is making the cart
 fail" are both `T-cause`; a question that merely contains the word "error" is not.
@@ -64,21 +66,3 @@ Do not offer:
 - Why is the sky blue? (not about the environment)
 - What is a root cause analysis in Dynatrace? (documentation)
 - Why are my cloud costs higher this month? (cloud costs)
-
-### T-k8s-sizing
-
-Offer:
-
-- Which of my workloads are requesting far more CPU than they use?
-- Is any of my Kubernetes workloads running out of memory because of its limit?
-- How do I right-size the pods in this namespace?
-- Why is this pod being throttled when the node is idle?
-- Are we wasting capacity on over-provisioned deployments?
-
-Do not offer:
-
-- What is the default CPU limit for a pod? (documentation)
-- Create a dashboard of pod memory usage. (mid-task)
-- How much do our Kubernetes clusters cost? (cloud costs)
-- Show me the list of namespaces. (a lookup with no problem in it)
-- Yes, go ahead. (a reply)
